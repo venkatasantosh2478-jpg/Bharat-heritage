@@ -191,17 +191,18 @@ async function startServer() {
       if (Array.isArray(messages) && messages.length > 0) {
         const formatted: Array<{ role: string; parts: Array<{ text: string }> }> = [];
 
-        for (const m of messages) {
+        // Exclude the very last message if it's identical to prompt, to prevent duplication
+        const historyMessages = messages.slice(0, -1);
+
+        for (const m of historyMessages) {
           const text = String(m.text || m.content || "").trim();
           if (!text) continue;
           const role = m.role === "assistant" || m.role === "model" ? "model" : "user";
 
-          // The first turn in Gemini multi-turn chat MUST be from 'user'
           if (formatted.length === 0 && role === "model") {
             continue;
           }
 
-          // If consecutive turns have the same role, combine text to maintain alternating turns
           if (formatted.length > 0 && formatted[formatted.length - 1].role === role) {
             formatted[formatted.length - 1].parts[0].text += `\n${text}`;
           } else {
@@ -209,20 +210,16 @@ async function startServer() {
           }
         }
 
-        // Ensure current prompt is included in the conversation
-        if (prompt && String(prompt).trim()) {
-          const cleanPrompt = String(prompt).trim();
-          if (formatted.length === 0) {
-            formatted.push({ role: "user", parts: [{ text: cleanPrompt }] });
-          } else {
-            const last = formatted[formatted.length - 1];
-            if (last.role === "user") {
-              if (last.parts[0].text !== cleanPrompt) {
-                last.parts[0].text += `\n${cleanPrompt}`;
-              }
-            } else {
-              formatted.push({ role: "user", parts: [{ text: cleanPrompt }] });
+        // Always push the current prompt as the definitive final user turn
+        const cleanPrompt = String(prompt || "").trim();
+        if (cleanPrompt) {
+          if (formatted.length > 0 && formatted[formatted.length - 1].role === "user") {
+            // Avoid duplicate if already last
+            if (!formatted[formatted.length - 1].parts[0].text.endsWith(cleanPrompt)) {
+              formatted[formatted.length - 1].parts[0].text += `\n${cleanPrompt}`;
             }
+          } else {
+            formatted.push({ role: "user", parts: [{ text: cleanPrompt }] });
           }
         }
 
