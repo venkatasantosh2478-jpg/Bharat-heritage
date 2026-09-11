@@ -292,6 +292,7 @@ export default function Translator() {
               </h1>
               <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
                 Translate with authentic native scripts, phonetic guides, offline phrasebooks and downloadable language learning eBooks.
+                <a href="/translate" target="_blank" rel="noopener noreferrer" className="ml-2 text-primary underline font-medium">Open in New Window</a>
               </p>
             </div>
 

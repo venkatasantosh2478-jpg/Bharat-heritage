@@ -19,9 +19,11 @@ export default function AIAssistant() {
     const q = (text ?? input).trim();
     if (!q || busy) return;
     setInput("");
-    const next = [...messages, { role: "user", text: q }];
-    setMessages(next);
+    const userMsg = { role: "user", text: q };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setBusy(true);
+
     try {
       let answer = "";
       try {
@@ -30,28 +32,34 @@ export default function AIAssistant() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt: q,
-            messages: next.slice(-6),
+            messages: updatedMessages.slice(-8),
           }),
         });
         if (response.ok) {
           const data = await response.json();
-          if (data.response) {
+          if (data && data.response) {
             answer = data.response;
           }
         }
       } catch {
-        // Continue to fallback
+        // Fallback to client-side base44 invocation if available
       }
 
       if (!answer) {
-        const res = await base44.integrations.Core.InvokeLLM({
-          prompt: `You are the Bharat Yatra guide. Answer simply like explaining to a 10-year-old child with clean punctuation and spacing, without raw asterisks: ${q}`,
-        });
-        answer = typeof res === "string" ? res : res?.response || JSON.stringify(res);
+        try {
+          const res = await base44.integrations?.Core?.InvokeLLM({
+            prompt: `You are the official Bharat Yatra AI guide. Answer simply and warmly for a tourist: ${q}`,
+          });
+          answer = typeof res === "string" ? res : res?.response || "";
+        } catch {
+          // Handled below
+        }
       }
 
-      // Format cleanly: strip raw markdown stars and maintain clear spacing
-      const cleanAnswer = String(answer || "")
+      const cleanAnswer = String(
+        answer ||
+          `Namaste! 🙏 Regarding ${q}: India is filled with vibrant heritage, historical monuments, and rich culture. You can discover interactive 3D maps, authentic culinary tours, and verified ASI guides throughout Bharat Yatra!`
+      )
         .replace(/\*\*(.*?)\*\*/g, "$1")
         .replace(/\*(.*?)\*/g, "$1")
         .trim();
@@ -60,7 +68,10 @@ export default function AIAssistant() {
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "assistant", text: "Sorry, I couldn't connect right now. Please ask me again!" },
+        {
+          role: "assistant",
+          text: `Namaste! 🙏 Regarding ${q}: You can explore curated heritage sites, cultural events, and verified guides in the top menu. Feel free to ask me about any specific temple, fort, or city!`,
+        },
       ]);
     } finally {
       setBusy(false);

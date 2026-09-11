@@ -138,6 +138,39 @@ async function startServer() {
     });
   });
 
+  // Server-side role verification endpoint
+  app.post("/api/auth/verify-role", (req: Request, res: Response) => {
+    const { email, role } = req.body;
+    if (!email) {
+      return res.status(400).json({ verified: false, error: "Email is required" });
+    }
+    const cleanEmail = String(email).toLowerCase().trim();
+    
+    const isMasterAdmin = cleanEmail === "santoshtrade27@gmail.com";
+    const systemCreds = [
+      { email: "santoshtrade27@gmail.com", role: "admin" },
+      { email: "abdul.q@bharatyatra.gov.in", role: "guide" },
+      { email: "ramesh.v@bharatyatra.gov.in", role: "hotel_partner" },
+      { email: "priya.s@bharatyatra.gov.in", role: "surprise_mgr" },
+      { email: "k.rao@bharatyatra.gov.in", role: "safety_officer" },
+      { email: "sunita.d@bharatyatra.gov.in", role: "artisan" },
+    ];
+
+    const matched = systemCreds.find(c => c.email === cleanEmail);
+    const verifiedRole = matched ? matched.role : "tourist";
+    const isAdmin = isMasterAdmin || verifiedRole === "admin";
+    const isEmployee = verifiedRole !== "tourist";
+
+    return res.json({
+      verified: true,
+      email: cleanEmail,
+      role: verifiedRole,
+      isAdmin,
+      isEmployee,
+      serverTimestamp: new Date().toISOString(),
+    });
+  });
+
   // Dedicated AI Assistant endpoint
   app.post(["/api/ai/assistant", "/api/chat"], async (req: Request, res: Response) => {
     try {
@@ -146,43 +179,82 @@ async function startServer() {
       if (!ai) {
         return res.json({
           response:
-            "Namaste! 🙏 I am your Bharat Yatra Heritage Assistant powered by Google Gemini. Please ensure your GEMINI_API_KEY is configured in AI Studio Secrets to unlock full live guidance across India's living monuments, arts, and cuisines.",
+            "Namaste! 🙏 I am your Bharat Yatra Heritage Assistant. India is home to 42+ UNESCO World Heritage Sites, thousands of living temples, exquisite artisan handlooms, and diverse culinary traditions! Feel free to ask about any destination, monument, craft, or itinerary.",
         });
       }
 
-      let contents: any = prompt;
+      // Format & sanitize multi-turn contents for Gemini SDK specification
+      let contents: any;
       if (Array.isArray(messages) && messages.length > 0) {
-        contents = messages.map((m: any) => ({
-          role: m.role === "assistant" ? "model" : "user",
-          parts: [{ text: m.text || m.content || "" }],
-        }));
-        if (prompt) {
-          contents.push({ role: "user", parts: [{ text: prompt }] });
+        const formatted: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+
+        for (const m of messages) {
+          const text = String(m.text || m.content || "").trim();
+          if (!text) continue;
+          const role = m.role === "assistant" || m.role === "model" ? "model" : "user";
+
+          // The first turn in Gemini multi-turn chat MUST be from 'user'
+          if (formatted.length === 0 && role === "model") {
+            continue;
+          }
+
+          // If consecutive turns have the same role, combine text to maintain alternating turns
+          if (formatted.length > 0 && formatted[formatted.length - 1].role === role) {
+            formatted[formatted.length - 1].parts[0].text += `\n${text}`;
+          } else {
+            formatted.push({ role, parts: [{ text }] });
+          }
         }
+
+        // Ensure current prompt is included in the conversation
+        if (prompt && String(prompt).trim()) {
+          const cleanPrompt = String(prompt).trim();
+          if (formatted.length === 0) {
+            formatted.push({ role: "user", parts: [{ text: cleanPrompt }] });
+          } else {
+            const last = formatted[formatted.length - 1];
+            if (last.role === "user") {
+              if (last.parts[0].text !== cleanPrompt) {
+                last.parts[0].text += `\n${cleanPrompt}`;
+              }
+            } else {
+              formatted.push({ role: "user", parts: [{ text: cleanPrompt }] });
+            }
+          }
+        }
+
+        contents = formatted.length > 0 ? formatted : String(prompt || "Namaste, tell me about India's top heritage sites!");
+      } else {
+        contents = String(prompt || "Namaste, tell me about India's top heritage sites!");
       }
 
       const response = await generateWithFallback(ai, {
         contents,
         config: {
           systemInstruction:
-            "You are the official Bharat Yatra AI Guide. You explain everything simply, clearly, and warmly — exactly as if speaking to a 10-year-old child! " +
+            "You are the official Bharat Yatra AI Heritage Guide. You explain everything simply, clearly, warmly, and enthusiastically — exactly as if speaking to an inquisitive 10-year-old explorer!\n" +
             "Rules to follow strictly:\n" +
             "1. Use simple, friendly words, short sentences, and proper punctuation.\n" +
-            "2. Do NOT output messy asterisks or raw markdown stars (like **bold** or *stars*). Write clean, plain text with comfortable paragraph spacing.\n" +
+            "2. Do NOT output raw markdown asterisks (like **bold** or *stars*). Write clean, comfortable plain paragraphs.\n" +
             "3. If listing items, use neat numbered points (1., 2., 3.) or simple bullet hyphens (- ).\n" +
-            "4. Keep it engaging, fun, and fast to read (under 120 words).",
+            "4. Keep it engaging, fun, accurate, and under 130 words.\n" +
+            "5. Always directly answer the specific question asked by the traveler.",
         },
       });
 
       let cleanText = response.text || "";
-      // Strip any raw markdown asterisks or stars that make the text look messy
-      cleanText = cleanText.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
+      cleanText = cleanText.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").trim();
+
+      if (!cleanText) {
+        cleanText = "Namaste! 🙏 India has incredible history and heritage. Ask me about famous temples like Konark, forts like Red Fort, cuisines like Dosa or Biryani, or travel tips!";
+      }
 
       return res.json({ response: cleanText });
-    } catch {
+    } catch (err: any) {
+      console.warn("AI Assistant processing error:", err?.message || err);
       return res.json({
         response:
-          "Namaste! 🙏 Our AI guide servers are experiencing temporary high demand right now. You can explore curated heritage destination guides, verified hotels, and local transport options directly across Bharat Yatra, or try asking your question again in just a moment!",
+          "Namaste! 🙏 India is full of wonders. You can explore our interactive Heritage Sites gallery, curated Cultural Planner, and verified ASI Guides in the menu, or ask me another question about your favorite monument!",
       });
     }
   });

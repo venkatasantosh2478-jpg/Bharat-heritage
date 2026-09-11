@@ -168,14 +168,14 @@ export default function Login() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-xs font-bold text-foreground">1-Click Test Credentials</span>
+              <span className="text-xs font-bold text-foreground">1-Click Test Credentials & Role Switcher</span>
             </div>
             <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider bg-muted px-2 py-0.5 rounded-full">
-              Demo Access
+              Instant Access
             </span>
           </div>
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Click any designated role below to auto-fill and test authentication instantly:
+            Click any designated role below to auto-fill credentials and test any employee or admin dashboard instantly:
           </p>
           <div className="grid grid-cols-2 gap-2 pt-1">
             {getSystemCredentials().map((cred) => (

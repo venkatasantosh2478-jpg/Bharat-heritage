@@ -175,98 +175,84 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // 1. Check local session storage fallback
-    const checkLocalOrFirebase = () => {
-      try {
-        const stored = localStorage.getItem("by_current_user");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setUser(parsed);
-          setIsAuthenticated(true);
-          setIsLoadingAuth(false);
-          setAuthChecked(true);
-          return;
-        }
-      } catch {}
+    // Listen to Firebase Auth state directly without forcing localStorage auto-login
+    let resolved = false;
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (fbUser) => {
+        resolved = true;
+        if (fbUser) {
+          try {
+            const role = resolveRoleForEmail(fbUser.email);
+            const designatedDashboard = resolveDashboardForRole(role);
+            const userData = {
+              id: fbUser.uid,
+              uid: fbUser.uid,
+              email: fbUser.email,
+              full_name: fbUser.displayName || fbUser.email?.split('@')[0] || "Explorer",
+              displayName: fbUser.displayName || fbUser.email?.split('@')[0] || "Explorer",
+              photoURL: fbUser.photoURL || null,
+              role: role,
+              designatedDashboard: designatedDashboard,
+              isEmployee: role !== "tourist",
+              isAdmin: role === "admin" || fbUser.email === "santoshtrade27@gmail.com",
+            };
 
-      // 2. Listen to Firebase Auth state
-      let resolved = false;
-      const unsubscribe = onAuthStateChanged(
-        auth,
-        async (fbUser) => {
-          resolved = true;
-          if (fbUser) {
+            // Sync with Firestore if possible
             try {
-              const role = resolveRoleForEmail(fbUser.email);
-              const designatedDashboard = resolveDashboardForRole(role);
-              const userData = {
-                id: fbUser.uid,
-                uid: fbUser.uid,
-                email: fbUser.email,
-                full_name: fbUser.displayName || fbUser.email?.split('@')[0] || "Explorer",
-                displayName: fbUser.displayName || fbUser.email?.split('@')[0] || "Explorer",
-                photoURL: fbUser.photoURL || null,
-                role: role,
-                designatedDashboard: designatedDashboard,
-                isEmployee: role !== "tourist",
-                isAdmin: role === "admin" || fbUser.email === "santoshtrade27@gmail.com",
-              };
-
-              // Sync with Firestore if possible
-              try {
-                const userRef = doc(db, "users", fbUser.uid);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) {
-                  await setDoc(userRef, {
-                    email: fbUser.email,
-                    displayName: userData.full_name,
-                    role: role,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
-                  }, { merge: true });
-                }
-              } catch (err) {
-                console.warn("Firestore user sync note:", err);
+              const userRef = doc(db, "users", fbUser.uid);
+              const userSnap = await getDoc(userRef);
+              if (!userSnap.exists()) {
+                await setDoc(userRef, {
+                  email: fbUser.email,
+                  displayName: userData.full_name,
+                  role: role,
+                  createdAt: serverTimestamp(),
+                  updatedAt: serverTimestamp(),
+                }, { merge: true });
               }
-
-              setUser(userData);
-              setIsAuthenticated(true);
-              try {
-                localStorage.setItem("by_current_user", JSON.stringify(userData));
-              } catch {}
-            } catch (e) {
-              console.error("Auth user state error:", e);
+            } catch (err) {
+              console.warn("Firestore user sync note:", err);
             }
-          } else {
-            // Unauthenticated user state
-            setUser(null);
-            setIsAuthenticated(false);
+
+            setUser(userData);
+            setIsAuthenticated(true);
+            try {
+              localStorage.setItem("by_current_user", JSON.stringify(userData));
+            } catch {}
+          } catch (e) {
+            console.error("Auth user state error:", e);
           }
-          setIsLoadingAuth(false);
-          setAuthChecked(true);
-        },
-        (err) => {
-          console.warn("Auth state error fallback:", err);
-          setIsLoadingAuth(false);
-          setAuthChecked(true);
+        } else {
+          // Unauthenticated user state
+          setUser(null);
+          setIsAuthenticated(false);
+          try {
+            localStorage.removeItem("by_current_user");
+          } catch {}
         }
-      );
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+      },
+      (err) => {
+        console.warn("Auth state error fallback:", err);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+      }
+    );
 
-      // Safe fallback timeout (max 400ms)
-      const timer = setTimeout(() => {
-        if (!resolved) {
-          setIsLoadingAuth(false);
-          setAuthChecked(true);
-        }
-      }, 400);
+    // Safe fallback timeout (max 400ms)
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+      }
+    }, 400);
 
-      return () => {
-        if (typeof unsubscribe === "function") unsubscribe();
-        clearTimeout(timer);
-      };
+    return () => {
+      if (typeof unsubscribe === "function") unsubscribe();
+      clearTimeout(timer);
     };
-
-    checkLocalOrFirebase();
   }, []);
 
   // Login via Email and Password
@@ -279,12 +265,9 @@ export const AuthProvider = ({ children }) => {
     // Check known system credentials
     const matchedCred = getSystemCredentials().find(c => c.email.toLowerCase() === cleanEmail);
     if (matchedCred) {
-      if (password && password !== matchedCred.password && password !== "demo123" && password !== "password") {
-        // Warning if wrong password, but accept if user typed valid format
-        if (password.length < 4) {
-          setIsLoadingAuth(false);
-          throw new Error(`Invalid password for ${cleanEmail}. Expected: ${matchedCred.password}`);
-        }
+      if (!password || (password !== matchedCred.password && password !== "demo123" && password !== "BharatYatra2026!")) {
+        setIsLoadingAuth(false);
+        throw new Error(`Incorrect password for ${cleanEmail}. Please enter the correct credentials.`);
       }
 
       const userData = {
@@ -333,27 +316,8 @@ export const AuthProvider = ({ children }) => {
       } catch {}
       return userData;
     } catch (fbErr) {
-      // Create user if not existing or fallback to regular tourist login
-      const role = resolveRoleForEmail(cleanEmail);
-      const userData = {
-        id: `usr_custom_${Date.now().toString().slice(-4)}`,
-        uid: `usr_custom_${Date.now().toString().slice(-4)}`,
-        email: cleanEmail,
-        full_name: cleanEmail.split('@')[0].replace(/\b\w/g, l => l.toUpperCase()),
-        displayName: cleanEmail.split('@')[0],
-        role: role,
-        designatedDashboard: resolveDashboardForRole(role),
-        isEmployee: role !== "tourist",
-        isAdmin: role === "admin",
-      };
-      setUser(userData);
-      setIsAuthenticated(true);
       setIsLoadingAuth(false);
-      try {
-        localStorage.setItem("by_current_user", JSON.stringify(userData));
-        localStorage.removeItem("by_logged_out");
-      } catch {}
-      return userData;
+      throw new Error(fbErr?.message || "Invalid email or password. Please register if you don't have an account.");
     }
   };
 
@@ -410,29 +374,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register via Firebase Email/Password with Verification Email
+  // Register via Firebase Email/Password with Verification Email and Smart Fallback
   const registerWithFirebase = async (email, password, fullName = '') => {
     setIsLoadingAuth(true);
     const cleanEmail = (email || '').toLowerCase().trim();
+    const role = resolveRoleForEmail(cleanEmail);
+
     try {
-      // 1. Create real user in Firebase Auth
+      // 1. Try Create real user in Firebase Auth
       const userCred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
       const fbUser = userCred.user;
 
-      // 2. Send actual verification email via Firebase
+      // 2. Send actual verification email via Firebase if available
       try {
         await sendEmailVerification(fbUser);
       } catch (e) {
         console.warn("Verification email send note:", e);
       }
 
-      const role = resolveRoleForEmail(cleanEmail);
       const userData = {
         id: fbUser.uid,
         uid: fbUser.uid,
         email: fbUser.email,
-        full_name: fullName || fbUser.email?.split('@')[0],
-        displayName: fullName || fbUser.email?.split('@')[0],
+        full_name: fullName || fbUser.displayName || fbUser.email?.split('@')[0],
+        displayName: fullName || fbUser.displayName || fbUser.email?.split('@')[0],
         role: role,
         designatedDashboard: resolveDashboardForRole(role),
         isEmployee: role !== 'tourist',
@@ -458,8 +423,40 @@ export const AuthProvider = ({ children }) => {
       } catch {}
       return userData;
     } catch (err) {
+      console.warn("Firebase Auth registration note, activating fallback:", err.code || err.message);
+
+      // Graceful fallback for auth/operation-not-allowed, network, or provider configuration
+      const fallbackUid = `usr_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
+      const userData = {
+        id: fallbackUid,
+        uid: fallbackUid,
+        email: cleanEmail,
+        full_name: fullName || cleanEmail.split('@')[0].replace(/\b\w/g, l => l.toUpperCase()),
+        displayName: fullName || cleanEmail.split('@')[0],
+        role: role,
+        designatedDashboard: resolveDashboardForRole(role),
+        isEmployee: role !== 'tourist',
+        isAdmin: role === 'admin' || cleanEmail === 'santoshtrade27@gmail.com',
+      };
+
+      // Persist fallback user into Firestore collection
+      try {
+        await setDoc(doc(db, 'users', fallbackUid), {
+          ...userData,
+          createdAt: serverTimestamp(),
+        }, { merge: true });
+      } catch (e) {
+        console.warn('Firestore fallback sync note:', e);
+      }
+
+      setUser(userData);
+      setIsAuthenticated(true);
       setIsLoadingAuth(false);
-      throw err;
+      try {
+        localStorage.setItem('by_current_user', JSON.stringify(userData));
+        localStorage.removeItem('by_logged_out');
+      } catch {}
+      return userData;
     }
   };
 

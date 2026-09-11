@@ -13,6 +13,8 @@ import { toast } from "@/components/ui/use-toast";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Register() {
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,12 +34,12 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      // Create real account in Firebase Auth and send actual verification email to user inbox
-      const newUser = await registerWithFirebase(email, password);
+      // Create real account in Firebase Auth and send verification
+      const newUser = await registerWithFirebase(email, password, fullName, phone);
       
       toast({
-        title: "Account Created & Verification Email Sent!",
-        description: `A verification link was sent to ${email}. Check your inbox!`,
+        title: "Account Created Successfully!",
+        description: `Welcome to Bharat Yatra, ${fullName || email}!`,
       });
 
       const target = safeReturnTo();
@@ -236,6 +238,36 @@ export default function Register() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
+          <Label htmlFor="fullName">Full Name</Label>
+          <div className="relative">
+            <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Input
+              id="fullName"
+              type="text"
+              autoFocus
+              placeholder="e.g. Aarav Sharma"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="pl-10 h-12"
+              required
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="phone">Mobile Number</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-bold">🇮🇳 +91</span>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="98765 43210"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="pl-16 h-12"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
@@ -243,7 +275,6 @@ export default function Register() {
               id="email"
               type="email"
               autoComplete="email"
-              autoFocus
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

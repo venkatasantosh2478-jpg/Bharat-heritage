@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   ArrowRight, MapPin, Map as MapIcon, Star, Camera, 
   Video, User, Users, UsersRound, X, ShieldAlert 
@@ -83,6 +83,49 @@ export default function Home() {
   const [products, setProducts] = useState(staticProducts);
   const [sites, setSites] = useState(heritageSites);
   const { t } = useI18n();
+
+  const loadPlaces = useCallback(() => {
+    try {
+      const saved = localStorage.getItem("by-admin-entity-places");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSites(parsed);
+          return;
+        }
+      }
+    } catch {}
+    setSites(heritageSites);
+  }, []);
+
+  const loadFoods = useCallback(() => {
+    try {
+      const saved = localStorage.getItem("by-admin-entity-foods");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setFoods(parsed);
+          return;
+        }
+      }
+    } catch {}
+    setFoods(staticFoods);
+  }, []);
+
+  const loadProducts = useCallback(() => {
+    try {
+      const saved = localStorage.getItem("by-admin-entity-products") || localStorage.getItem("by-artisan-products");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+          return;
+        }
+      }
+    } catch {}
+    setProducts(staticProducts);
+  }, []);
+
   useEffect(() => {
     try {
       const c = localStorage.getItem("by-site-config");
@@ -94,78 +137,42 @@ export default function Home() {
       }
     } catch {}
 
-    const loadPlaces = () => {
-      try {
-        const saved = localStorage.getItem("by-admin-entity-places");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setSites(parsed);
-            return;
-          }
-        }
-      } catch {}
-      setSites(heritageSites);
-    };
-
-    const loadFoods = () => {
-      try {
-        const saved = localStorage.getItem("by-admin-entity-foods");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setFoods(parsed);
-            return;
-          }
-        }
-      } catch {}
-      setFoods(staticFoods);
-    };
-
-    const loadProducts = () => {
-      try {
-        const saved = localStorage.getItem("by-admin-entity-products") || localStorage.getItem("by-artisan-products");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setProducts(parsed);
-            return;
-          }
-        }
-      } catch {}
-      setProducts(staticProducts);
-    };
-
     loadPlaces();
     loadFoods();
     loadProducts();
 
-    // Fetch from base44 backend if available and has items
-    base44.entities.Place.list("-created_date", 20).then((list) => {
-      if (list && list.length) {
-        const formatted = list.map((p) => ({
-          id: p.id, name: p.name, state: p.state, tag: p.tag,
-          image: p.image, description: p.description, wiki: p.wiki, youtube: p.youtube,
-        }));
-        setSites(formatted);
-        localStorage.setItem("by-admin-entity-places", JSON.stringify(formatted));
-      }
-    }).catch(() => {});
+    // Fetch from base44 backend only if local storage is empty
+    if (!localStorage.getItem("by-admin-entity-places")) {
+      base44.entities.Place.list("-created_date", 20).then((list) => {
+        if (list && list.length) {
+          const formatted = list.map((p) => ({
+            id: p.id, name: p.name, state: p.state, tag: p.tag,
+            image: p.image, description: p.description, wiki: p.wiki, youtube: p.youtube,
+          }));
+          setSites(formatted);
+          localStorage.setItem("by-admin-entity-places", JSON.stringify(formatted));
+        }
+      }).catch(() => {});
+    }
 
-    base44.entities.Food.list("-created_date", 20).then((list) => {
-      if (list && list.length) {
-        setFoods(list);
-        localStorage.setItem("by-admin-entity-foods", JSON.stringify(list));
-      }
-    }).catch(() => {});
+    if (!localStorage.getItem("by-admin-entity-foods")) {
+      base44.entities.Food.list("-created_date", 20).then((list) => {
+        if (list && list.length) {
+          setFoods(list);
+          localStorage.setItem("by-admin-entity-foods", JSON.stringify(list));
+        }
+      }).catch(() => {});
+    }
 
-    base44.entities.Product.list("-created_date", 20).then((list) => {
-      if (list && list.length) {
-        setProducts(list);
-        localStorage.setItem("by-admin-entity-products", JSON.stringify(list));
-        localStorage.setItem("by-artisan-products", JSON.stringify(list));
-      }
-    }).catch(() => {});
+    if (!localStorage.getItem("by-admin-entity-products") && !localStorage.getItem("by-artisan-products")) {
+      base44.entities.Product.list("-created_date", 20).then((list) => {
+        if (list && list.length) {
+          setProducts(list);
+          localStorage.setItem("by-admin-entity-products", JSON.stringify(list));
+          localStorage.setItem("by-artisan-products", JSON.stringify(list));
+        }
+      }).catch(() => {});
+    }
 
     window.addEventListener("by-places-updated", loadPlaces);
     window.addEventListener("by-foods-updated", loadFoods);
@@ -176,7 +183,7 @@ export default function Home() {
       window.removeEventListener("by-foods-updated", loadFoods);
       window.removeEventListener("by-products-updated", loadProducts);
     };
-  }, []);
+  }, [loadPlaces, loadFoods, loadProducts]);
   return (
     <div>
       {/* Hero */}
@@ -186,7 +193,7 @@ export default function Home() {
           <Image
             src={currentHeroImage}
             alt="Red Fort, Delhi"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-center"
             fittingType="fill"
           />
         ) : (
@@ -194,23 +201,28 @@ export default function Home() {
             {heroVideoUrl ? (
               <HeroVideo src={heroVideoUrl} />
             ) : (
-              <iframe
-                className="w-full h-full pointer-events-none scale-125"
-                src={`https://www.youtube.com/embed/${heroVideo}?autoplay=1&mute=1&controls=0&modestbranding=1&playsinline=1&rel=0&loop=1&playlist=${heroVideo}`}
-                title="Heritage India"
-                allow="autoplay; encrypted-media; fullscreen"
-                frameBorder="0"
-              />
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+                <iframe
+                  className="w-[300vw] h-[168.75vw] min-w-full min-h-full sm:w-[177.78vh] sm:h-[100vh] pointer-events-none object-cover aspect-video"
+                  src={`https://www.youtube.com/embed/${heroVideo}?autoplay=1&mute=1&controls=0&modestbranding=1&playsinline=1&rel=0&loop=1&playlist=${heroVideo}`}
+                  title="Heritage India"
+                  allow="autoplay; encrypted-media; fullscreen"
+                  frameBorder="0"
+                />
+              </div>
             )}
           </div>
         )}
 
-        {/* Readability Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-stone-950/70 via-stone-950/50 to-stone-950/85 pointer-events-none z-[2]" />
+        {/* Readability Gradient Overlay — only in photo mode for text contrast */}
+        {media === "photo" && (
+          <div className="absolute inset-0 bg-gradient-to-b from-stone-950/75 via-stone-950/50 to-stone-950/85 pointer-events-none z-[2]" />
+        )}
 
         {/* Top Media Mode Toggle (Photo / Video) */}
-        <div className="absolute top-4 right-4 z-20 flex items-center gap-1 p-1 rounded-full bg-stone-900/80 backdrop-blur-md border border-stone-700/60 text-stone-200 text-xs font-medium shadow-xl">
+        <div className="absolute top-4 right-4 z-30 flex items-center gap-1 p-1 rounded-full bg-stone-900/80 backdrop-blur-md border border-stone-700/60 text-stone-200 text-xs font-medium shadow-xl">
           <button
+            type="button"
             onClick={() => setMedia("photo")}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all ${
               media === "photo" ? "bg-amber-500 text-stone-950 font-bold shadow-md" : "hover:text-amber-400 text-stone-300"
@@ -219,6 +231,7 @@ export default function Home() {
             <Camera className="w-3.5 h-3.5" /> Photo
           </button>
           <button
+            type="button"
             onClick={() => setMedia("video")}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all ${
               media === "video" ? "bg-amber-500 text-stone-950 font-bold shadow-md" : "hover:text-amber-400 text-stone-300"
@@ -228,9 +241,9 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Main Hero Content — Shown when in Photo mode */}
+        {/* Main Hero Content — Only displayed in Photo mode */}
         {media === "photo" && (
-          <div className="relative z-10 max-w-3xl px-4 sm:px-6 my-auto pt-4 pb-10">
+          <div className="relative z-10 max-w-3xl px-4 sm:px-6 my-auto pt-6 pb-16 sm:py-10">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/80 text-stone-200 text-xs font-medium mb-3 sm:mb-5 border border-white/10 backdrop-blur-md shadow-md">
               <MapPin className="w-3.5 h-3.5 text-amber-400" /> Red Fort, Delhi
             </span>
@@ -258,14 +271,14 @@ export default function Home() {
           </div>
         )}
 
-        {/* Floating Map Link — Shown when in Photo mode */}
+        {/* Floating Map Link — Only displayed in Photo mode */}
         {media === "photo" && (
           <Link
             to="/heritage"
-            className="absolute bottom-4 sm:bottom-6 right-4 sm:right-5 z-20 w-11 h-11 sm:w-12 sm:h-12 grid place-items-center rounded-full bg-amber-500 text-stone-950 shadow-xl hover:bg-amber-400 active:scale-95 transition-all"
+            className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 w-10 h-10 sm:w-12 sm:h-12 grid place-items-center rounded-full bg-amber-500 text-stone-950 shadow-xl hover:bg-amber-400 active:scale-95 transition-all"
             aria-label="Open map"
           >
-            <MapIcon className="w-5 h-5" />
+            <MapIcon className="w-4 h-4 sm:w-5 sm:h-5" />
           </Link>
         )}
       </section>

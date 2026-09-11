@@ -123,7 +123,7 @@ const stateFields = [
 ];
 
 export default function Admin() {
-  const { user, quickSwitchRole } = useAuth();
+  const { user } = useAuth();
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const initialTab = params.get("tab") || "dashboards";
@@ -203,16 +203,6 @@ export default function Admin() {
               <span>Go to My Traveler Profile</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-
-            <button
-              onClick={() => {
-                quickSwitchRole("admin");
-              }}
-              className="w-full py-2.5 rounded-2xl bg-muted hover:bg-muted/80 text-foreground font-bold text-xs flex items-center justify-center gap-2 transition-all"
-            >
-              <Shield className="w-3.5 h-3.5 text-primary" />
-              <span>Switch to Super Admin (Santosh Trade)</span>
-            </button>
           </div>
         </div>
       </div>
