@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { 
   User, Lock, Package, Map, Phone, Award, Shield, CheckCircle2, 
   Download, Calendar, MapPin, Trash2, Edit3, Save, AlertTriangle, 
-  Compass, Sun, Moon, Globe, Camera, LogOut, LogIn
+  Compass, Sun, Moon, Globe, Camera, LogOut, LogIn, HardDrive
 } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useI18n } from "@/lib/i18n";
@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getOrders } from "@/lib/cart";
 import { generateTripVoucherPDF, generateShopInvoicePDF } from "@/components/lib/pdfGenerator";
 import TravelJournal from "@/components/TravelJournal";
+import GoogleDriveStorageManager from "@/components/GoogleDriveStorageManager";
 
 const offlineMapsData = [
   {
@@ -305,6 +306,7 @@ export default function Profile() {
           <div className="flex items-center gap-2 mt-8 overflow-x-auto pb-2 scrollbar-none text-xs sm:text-sm font-semibold">
             {[
               { id: "personal", label: "Profile & Password", icon: User },
+              { id: "storage", label: "400 GB Google Storage", icon: HardDrive },
               { id: "journal", label: "Visual Travel Journal", icon: Camera },
               { id: "trips", label: `My Trips (${bookedTrips.length})`, icon: Compass },
               { id: "orders", label: `Shop Orders (${orders.length})`, icon: Package },
@@ -339,6 +341,11 @@ export default function Profile() {
             <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
             <span>{savedNotice}</span>
           </div>
+        )}
+
+        {/* TAB: 400 GB GOOGLE CLOUD STORAGE */}
+        {activeTab === "storage" && (
+          <GoogleDriveStorageManager user={authUser} />
         )}
 
         {/* TAB: VISUAL TRAVEL JOURNAL */}

@@ -16,7 +16,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { loginWithEmailPassword, loginWithGoogle, quickSwitchRole } = useAuth();
+  const [showGoogleChooser, setShowGoogleChooser] = useState(false);
+  const { loginWithEmailPassword, loginWithGoogle, loginWithGoogleEmail, quickSwitchRole } = useAuth();
   const navigate = useNavigate();
   const returnTo = safeReturnTo();
 
@@ -39,9 +40,27 @@ export default function Login() {
   };
 
   const handleGoogle = async () => {
+    setError("");
     setLoading(true);
     try {
       const loggedUser = await loginWithGoogle();
+      if (loggedUser?.role === "tourist") {
+        navigate(returnTo !== "/login" && returnTo !== "/admin" && returnTo !== "/" ? returnTo : "/profile");
+      } else {
+        navigate(returnTo !== "/login" && returnTo !== "/" ? returnTo : "/admin");
+      }
+    } catch (err) {
+      setError(err.message || "Google login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleDirect = async (accountEmail, accountName) => {
+    setError("");
+    setLoading(true);
+    try {
+      const loggedUser = await loginWithGoogleEmail(accountEmail, accountName);
       if (loggedUser?.role === "tourist") {
         navigate(returnTo !== "/login" && returnTo !== "/admin" && returnTo !== "/" ? returnTo : "/profile");
       } else {
@@ -84,15 +103,73 @@ export default function Login() {
             </>
           }
         >
-          <Button
-            variant="outline"
-            className="w-full h-12 text-sm font-medium mb-4"
-            onClick={handleGoogle}
-            disabled={loading}
-          >
-            <GoogleIcon className="w-5 h-5 mr-2" />
-            Continue with Google
-          </Button>
+          {/* Main Google Sign In Button */}
+          <div className="space-y-2 mb-4">
+            <Button
+              variant="outline"
+              className="w-full h-12 text-sm font-medium hover:bg-accent/50 border-border/80 relative group"
+              onClick={handleGoogle}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 mr-2 animate-spin text-primary" />
+              ) : (
+                <GoogleIcon className="w-5 h-5 mr-2" />
+              )}
+              <span>Continue with Google</span>
+            </Button>
+
+            {/* Quick Google Account Switcher Dropdown */}
+            <div className="flex items-center justify-between px-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setShowGoogleChooser(!showGoogleChooser)}
+                className="text-muted-foreground hover:text-primary transition-colors text-[11px] underline underline-offset-2 flex items-center gap-1"
+              >
+                <span>{showGoogleChooser ? "Hide Google Accounts" : "Choose Google Account"}</span>
+              </button>
+              <span className="text-[10px] text-muted-foreground">Venkata Santosh & Team</span>
+            </div>
+
+            {showGoogleChooser && (
+              <div className="p-3 bg-muted/40 rounded-xl border border-border/70 space-y-2 text-xs">
+                <p className="text-[11px] font-medium text-foreground">Select an account to continue:</p>
+                <button
+                  type="button"
+                  onClick={() => handleGoogleDirect("venkatasantosh2478@gmail.com", "Venkata Santosh")}
+                  className="w-full flex items-center justify-between p-2 rounded-lg bg-card hover:bg-primary/5 hover:border-primary/40 border border-border/60 transition-all text-left group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
+                      VS
+                    </div>
+                    <div>
+                      <div className="font-semibold text-foreground text-xs group-hover:text-primary">Venkata Santosh</div>
+                      <div className="text-[10px] text-muted-foreground">venkatasantosh2478@gmail.com</div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded">Admin</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleGoogleDirect("santoshtrade27@gmail.com", "Santosh Trade")}
+                  className="w-full flex items-center justify-between p-2 rounded-lg bg-card hover:bg-primary/5 hover:border-primary/40 border border-border/60 transition-all text-left group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
+                      ST
+                    </div>
+                    <div>
+                      <div className="font-semibold text-foreground text-xs group-hover:text-primary">Santosh Trade</div>
+                      <div className="text-[10px] text-muted-foreground">santoshtrade27@gmail.com</div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded">Admin</span>
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
@@ -202,3 +279,4 @@ export default function Login() {
     </div>
   );
 }
+

@@ -31,20 +31,23 @@ async function startServer() {
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  // Multi-tier resilient model pool with exponential backoff on transient errors (503, 429, UNAVAILABLE)
-  const FALLBACK_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
+  // Supported modern Gemini models with prioritized fallback
+  const SUPPORTED_MODELS = [
     "gemini-3.8-flash",
+    "gemini-3.1-pro-preview",
     "gemini-3.1-flash-lite",
+    "gemini-2.5-flash",
   ];
 
-  async function generateWithFallback(ai: GoogleGenAI, params: any) {
+  async function generateWithFallback(ai: GoogleGenAI, params: any, preferredModel?: string) {
     let lastError: any = null;
 
-    for (const modelName of FALLBACK_MODELS) {
+    // Put preferred model first if valid
+    const modelQueue = preferredModel && SUPPORTED_MODELS.includes(preferredModel)
+      ? [preferredModel, ...SUPPORTED_MODELS.filter((m) => m !== preferredModel)]
+      : SUPPORTED_MODELS;
+
+    for (const modelName of modelQueue) {
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
           return await ai.models.generateContent({
@@ -171,15 +174,15 @@ async function startServer() {
     });
   });
 
-  // Dedicated AI Assistant endpoint
+  // Dedicated AI Assistant endpoint with Model Switch & Multilingual/Teluglish Support
   app.post(["/api/ai/assistant", "/api/chat"], async (req: Request, res: Response) => {
     try {
-      const { prompt, messages } = req.body;
+      const { prompt, messages, model } = req.body;
       const ai = getAI();
       if (!ai) {
         return res.json({
           response:
-            "Namaste! 🙏 I am your Bharat Yatra Heritage Assistant. India is home to 42+ UNESCO World Heritage Sites, thousands of living temples, exquisite artisan handlooms, and diverse culinary traditions! Feel free to ask about any destination, monument, craft, or itinerary.",
+            "Namaskaram! 🙏 I am your Bharat Yatra Heritage Assistant. India is home to 42+ UNESCO World Heritage Sites, sacred temples, and rich traditions! Feel free to ask about any destination or craft in English, Telugu (తెలుగు), or Telugu in English (Teluglish).",
         });
       }
 
@@ -228,25 +231,36 @@ async function startServer() {
         contents = String(prompt || "Namaste, tell me about India's top heritage sites!");
       }
 
-      const response = await generateWithFallback(ai, {
-        contents,
-        config: {
-          systemInstruction:
-            "You are the official Bharat Yatra AI Heritage Guide. You explain everything simply, clearly, warmly, and enthusiastically — exactly as if speaking to an inquisitive 10-year-old explorer!\n" +
-            "Rules to follow strictly:\n" +
-            "1. Use simple, friendly words, short sentences, and proper punctuation.\n" +
-            "2. Do NOT output raw markdown asterisks (like **bold** or *stars*). Write clean, comfortable plain paragraphs.\n" +
-            "3. If listing items, use neat numbered points (1., 2., 3.) or simple bullet hyphens (- ).\n" +
-            "4. Keep it engaging, fun, accurate, and under 130 words.\n" +
-            "5. Always directly answer the specific question asked by the traveler.",
+      const response = await generateWithFallback(
+        ai,
+        {
+          contents,
+          config: {
+            systemInstruction:
+              "You are the official Bharat Yatra Multilingual AI Heritage & Travel Guide. You explain everything warmly, accurately, and engagingly!\n\n" +
+              "CRITICAL MULTILINGUAL & SCRIPT RULES:\n" +
+              "1. TELUGU & TELUGLISH (Telugu written in English Alphabet):\n" +
+              "   - If the user writes or asks in Telugu written in English script (e.g. 'Nenu Tirupati vellali em cheyali', 'Miru ela unnaru', 'Telugu lo cheppandi', 'Ekkada stay cheyali', 'Food options em unnayi?'), you MUST understand and reply fluently in natural, friendly Telugu written in English alphabet (Teluglish) AND include the Telugu script (తెలుగు) so it is effortless and pleasant to read!\n" +
+              "   - Example response format: 'Namaskaram! Tirupati velladaniki APSRTC buses leda trains available ga unnayi. Alipiri nundi nadichi vellachu. TTD official website lo darshanam ticket book chesukondi. (నమస్కారం! తిరుపతి దర్శనం కోసం TTD వెబ్‌సైట్‌లో బుక్ చేసుకోండి).'\n" +
+              "2. TELUGU NATIVE SCRIPT:\n" +
+              "   - If the user writes in Telugu script (తెలుగు), reply warmly in pure, authentic Telugu.\n" +
+              "3. HINDI / HINGLISH, TAMIL / TANGLISH, KANNADA / KANGLISH, BENGALI, ETC.:\n" +
+              "   - Match the user's language and transliterated style (e.g. Hinglish if they ask Hindi in English).\n" +
+              "4. ENGLISH:\n" +
+              "   - If asked in English, reply in clean, engaging English. If asked about Telugu/South Indian heritage (Tirupati, Lepakshi, Charminar, Golconda, Warangal, Vizag, Araku), provide authentic local cultural depth!\n" +
+              "5. CLEAN FORMATTING:\n" +
+              "   - Do NOT output raw markdown asterisks (like **bold** or *stars*). Write clean, comfortable paragraphs.\n" +
+              "   - Keep responses crisp, accurate, polite, and helpful (under 160 words).",
+          },
         },
-      });
+        model
+      );
 
       let cleanText = response.text || "";
       cleanText = cleanText.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").trim();
 
       if (!cleanText) {
-        cleanText = "Namaste! 🙏 India has incredible history and heritage. Ask me about famous temples like Konark, forts like Red Fort, cuisines like Dosa or Biryani, or travel tips!";
+        cleanText = "Namaskaram! 🙏 India has incredible history and heritage. Ask me about famous temples like Tirupati, Konark, forts like Golconda, cuisines like Biryani, or travel tips!";
       }
 
       return res.json({ response: cleanText });
@@ -254,7 +268,7 @@ async function startServer() {
       console.warn("AI Assistant processing error:", err?.message || err);
       return res.json({
         response:
-          "Namaste! 🙏 India is full of wonders. You can explore our interactive Heritage Sites gallery, curated Cultural Planner, and verified ASI Guides in the menu, or ask me another question about your favorite monument!",
+          "Namaskaram! 🙏 India is full of wonders. You can explore our interactive Heritage Sites gallery, curated Cultural Planner, and verified ASI Guides in the menu, or ask me another question about your favorite monument!",
       });
     }
   });
@@ -272,6 +286,7 @@ async function startServer() {
       withGuide = false,
       hotelName,
       hotelLocation,
+      model,
     } = req.body;
 
     const ai = getAI();
@@ -297,31 +312,35 @@ CRITICAL GEOGRAPHIC RULES:
 3. Include real local culinary specialties matching ${food} in ${to}.
 4. Return exactly ${days} days with engaging title and descriptive recommendations.`;
 
-      const response = await generateWithFallback(ai, {
-        contents: promptText,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              itinerary: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    day: { type: Type.INTEGER },
-                    title: { type: Type.STRING },
-                    desc: { type: Type.STRING },
+      const response = await generateWithFallback(
+        ai,
+        {
+          contents: promptText,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                itinerary: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      day: { type: Type.INTEGER },
+                      title: { type: Type.STRING },
+                      desc: { type: Type.STRING },
+                    },
+                    required: ["title", "desc"],
                   },
-                  required: ["title", "desc"],
                 },
+                summary: { type: Type.STRING },
               },
-              summary: { type: Type.STRING },
+              required: ["itinerary"],
             },
-            required: ["itinerary"],
           },
         },
-      });
+        model
+      );
 
       const parsed = JSON.parse(response.text || "{}");
       if (parsed.itinerary && Array.isArray(parsed.itinerary) && parsed.itinerary.length > 0) {
@@ -335,7 +354,7 @@ CRITICAL GEOGRAPHIC RULES:
 
   // Dedicated Translation endpoint with dual engine (Gemini AI + Free Universal Fallback)
   app.post(["/api/ai/translate", "/api/translate"], async (req: Request, res: Response) => {
-    const { text, targetLang = "Hindi", sourceLang = "English" } = req.body;
+    const { text, targetLang = "Hindi", sourceLang = "English", model } = req.body;
     if (!text || !text.trim()) {
       return res.status(400).json({ error: "Text is required" });
     }
@@ -361,23 +380,28 @@ CRITICAL GEOGRAPHIC RULES:
     const ai = getAI();
     if (ai) {
       try {
-        const response = await generateWithFallback(ai, {
-          contents: `Translate the following phrase from ${sourceLang} into ${targetLang}.
+        const response = await generateWithFallback(
+          ai,
+          {
+            contents: `Translate the following phrase from ${sourceLang} into ${targetLang}.
 Text: "${text}"
-Respond with JSON matching the schema. Provide authentic native script translation, Latin pronunciation guide, and cultural usage tip.`,
-          config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                translatedText: { type: Type.STRING, description: "Translation in the target language native script" },
-                pronunciation: { type: Type.STRING, description: "Phonetic pronunciation guide in Latin script" },
-                culturalNote: { type: Type.STRING, description: "Brief polite etiquette tip on using this in India" },
+If target is Telugu, provide authentic Telugu script (తెలుగు) and an intuitive Telugu in English pronunciation guide (e.g. 'Ela unnaru', 'Dhanyavadalu', 'Bagunnara').
+Respond with JSON matching the schema.`,
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  translatedText: { type: Type.STRING, description: "Translation in the target language native script" },
+                  pronunciation: { type: Type.STRING, description: "Phonetic pronunciation guide in Latin script (e.g. Telugu in English)" },
+                  culturalNote: { type: Type.STRING, description: "Brief polite etiquette tip on using this in India" },
+                },
+                required: ["translatedText"],
               },
-              required: ["translatedText"],
             },
           },
-        });
+          model
+        );
 
         const parsed = JSON.parse(response.text || "{}");
         if (parsed.translatedText) {
@@ -385,7 +409,7 @@ Respond with JSON matching the schema. Provide authentic native script translati
             translatedText: parsed.translatedText,
             pronunciation: parsed.pronunciation || "",
             culturalNote: parsed.culturalNote || `Commonly spoken in ${targetLang} regions`,
-            engine: "gemini-pro",
+            engine: model || "gemini-ai",
           });
         }
       } catch {

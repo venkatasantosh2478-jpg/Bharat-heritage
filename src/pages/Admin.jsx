@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { 
-  Shield, Settings, Users, Save, Loader2, CalendarCheck, MapPin, Clock, 
+  Shield, Users, Loader2, CalendarCheck, MapPin, Clock, 
   Wallet, Hotel, ShieldAlert, Landmark, Gift, ShoppingCart, 
   Award, Eye, RotateCcw, KeyRound, UserCheck, ArrowRight, CheckCircle2,
   Lock
 } from "lucide-react";
 import EntityEditor from "@/components/EntityEditor";
 import AdminDashboards from "@/components/AdminDashboards";
+import GoogleDriveStorageManager from "@/components/GoogleDriveStorageManager";
+import FeedbackManagementModule from "@/components/FeedbackManagementModule";
+import SiteConfigAndFooterEditor from "@/components/SiteConfigAndFooterEditor";
 import { useAuth, getSystemCredentials } from "@/components/lib/AuthContext";
 import { heritageSites, foods as staticFoods, products as staticProducts, events as staticEvents } from "@/lib/heritageData";
 import { enrichedHeritageSites } from "@/lib/richHeritageData";
@@ -42,6 +45,9 @@ const rolesList = [
 
 const tabs = [
   { id: "dashboards", label: "Specialized Dashboards" },
+  { id: "feedback", label: "Tourist Feedback & QA" },
+  { id: "config", label: "Footer & WhatsApp Bot Config" },
+  { id: "storage", label: "Google 400 GB Storage" },
   { id: "places", label: "Heritage Places" },
   { id: "states", label: "State Portals" },
   { id: "foods", label: "Regional Foods" },
@@ -49,7 +55,6 @@ const tabs = [
   { id: "events", label: "Festivals & Events" },
   { id: "hotels", label: "Hotels & Stays" },
   { id: "bookings", label: "Bookings" },
-  { id: "config", label: "Site Config" },
   { id: "credentials", label: "Role Credentials & Passwords" },
 ];
 
@@ -543,8 +548,26 @@ export default function Admin() {
               </div>
             )}
 
-            {/* Site Config Tab */}
-            {tab === "config" && <SiteConfigManager />}
+            {/* Google 400 GB Storage Tab */}
+            {tab === "storage" && (
+              <div className="space-y-4">
+                <GoogleDriveStorageManager user={user} />
+              </div>
+            )}
+
+            {/* Tourist Feedback Tab */}
+            {tab === "feedback" && (
+              <div className="space-y-4">
+                <FeedbackManagementModule />
+              </div>
+            )}
+
+            {/* Footer & Site Config Tab */}
+            {tab === "config" && (
+              <div className="space-y-4">
+                <SiteConfigAndFooterEditor />
+              </div>
+            )}
           </>
         )}
       </section>
@@ -712,159 +735,6 @@ function BookingsManager() {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-// Subcomponent: Site Config Manager
-function SiteConfigManager() {
-  const [config, setConfig] = useState(() => {
-    try {
-      const saved = localStorage.getItem("by-site-config");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          siteName: parsed.siteName || "Bharat Yatra",
-          tagline: parsed.tagline || "India's Cultural Tourism & Heritage Platform",
-          helplinePhone: parsed.helplinePhone || "1363 (Toll Free 24x7)",
-          emergencyPhone: parsed.emergencyPhone || "112 (National Emergency)",
-          heroVideo: parsed.heroVideo || "p8mXAQ6cPxg",
-          heroVideoUrl: parsed.heroVideoUrl || "https://media.base44.com/videos/public/6a9bae9fd15b41c75cea5237/4135fd9b0_vidssavecomIncredibleIndia4K-BeyondtheStereotypes_TheRealIndiaRevealed720P.mp4",
-          heroImage: parsed.heroImage || "https://media.base44.com/images/public/6a9bae27c746fec94dc69b172/fc65e0714_generated_image.png",
-          curfewAlerts: parsed.curfewAlerts || false,
-          offlineModeAvailable: parsed.offlineModeAvailable || true,
-        };
-      }
-    } catch {}
-    return {
-      siteName: "Bharat Yatra",
-      tagline: "India's Cultural Tourism & Heritage Platform",
-      helplinePhone: "1363 (Toll Free 24x7)",
-      emergencyPhone: "112 (National Emergency)",
-      heroVideo: "p8mXAQ6cPxg",
-      heroVideoUrl: "https://media.base44.com/videos/public/6a9bae9fd15b41c75cea5237/4135fd9b0_vidssavecomIncredibleIndia4K-BeyondtheStereotypes_TheRealIndiaRevealed720P.mp4",
-      heroImage: "https://media.base44.com/images/public/6a9bae27c746fec94dc69b172/fc65e0714_generated_image.png",
-      curfewAlerts: false,
-      offlineModeAvailable: true,
-    };
-  });
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    try {
-      localStorage.setItem("by-site-config", JSON.stringify(config));
-    } catch {}
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  return (
-    <div className="p-6 rounded-3xl bg-card border border-border space-y-6 shadow-xs max-w-2xl">
-      <div className="flex items-center justify-between border-b border-border pb-3">
-        <div>
-          <h3 className="font-bold text-base text-foreground font-heading flex items-center gap-2">
-            <Settings className="w-4 h-4 text-primary" /> Platform & Emergency Settings
-          </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Configure global helpline numbers, video headers and background media</p>
-        </div>
-      </div>
-
-      {saved && (
-        <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" /> Settings updated successfully!
-        </div>
-      )}
-
-      <form onSubmit={handleSave} className="space-y-4">
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-foreground">Site Title</label>
-          <input
-            type="text"
-            value={config.siteName}
-            onChange={(e) => setConfig({ ...config, siteName: e.target.value })}
-            className="w-full p-2.5 rounded-xl bg-background border border-border text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-foreground">Tagline</label>
-          <input
-            type="text"
-            value={config.tagline}
-            onChange={(e) => setConfig({ ...config, tagline: e.target.value })}
-            className="w-full p-2.5 rounded-xl bg-background border border-border text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
-        <div className="border-t border-border pt-4 space-y-4">
-          <h4 className="text-xs font-bold text-foreground uppercase tracking-wider text-primary">Header Hero Media Customization</h4>
-          
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground">Hero Video Direct Stream URL (.mp4 / live loop)</label>
-            <input
-              type="text"
-              value={config.heroVideoUrl}
-              onChange={(e) => setConfig({ ...config, heroVideoUrl: e.target.value })}
-              className="w-full p-2.5 rounded-xl bg-background border border-border text-xs text-foreground font-mono outline-none focus:ring-2 focus:ring-primary"
-              placeholder="e.g., https://media.base44.com/videos/...mp4"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Hero YouTube Video ID (backup)</label>
-              <input
-                type="text"
-                value={config.heroVideo}
-                onChange={(e) => setConfig({ ...config, heroVideo: e.target.value })}
-                className="w-full p-2.5 rounded-xl bg-background border border-border text-xs text-foreground font-mono outline-none focus:ring-2 focus:ring-primary"
-                placeholder="e.g., p8mXAQ6cPxg"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Hero Background Image URL (fallback)</label>
-              <input
-                type="text"
-                value={config.heroImage}
-                onChange={(e) => setConfig({ ...config, heroImage: e.target.value })}
-                className="w-full p-2.5 rounded-xl bg-background border border-border text-xs text-foreground font-mono outline-none focus:ring-2 focus:ring-primary"
-                placeholder="e.g., https://media.base44.com/images/..."
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground">Tourist Helpline</label>
-            <input
-              type="text"
-              value={config.helplinePhone}
-              onChange={(e) => setConfig({ ...config, helplinePhone: e.target.value })}
-              className="w-full p-2.5 rounded-xl bg-background border border-border text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground">Emergency Number</label>
-            <input
-              type="text"
-              value={config.emergencyPhone}
-              onChange={(e) => setConfig({ ...config, emergencyPhone: e.target.value })}
-              className="w-full p-2.5 rounded-xl bg-background border border-border text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-bold text-xs shadow-xs hover:opacity-90 flex items-center gap-2 cursor-pointer"
-        >
-          <Save className="w-4 h-4" /> Save Configuration
-        </button>
-      </form>
     </div>
   );
 }

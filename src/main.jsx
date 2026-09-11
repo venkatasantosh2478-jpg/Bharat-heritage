@@ -3,14 +3,30 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 
-// Suppress benign iframe/sandbox websocket connection rejections
+// Suppress benign iframe/sandbox websocket connection rejections & HMR notices
 window.addEventListener('unhandledrejection', (event) => {
-  const msg = event?.reason?.message || String(event?.reason || '');
+  const msg = (event?.reason?.message || String(event?.reason || '')).toLowerCase();
   if (
-    msg.toLowerCase().includes('websocket') ||
-    msg.includes('closed without opened')
+    msg.includes('websocket') ||
+    msg.includes('closed without opened') ||
+    msg.includes('failed to connect') ||
+    msg.includes('vite')
   ) {
     event.preventDefault();
+    event.stopPropagation();
+  }
+});
+
+window.addEventListener('error', (event) => {
+  const msg = (event?.message || String(event || '')).toLowerCase();
+  if (
+    msg.includes('websocket') ||
+    msg.includes('closed without opened') ||
+    msg.includes('failed to connect') ||
+    msg.includes('vite')
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
   }
 });
 

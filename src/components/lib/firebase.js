@@ -23,6 +23,9 @@ try {
 
 export const db = firestoreDb;
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/drive.file');
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
 
 export const OperationType = {
   CREATE: 'create',

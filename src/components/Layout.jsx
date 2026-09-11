@@ -1,17 +1,19 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Menu, X, Mic, Sun, Moon, Phone, User, Shield, 
-  Compass, LogIn, LogOut, Send
+  Compass, LogIn, LogOut, Send, MessageSquareHeart, CheckCircle2
 } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/AuthContext";
+import { getSiteConfig } from "@/lib/siteConfig";
 import OfflineBanner from "@/components/OfflineBanner";
 import BottomNav from "@/components/BottomNav";
 import AIAssistant from "@/components/AIAssistant";
 import CartDrawer from "@/components/CartDrawer";
 import LanguageToggle from "@/components/LanguageToggle";
+import FeedbackModal from "@/components/FeedbackModal";
 
 const navKeys = [
   { to: "/heritage", key: "nav_heritage" },
@@ -28,7 +30,9 @@ const navKeys = [
 export default function Layout() {
   const [open, setOpen] = useState(false);
   const [guideModalOpen, setGuideModalOpen] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [guideSubmitted, setGuideSubmitted] = useState(false);
+  const [siteConfig, setSiteConfig] = useState(getSiteConfig);
   const [guideForm, setGuideForm] = useState({
     name: "",
     phone: "",
@@ -43,6 +47,15 @@ export default function Layout() {
   const { theme, toggle } = useTheme();
   const { lang, setLang, t } = useI18n();
   const { isAuthenticated, logout } = useAuth();
+
+  useEffect(() => {
+    const handleConfigUpdate = (e) => {
+      if (e.detail) setSiteConfig(e.detail);
+      else setSiteConfig(getSiteConfig());
+    };
+    window.addEventListener("by-site-config-updated", handleConfigUpdate);
+    return () => window.removeEventListener("by-site-config-updated", handleConfigUpdate);
+  }, []);
 
   const handleGuideSubmit = (e) => {
     e.preventDefault();
@@ -254,32 +267,53 @@ export default function Layout() {
                   ब
                 </span>
                 <span className="font-heading font-bold tracking-wide text-lg text-white">
-                  BHARAT <span className="text-primary">YATRA</span>
+                  {siteConfig.siteName || "BHARAT YATRA"}
                 </span>
               </div>
               <p className="text-sm text-slate-400 leading-relaxed">
-                National Cultural Tourism Directorate & Digital Heritage Information System. Connecting travellers with authenticated heritage, artisans, guides, and emergency infrastructure.
+                {siteConfig.brandDescription || siteConfig.tagline || "National Cultural Tourism Directorate & Digital Heritage Information System."}
               </p>
               
               {/* WhatsApp Business CTA */}
-              <a 
-                href="https://wa.me/918019402710" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-900/20"
-              >
-                <span className="text-lg">💬</span> Chat with Business Bot
-              </a>
+              <div className="space-y-2">
+                <a 
+                  href={siteConfig.whatsappBot?.url || "https://wa.me/918019402710"} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-900/20"
+                >
+                  <span className="text-lg">💬</span> {siteConfig.whatsappBot?.buttonLabel || "Chat with Business Bot"}
+                </a>
+                {siteConfig.whatsappBot?.subText && (
+                  <p className="text-[11px] text-emerald-400/80 pl-2">
+                    ● {siteConfig.whatsappBot.subText}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Column 2: Quick Links */}
+            {/* Column 2: Quick Links / Explore */}
             <div className="space-y-4">
               <h3 className="text-sm font-bold uppercase tracking-wider text-white">Explore</h3>
               <ul className="space-y-3 text-sm text-slate-400">
-                <li><Link to="/heritage" className="hover:text-primary transition-colors">Heritage Sites</Link></li>
-                <li><Link to="/planner" className="hover:text-primary transition-colors">Cultural Planner</Link></li>
-                <li><Link to="/events" className="hover:text-primary transition-colors">Festivals</Link></li>
-                <li><Link to="/map" className="hover:text-primary transition-colors">Heritage Map</Link></li>
+                {(siteConfig.exploreLinks || [
+                  { label: "Heritage Sites", url: "/heritage" },
+                  { label: "Cultural Planner", url: "/planner" },
+                  { label: "Festivals & Events", url: "/events" },
+                  { label: "Heritage Map", url: "/map" },
+                ]).map((lnk, idx) => (
+                  <li key={idx}>
+                    {lnk.url.startsWith("http") ? (
+                      <a href={lnk.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                        {lnk.label}
+                      </a>
+                    ) : (
+                      <Link to={lnk.url} className="hover:text-primary transition-colors">
+                        {lnk.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -287,30 +321,79 @@ export default function Layout() {
             <div className="space-y-4">
               <h3 className="text-sm font-bold uppercase tracking-wider text-white">Services</h3>
               <ul className="space-y-3 text-sm text-slate-400">
-                <li><Link to="/guides" className="hover:text-primary transition-colors">Guides</Link></li>
-                <li><Link to="/shop" className="hover:text-primary transition-colors">Artisan Shop</Link></li>
-                <li><Link to="/safety" className="hover:text-primary transition-colors text-red-400">Emergency SOS</Link></li>
-                <li><Link to="/translate" className="hover:text-primary transition-colors">Translator</Link></li>
+                {(siteConfig.servicesLinks || [
+                  { label: "Certified Guides", url: "/guides" },
+                  { label: "Artisan Handloom Shop", url: "/shop" },
+                  { label: "Emergency SOS", url: "/safety" },
+                  { label: "Voice Translator", url: "/translate" },
+                ]).map((lnk, idx) => (
+                  <li key={idx}>
+                    {lnk.url.startsWith("http") ? (
+                      <a href={lnk.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                        {lnk.label}
+                      </a>
+                    ) : (
+                      <Link to={lnk.url} className="hover:text-primary transition-colors">
+                        {lnk.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+                <li>
+                  <button 
+                    onClick={() => setFeedbackModalOpen(true)}
+                    className="hover:text-primary text-amber-400 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <MessageSquareHeart className="w-4 h-4" /> Share Feedback
+                  </button>
+                </li>
               </ul>
             </div>
 
             {/* Column 4: Contact/Support */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-white">Support</h3>
-              <div className="text-sm text-slate-400 space-y-2">
-                <p>Helpline: <a href="tel:1800111363" className="text-white hover:text-primary">1800-11-1363</a></p>
-                <p><a href="mailto:contact@bharatyatra.gov.in" className="hover:text-primary">contact@bharatyatra.gov.in</a></p>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-white">Support & Helpline</h3>
+              <div className="text-sm text-slate-400 space-y-2.5">
+                <p>
+                  Helpline:{" "}
+                  <a href={`tel:${siteConfig.helpline?.phone?.replace(/\D/g, '') || "1800111363"}`} className="text-white hover:text-primary font-medium">
+                    {siteConfig.helpline?.phone || "1800-11-1363"}
+                  </a>
+                </p>
+                <p>
+                  Emergency SOS:{" "}
+                  <a href="tel:112" className="text-rose-400 hover:text-rose-300 font-bold">
+                    {siteConfig.helpline?.emergencyPhone || "112 (National Emergency)"}
+                  </a>
+                </p>
+                <p>
+                  <a href={`mailto:${siteConfig.helpline?.email || "contact@bharatyatra.gov.in"}`} className="hover:text-primary break-all">
+                    {siteConfig.helpline?.email || "contact@bharatyatra.gov.in"}
+                  </a>
+                </p>
+                {siteConfig.helpline?.address && (
+                  <p className="text-xs text-slate-500 pt-1 leading-relaxed">
+                    📍 {siteConfig.helpline.address}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Bottom Bar */}
           <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 text-sm text-slate-500">
-            <p>© {new Date().getFullYear()} Bharat Yatra Directorate.</p>
-            <div className="flex items-center gap-6">
-              <Link to="/safety" className="hover:text-white">Safety</Link>
-              <button onClick={() => setGuideModalOpen(true)} className="hover:text-white">Become a Guide</button>
+            <p>{siteConfig.copyright || `© ${new Date().getFullYear()} Bharat Yatra Directorate.`}</p>
+            <div className="flex items-center gap-5 flex-wrap">
+              <button 
+                onClick={() => setFeedbackModalOpen(true)} 
+                className="hover:text-amber-400 flex items-center gap-1 cursor-pointer"
+              >
+                <MessageSquareHeart className="w-3.5 h-3.5" /> Give Feedback
+              </button>
+              <Link to="/safety" className="hover:text-white">Safety SOS</Link>
+              <button onClick={() => setGuideModalOpen(true)} className="hover:text-white cursor-pointer">Become a Guide</button>
               <Link to="/guides" className="hover:text-white">Guides</Link>
+              <Link to="/admin" className="hover:text-white">Admin Access</Link>
             </div>
           </div>
         </div>
@@ -471,6 +554,11 @@ export default function Layout() {
           </div>
         </div>
       )}
+
+      <FeedbackModal 
+        isOpen={feedbackModalOpen} 
+        onClose={() => setFeedbackModalOpen(false)} 
+      />
 
       <BottomNav />
       <AIAssistant />

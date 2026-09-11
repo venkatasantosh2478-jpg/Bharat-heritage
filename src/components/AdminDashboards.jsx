@@ -2,10 +2,14 @@ import React, { useState, useEffect } from "react";
 import { 
   ShieldAlert, Hotel, Landmark, ShoppingCart, 
   MapPin, Award, Gift, Users, Plus, Search, Edit, Trash2, CheckCircle2,
-  PhoneCall, X, Shield, CheckSquare,
+  PhoneCall, X, Shield, CheckSquare, Heart,
   FileText, UserCheck, MessageSquare, Send, Check,
-  Briefcase, Eye, UserPlus, ExternalLink, Navigation, Copy
+  Briefcase, Eye, UserPlus, ExternalLink, Navigation, Copy,
+  MessageSquareHeart, MessageCircle
 } from "lucide-react";
+import ElderCareWatchModule from "@/components/ElderCareWatchModule";
+import FeedbackManagementModule from "@/components/FeedbackManagementModule";
+import SiteConfigAndFooterEditor from "@/components/SiteConfigAndFooterEditor";
 import { getSavedHotels, saveHotels, governmentRecognizedHotels } from "@/lib/hotelDirectoryData";
 import { products as initialDefaultProducts } from "@/lib/heritageData";
 import { 
@@ -22,6 +26,8 @@ export default function AdminDashboards({ activeRole, onRoleChange, singleRoleMo
   // Roles list with Devasthanam and Marketing Director REMOVED as requested
   const roles = [
     { id: "core_admin", label: "Master Operations", icon: Shield, desc: "Unified cockpit: Registrations, Emergency, Employees, Forms, TODO & Completed" },
+    { id: "feedback_qa", label: "Tourist Feedback & QA", icon: MessageSquareHeart, desc: "Traveler reviews, rating audits, resolution notes & testimonials" },
+    { id: "footer_config", label: "Footer & WhatsApp Bot", icon: MessageCircle, desc: "Live footer links, WhatsApp bot configuration & directorate info" },
     { id: "employees_mgmt", label: "Employees & Staff", icon: Briefcase, desc: "Manage team staff, duty shifts, tasks, and hotel property assignments" },
     { id: "hotel_mgmt", label: "Hotel Operations", icon: Hotel, desc: "Verified hotel inventory, add & edit hotels & room assignments" },
     { id: "safety_cmd", label: "Emergency Command", icon: ShieldAlert, desc: "Live SOS beacons, tourist police dispatch & emergency centers" },
@@ -63,6 +69,8 @@ export default function AdminDashboards({ activeRole, onRoleChange, singleRoleMo
 
       {/* RENDER ACTIVE PERSPECTIVE */}
       {(currentRole === "core_admin" || currentRole === "super_admin") && <CoreMasterOperationsDashboard onSwitchRole={onRoleChange} />}
+      {currentRole === "feedback_qa" && <FeedbackManagementModule />}
+      {currentRole === "footer_config" && <SiteConfigAndFooterEditor />}
       {currentRole === "employees_mgmt" && <EmployeesModule />}
       {currentRole === "guide_coord" && <GuideCoordinatorDashboard />}
       {currentRole === "surprise_mgr" && <SurprisePlannerDashboard />}
@@ -565,6 +573,7 @@ function RegistrationsModule() {
 
 // --- B. EMERGENCY MODULE (Active SOS + Emergency Centers Editor) ---
 function EmergencyModule() {
+  const [sosSubTab, setSosSubTab] = useState("elder_watch"); // "elder_watch" | "sos_beacons" | "centers" | "whatsapp"
   const [centers, setCenters] = useState(getEmergencyCenters());
   const [alerts, setAlerts] = useState(() => {
     try {
@@ -714,8 +723,52 @@ function EmergencyModule() {
     alert("SOS Incident Location updated and broadcasted to Police Control Room!");
   }
 
+  const sosSubModules = [
+    { id: "elder_watch", label: "Elder Care Watch & Call Verification", icon: Heart, badge: "Live Countdown", color: "text-rose-500" },
+    { id: "sos_beacons", label: "Active SOS Distress Beacons", icon: ShieldAlert, badge: `${alerts.filter(a => a.status !== "Resolved").length} Active`, color: "text-destructive" },
+    { id: "centers", label: "Emergency Centers Directory", icon: MapPin, badge: `${centers.length} Centers`, color: "text-primary" },
+    { id: "whatsapp", label: "State WhatsApp Community", icon: MessageSquare, badge: `${Object.keys(sosSettings.whatsappGroups || {}).length} Feeds`, color: "text-emerald-600" },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* SOS Sub-Module Navigation */}
+      <div className="p-2 rounded-2xl bg-muted/60 border border-border flex items-center gap-1.5 overflow-x-auto scrollbar-none shadow-xs">
+        {sosSubModules.map((sm) => {
+          const Icon = sm.icon;
+          const isSelected = sosSubTab === sm.id;
+          return (
+            <button
+              key={sm.id}
+              onClick={() => setSosSubTab(sm.id)}
+              className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shrink-0 cursor-pointer ${
+                isSelected
+                  ? "bg-card text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+              }`}
+            >
+              <Icon className={`w-3.5 h-3.5 ${sm.color}`} />
+              <span>{sm.label}</span>
+              {sm.badge && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
+                  isSelected ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                }`}>
+                  {sm.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* SUB-MODULE 1: ELDER CARE WATCH & LIVE COUNTDOWN */}
+      {sosSubTab === "elder_watch" && (
+        <ElderCareWatchModule />
+      )}
+
+      {/* SUB-MODULE 2: ACTIVE SOS DISTRESS BEACONS & TELEMETRY */}
+      {sosSubTab === "sos_beacons" && (
+        <div className="space-y-6">
       {/* Active Distress Signals */}
       <div className="p-6 rounded-3xl bg-card border border-border space-y-4 shadow-xs">
         <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -974,174 +1027,310 @@ function EmergencyModule() {
           </div>
         </div>
       </div>
+    </div>
+  )}
 
-      {/* State & District WhatsApp Group Links Manager */}
-      <div className="p-6 rounded-3xl bg-card border border-border space-y-4 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
-          <div>
-            <h3 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
-              <MessageSquare className="w-5 h-5 text-emerald-600" /> State-Wise & District-Wise WhatsApp Group Links
+  {/* SOS Incident Inspect & Location Edit Modal */}
+  {selectedSos && (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-scaleUp text-xs">
+        <div className="flex items-center justify-between pb-3 border-b border-border">
+          <div className="flex items-center space-x-2">
+            <span className="w-3 h-3 rounded-full bg-destructive animate-ping" />
+            <h3 className="font-bold text-base text-foreground font-heading">
+              Distress Signal Dossier ({selectedSos.id})
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Add or edit official state and district emergency WhatsApp community links. Tourists registering for SOS automatically receive their local state/district group link.
-            </p>
-          </div>
-          <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
-            Live SOS Integration
-          </span>
-        </div>
-
-        {waNotice && (
-          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>{waNotice}</span>
-          </div>
-        )}
-
-        {/* Add / Edit New WhatsApp Group Form */}
-        <form onSubmit={handleAddOrUpdateGroup} className="p-4 rounded-2xl bg-muted/40 border border-border space-y-3 text-xs">
-          <span className="font-bold text-foreground block">Add / Update State or District WhatsApp Group Link:</span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                State or District Name (e.g. Andhra Pradesh, Visakhapatnam, Telangana):
-              </label>
-              <input
-                type="text"
-                required
-                value={newGroupRegion}
-                onChange={(e) => setNewGroupRegion(e.target.value)}
-                placeholder="e.g. Visakhapatnam, Goa, Kerala, Varanasi..."
-                className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                WhatsApp Group Invite URL:
-              </label>
-              <input
-                type="url"
-                required
-                value={newGroupLink}
-                onChange={(e) => setNewGroupLink(e.target.value)}
-                placeholder="https://chat.whatsapp.com/invite/..."
-                className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-1 focus:ring-primary font-mono text-[11px]"
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" /> Save WhatsApp Group Link
-          </button>
-        </form>
-
-        {/* List of Configured State & District WhatsApp Groups */}
-        <div className="space-y-2">
-          <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
-            Active Configured Groups ({Object.keys(sosSettings.whatsappGroups || {}).length}):
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-            {Object.entries(sosSettings.whatsappGroups || {}).map(([region, link]) => (
-              <div key={region} className="p-3 rounded-xl bg-card border border-border flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="font-bold text-foreground block truncate">{region}</span>
-                  <a
-                    href={link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono hover:underline block truncate"
-                  >
-                    {link}
-                  </a>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteGroup(region)}
-                  className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 shrink-0"
-                  title="Remove Group Link"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Emergency Centers Management Table */}
-      <div className="p-6 rounded-3xl bg-card border border-border space-y-4 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
-          <div>
-            <h3 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
-              <ShieldAlert className="w-5 h-5 text-primary" /> Emergency Centers & Police Stations (Editable by Staff)
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Updates here immediately sync to the user Safety & SOS page for tourists across India
-            </p>
           </div>
           <button
             type="button"
-            onClick={openAddModal}
-            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs flex items-center gap-1.5 shadow-sm"
+            onClick={() => setSelectedSos(null)}
+            className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground text-sm font-bold cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Add Emergency Center
+            ✕
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="border-b border-border text-muted-foreground font-semibold uppercase text-[11px]">
-                <th className="py-3 px-4">Center Name</th>
-                <th className="py-3 px-4">City / State</th>
-                <th className="py-3 px-4">Type</th>
-                <th className="py-3 px-4">Helpline Phone</th>
-                <th className="py-3 px-4">Address</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {centers.map((c) => (
-                <tr key={c.id || c.name} className="hover:bg-muted/40 transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-foreground">{c.name}</td>
-                  <td className="py-3.5 px-4 text-muted-foreground">{c.city}</td>
-                  <td className="py-3.5 px-4">
-                    <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
-                      c.type === "Hospital" ? "bg-rose-500/15 text-rose-600" : "bg-purple-500/15 text-purple-600"
-                    }`}>
-                      {c.type}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-foreground">{c.phone}</td>
-                  <td className="py-3.5 px-4 text-muted-foreground max-w-xs truncate">{c.address}</td>
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(c)}
-                        className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground"
-                        title="Edit Center"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCenter(c.id)}
-                        className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"
-                        title="Delete Center"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/25 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-destructive text-sm">{selectedSos.traveler}</span>
+            <span className="px-2 py-0.5 rounded-full bg-destructive text-destructive-foreground font-bold text-[10px]">
+              {selectedSos.status}
+            </span>
+          </div>
+          <p className="text-muted-foreground"><strong>Distress Location:</strong> {selectedSos.location}</p>
+          <p className="text-muted-foreground"><strong>Phone:</strong> {selectedSos.phone}</p>
+          <p className="text-muted-foreground"><strong>Time:</strong> {selectedSos.time}</p>
+          {selectedSos.emergencyPrompt && (
+            <p className="text-foreground italic bg-background/60 p-2.5 rounded-xl border border-border/60">
+              "{selectedSos.emergencyPrompt}"
+            </p>
+          )}
+        </div>
+
+        {/* GPS Telemetry & Navigation Actions */}
+        <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-2.5">
+          <span className="font-bold text-foreground block">🛰️ Real-Time GPS Coordinates & Navigation:</span>
+          <div className="flex items-center justify-between bg-background p-2.5 rounded-xl border border-border font-mono text-[11px]">
+            <span>Lat: {selectedSos.lat?.toFixed(4) || "17.6868"}°, Lng: {selectedSos.lng?.toFixed(4) || "83.2185"}°</span>
+            <span className="text-emerald-600 font-bold">Accuracy: ~8m</span>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <a
+              href={`https://www.google.com/maps?q=${selectedSos.lat || 17.6868},${selectedSos.lng || 83.2185}`}
+              target="_blank"
+              rel="noreferrer"
+              className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs flex items-center gap-1.5 shadow-xs"
+            >
+              <Navigation className="w-3.5 h-3.5" /> Navigate on Google Maps
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(`${selectedSos.lat || 17.6868}, ${selectedSos.lng || 83.2185}`);
+                alert("GPS Coordinates copied to clipboard!");
+              }}
+              className="px-3 py-1.5 rounded-xl bg-card border border-border hover:bg-muted font-bold text-xs flex items-center gap-1.5 text-foreground cursor-pointer"
+            >
+              <Copy className="w-3.5 h-3.5" /> Copy GPS
+            </button>
+          </div>
+        </div>
+
+        {/* SOS Location Checkpoint Updater */}
+        <form onSubmit={handleUpdateSosLocation} className="p-4 rounded-2xl bg-card border border-border space-y-3">
+          <span className="font-bold text-foreground block">Update Incident Location / Dispatch Zone:</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input
+              type="text"
+              required
+              value={sosLocationForm.location}
+              onChange={(e) => setSosLocationForm({ ...sosLocationForm, location: e.target.value })}
+              placeholder="Location name..."
+              className="px-3 py-2 rounded-xl bg-background border border-border text-foreground"
+            />
+            <input
+              type="number"
+              step="0.0001"
+              required
+              value={sosLocationForm.lat}
+              onChange={(e) => setSosLocationForm({ ...sosLocationForm, lat: e.target.value })}
+              className="px-3 py-2 rounded-xl bg-background border border-border text-foreground font-mono"
+            />
+            <input
+              type="number"
+              step="0.0001"
+              required
+              value={sosLocationForm.lng}
+              onChange={(e) => setSosLocationForm({ ...sosLocationForm, lng: e.target.value })}
+              className="px-3 py-2 rounded-xl bg-background border border-border text-foreground font-mono"
+            />
+          </div>
+          <button
+            type="submit"
+            className="px-4 py-2 rounded-xl bg-foreground text-background font-bold text-xs cursor-pointer"
+          >
+            Broadcast Location Update
+          </button>
+        </form>
+
+        <div className="pt-2 flex items-center justify-between border-t border-border flex-wrap gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <a
+              href={`tel:${selectedSos.phone}`}
+              className="px-3.5 py-2 rounded-full bg-destructive text-destructive-foreground font-bold flex items-center gap-1.5"
+            >
+              <PhoneCall className="w-3.5 h-3.5" /> Call Traveler
+            </a>
+            <a
+              href="tel:112"
+              className="px-3.5 py-2 rounded-full bg-purple-600 text-white font-bold flex items-center gap-1.5"
+            >
+              <Shield className="w-3.5 h-3.5" /> Call Police 112
+            </a>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSelectedSos(null)}
+            className="px-4 py-2 rounded-full bg-muted text-foreground font-bold cursor-pointer"
+          >
+            Close
+          </button>
         </div>
       </div>
+    </div>
+  )}
+
+      {/* SUB-MODULE 4: STATE & DISTRICT WHATSAPP GROUPS */}
+      {sosSubTab === "whatsapp" && (
+        <div className="p-6 rounded-3xl bg-card border border-border space-y-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+            <div>
+              <h3 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
+                <MessageSquare className="w-5 h-5 text-emerald-600" /> State-Wise & District-Wise WhatsApp Group Links
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Add or edit official state and district emergency WhatsApp community links. Tourists registering for SOS automatically receive their local state/district group link.
+              </p>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+              Live SOS Integration
+            </span>
+          </div>
+
+          {waNotice && (
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>{waNotice}</span>
+            </div>
+          )}
+
+          {/* Add / Edit New WhatsApp Group Form */}
+          <form onSubmit={handleAddOrUpdateGroup} className="p-4 rounded-2xl bg-muted/40 border border-border space-y-3 text-xs">
+            <span className="font-bold text-foreground block">Add / Update State or District WhatsApp Group Link:</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                  State or District Name (e.g. Andhra Pradesh, Visakhapatnam, Telangana):
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newGroupRegion}
+                  onChange={(e) => setNewGroupRegion(e.target.value)}
+                  placeholder="e.g. Visakhapatnam, Goa, Kerala, Varanasi..."
+                  className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                  WhatsApp Group Invite URL:
+                </label>
+                <input
+                  type="url"
+                  required
+                  value={newGroupLink}
+                  onChange={(e) => setNewGroupLink(e.target.value)}
+                  placeholder="https://chat.whatsapp.com/invite/..."
+                  className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-1 focus:ring-primary font-mono text-[11px]"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" /> Save WhatsApp Group Link
+            </button>
+          </form>
+
+          {/* List of Configured State & District WhatsApp Groups */}
+          <div className="space-y-2">
+            <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
+              Active Configured Groups ({Object.keys(sosSettings.whatsappGroups || {}).length}):
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+              {Object.entries(sosSettings.whatsappGroups || {}).map(([region, link]) => (
+                <div key={region} className="p-3 rounded-xl bg-card border border-border flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="font-bold text-foreground block truncate">{region}</span>
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono hover:underline block truncate"
+                    >
+                      {link}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteGroup(region)}
+                    className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 shrink-0 cursor-pointer"
+                    title="Remove Group Link"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-MODULE 3: EMERGENCY CENTERS & HOSPITALS */}
+      {sosSubTab === "centers" && (
+        <div className="p-6 rounded-3xl bg-card border border-border space-y-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+            <div>
+              <h3 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
+                <ShieldAlert className="w-5 h-5 text-primary" /> Emergency Centers & Police Stations (Editable by Staff)
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Updates here immediately sync to the user Safety & SOS page for tourists across India
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={openAddModal}
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Add Emergency Center
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground font-semibold uppercase text-[11px]">
+                  <th className="py-3 px-4">Center Name</th>
+                  <th className="py-3 px-4">City / State</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4">Helpline Phone</th>
+                  <th className="py-3 px-4">Address</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {centers.map((c) => (
+                  <tr key={c.id || c.name} className="hover:bg-muted/40 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-foreground">{c.name}</td>
+                    <td className="py-3.5 px-4 text-muted-foreground">{c.city}</td>
+                    <td className="py-3.5 px-4">
+                      <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
+                        c.type === "Hospital" ? "bg-rose-500/15 text-rose-600" : "bg-purple-500/15 text-purple-600"
+                      }`}>
+                        {c.type}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-bold text-foreground">{c.phone}</td>
+                    <td className="py-3.5 px-4 text-muted-foreground max-w-xs truncate">{c.address}</td>
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(c)}
+                          className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground cursor-pointer"
+                          title="Edit Center"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCenter(c.id)}
+                          className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 cursor-pointer"
+                          title="Delete Center"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Add / Edit Center Modal */}
       {modalOpen && (
