@@ -2,18 +2,14 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { 
   Languages, Volume2, Wifi, WifiOff, Loader2, Mic, MicOff, ArrowLeftRight, 
   Copy, Check, Sparkles, MessageSquare, BookOpen, ExternalLink, AlertCircle, 
-  AudioWaveform, Download, CheckCircle2, Search, Zap, HardDriveDownload, FileCode, CheckCircle, Cpu
+  AudioWaveform, Download, CheckCircle2, Search, Zap, Cpu
 } from "lucide-react";
 import { 
   languageOptions, 
   comprehensivePhrasebook, 
   languageLearningBooks, 
-  offlineLanguagePacks,
   translateOfflineQuery, 
   downloadLanguageBook,
-  exportOfflineLanguagePackFile,
-  exportAllLanguagePacksFile,
-  downloadStandaloneOfflineTranslatorApp
 } from "@/components/lib/languageLearningData";
 
 export default function Translator() {
@@ -34,7 +30,6 @@ export default function Translator() {
   const [phraseCategory, setPhraseCategory] = useState("All");
   const [phraseSearch, setPhraseSearch] = useState("");
   const [downloadSuccess, setDownloadSuccess] = useState("");
-  const [installedPacks, setInstalledPacks] = useState(["te", "hi", "ta", "kn", "bn"]);
 
   const [conversation, setConversation] = useState([
     {
@@ -46,6 +41,8 @@ export default function Translator() {
 
   const recognitionRef = useRef(null);
   const debounceTimerRef = useRef(null);
+  const latestRequestIdRef = useRef(0);
+  const abortControllerRef = useRef(null);
 
   // Initialize Speech Recognition
   const startSpeechRecognition = async () => {
@@ -127,7 +124,7 @@ export default function Translator() {
   };
 
   // Perform translation
-  const performTranslation = useCallback(async (queryText, sLang, tLang, offlinePreference) => {
+  const performTranslation = useCallback(async (queryText, sLang, tLang, offlinePreference, modelToUse = selectedAiModel) => {
     if (!queryText || !queryText.trim()) {
       setTranslatedResult("");
       setPronunciation("");
@@ -150,23 +147,37 @@ export default function Translator() {
       }
     }
 
+    // Cancel any ongoing network request to avoid race condition / stale cache overwriting
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
+    const currentReqId = ++latestRequestIdRef.current;
     setIsTranslating(true);
 
     try {
-      // Call server-side API
+      // Call server-side API with Cache-Control no-cache to avoid browser stale memory
       const response = await fetch("/api/ai/translate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+        },
         body: JSON.stringify({
-          text: queryText,
+          text: queryText.trim(),
           targetLang: targetInfo.name,
           sourceLang: sourceInfo.name,
-          model: selectedAiModel,
+          model: modelToUse,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (response.ok) {
         const data = await response.json();
+        // Ignore response if user has typed a newer phrase in the meantime
+        if (currentReqId !== latestRequestIdRef.current) return;
+
         if (data.translatedText) {
           setTranslatedResult(data.translatedText);
           setPronunciation(data.pronunciation || "");
@@ -189,7 +200,10 @@ export default function Translator() {
         }
       }
       throw new Error("Online translation unavailable");
-    } catch {
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      if (currentReqId !== latestRequestIdRef.current) return;
+
       // Robust Offline Fallback Engine
       const offlineFallback = translateOfflineQuery(queryText, tLang, sLang);
       if (offlineFallback) {
@@ -197,28 +211,35 @@ export default function Translator() {
         setPronunciation(offlineFallback.pronunciation);
         setCulturalTip(offlineFallback.culturalNote);
         setEngineUsed(offlineFallback.engine);
+      } else {
+        setTranslatedResult(queryText);
+        setPronunciation(queryText);
+        setCulturalTip("Offline translation ready");
       }
     } finally {
-      setIsTranslating(false);
+      if (currentReqId === latestRequestIdRef.current) {
+        setIsTranslating(false);
+      }
     }
-  }, []);
+  }, [selectedAiModel]);
 
   // Debounced auto-translate on typing
   useEffect(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     if (!inputText.trim()) {
       setTranslatedResult("");
+      setPronunciation("");
       return;
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      performTranslation(inputText, sourceLang, targetLang, useOfflineMode);
-    }, 400);
+      performTranslation(inputText, sourceLang, targetLang, useOfflineMode, selectedAiModel);
+    }, 300);
 
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [inputText, sourceLang, targetLang, useOfflineMode, performTranslation]);
+  }, [inputText, sourceLang, targetLang, useOfflineMode, selectedAiModel, performTranslation]);
 
   // Audio Speech Synthesis with regional accent picker
   const speakText = (textToSpeak, langCode) => {
@@ -378,108 +399,6 @@ export default function Translator() {
           </div>
         )}
 
-        {/* SECTION 0: EDGE GALLERY OFFLINE TRANSLATION & DOWNLOAD CENTER */}
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-primary/10 via-card to-amber-500/10 border border-primary/30 space-y-6 shadow-sm">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-1.5 max-w-2xl">
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[11px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                  <Zap className="w-3.5 h-3.5 fill-current" /> Edge Gallery 100% Offline Engine
-                </span>
-                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                  <CheckCircle className="w-3.5 h-3.5" /> 0ms Instant Response
-                </span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-black text-foreground">
-                Download Offline Translator & Regional Language Packs
-              </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Experience ultra-fast, zero-latency translations even in remote hill stations, flights, forest sanctuaries, or zero-connectivity heritage sites. Download the standalone single-file offline translator tool or direct language packs to your phone or computer.
-              </p>
-            </div>
-
-            {/* Main Action Buttons */}
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  downloadStandaloneOfflineTranslatorApp();
-                  setDownloadSuccess("Downloaded 'bharat-yatra-offline-edge-translator.html'! Open this file in Chrome/Safari/Edge anytime offline.");
-                  setTimeout(() => setDownloadSuccess(""), 6000);
-                }}
-                className="px-5 py-3 rounded-2xl bg-primary text-primary-foreground text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:opacity-95 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <FileCode className="w-4 h-4" /> Download Standalone Web App (.html)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  exportAllLanguagePacksFile();
-                  setDownloadSuccess("Downloaded All-India Master Offline Pack (.json) with 11 regional languages!");
-                  setTimeout(() => setDownloadSuccess(""), 6000);
-                }}
-                className="px-5 py-3 rounded-2xl bg-card border border-border text-foreground hover:bg-muted text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
-              >
-                <HardDriveDownload className="w-4 h-4 text-primary" /> Download All-India Master Pack (.json)
-              </button>
-            </div>
-          </div>
-
-          {/* Regional Offline Language Packs Row */}
-          <div className="space-y-3 pt-4 border-t border-border/70">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <Languages className="w-4 h-4 text-primary" /> Regional Edge Language Packs (1-Click Local Storage Sync)
-              </h3>
-              <span className="text-[11px] text-muted-foreground">Ready for Airplane Mode & Remote Areas</span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {offlineLanguagePacks.map((pack) => {
-                const isCurrent = targetLang === pack.code;
-                const isInstalled = installedPacks.includes(pack.code);
-
-                return (
-                  <div
-                    key={pack.id}
-                    className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between gap-2.5 ${
-                      isCurrent 
-                        ? "bg-primary/10 border-primary shadow-xs" 
-                        : "bg-card border-border hover:border-primary/40"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-foreground">{pack.name}</span>
-                        <span className="text-[10px] font-mono font-bold text-muted-foreground">{pack.size}</span>
-                      </div>
-                      <p className="text-xs font-bold text-primary">{pack.nativeName}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{pack.phrases}</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        exportOfflineLanguagePackFile(pack.code);
-                        if (!installedPacks.includes(pack.code)) {
-                          setInstalledPacks(prev => [...prev, pack.code]);
-                        }
-                        setDownloadSuccess(`Downloaded & synced ${pack.name} (${pack.nativeName}) Offline Pack!`);
-                        setTimeout(() => setDownloadSuccess(""), 4500);
-                      }}
-                      className="w-full py-1.5 px-2 rounded-xl bg-muted hover:bg-primary hover:text-primary-foreground text-foreground text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
-                    >
-                      <Download className="w-3 h-3" />
-                      <span>{isInstalled ? "Download Pack" : "Get Offline"}</span>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
         {/* Language Selection Bar */}
         <div className="p-4 rounded-3xl bg-card border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
           {/* Source Lang */}
@@ -589,13 +508,33 @@ export default function Translator() {
                 </button>
 
                 {inputText && (
-                  <button
-                    onClick={() => speakText(inputText, sourceLang)}
-                    className="p-2.5 rounded-full bg-muted text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
-                    title="Play Audio"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => performTranslation(inputText, sourceLang, targetLang, useOfflineMode, selectedAiModel)}
+                      disabled={isTranslating}
+                      className="px-4 py-2.5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1.5 hover:opacity-90 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                    >
+                      {isTranslating ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Translating...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-3.5 h-3.5" /> Translate Now
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => speakText(inputText, sourceLang)}
+                      className="p-2.5 rounded-full bg-muted text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
+                      title="Play Audio"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                    </button>
+                  </>
                 )}
               </div>
 

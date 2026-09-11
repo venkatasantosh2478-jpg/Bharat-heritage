@@ -5,28 +5,35 @@ import '@/index.css'
 
 // Suppress benign iframe/sandbox websocket connection rejections & HMR notices
 window.addEventListener('unhandledrejection', (event) => {
-  const msg = (event?.reason?.message || String(event?.reason || '')).toLowerCase();
+  const reason = event?.reason;
+  const msg = (reason?.message || (typeof reason === 'string' ? reason : '') || JSON.stringify(reason || '')).toLowerCase();
   if (
     msg.includes('websocket') ||
     msg.includes('closed without opened') ||
     msg.includes('failed to connect') ||
-    msg.includes('vite')
+    msg.includes('vite') ||
+    msg.includes('ws://') ||
+    msg.includes('wss://')
   ) {
     event.preventDefault();
     event.stopPropagation();
+    return false;
   }
 });
 
 window.addEventListener('error', (event) => {
-  const msg = (event?.message || String(event || '')).toLowerCase();
+  const msg = (event?.message || (typeof event === 'string' ? event : '') || '').toLowerCase();
   if (
     msg.includes('websocket') ||
     msg.includes('closed without opened') ||
     msg.includes('failed to connect') ||
-    msg.includes('vite')
+    msg.includes('vite') ||
+    msg.includes('ws://') ||
+    msg.includes('wss://')
   ) {
     event.preventDefault();
     event.stopPropagation();
+    return false;
   }
 });
 

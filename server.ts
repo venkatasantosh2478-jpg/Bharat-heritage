@@ -352,12 +352,14 @@ CRITICAL GEOGRAPHIC RULES:
     }
   });
 
-  // Dedicated Translation endpoint with dual engine (Gemini AI + Free Universal Fallback)
+  // Dedicated Translation endpoint with multi-tier engine (Gemini AI + Multi-Engine Universal Fallback)
   app.post(["/api/ai/translate", "/api/translate"], async (req: Request, res: Response) => {
-    const { text, targetLang = "Hindi", sourceLang = "English", model } = req.body;
+    const { text, targetLang = "Telugu", sourceLang = "English", model } = req.body;
     if (!text || !text.trim()) {
       return res.status(400).json({ error: "Text is required" });
     }
+
+    const cleanInput = text.trim();
 
     const langCodeMap: Record<string, string> = {
       hindi: "hi", hi: "hi",
@@ -374,7 +376,9 @@ CRITICAL GEOGRAPHIC RULES:
     };
 
     const targetKey = targetLang.toLowerCase().trim();
-    const targetCode = langCodeMap[targetKey] || "hi";
+    const sourceKey = sourceLang.toLowerCase().trim();
+    const targetCode = langCodeMap[targetKey] || "te";
+    const sourceCode = langCodeMap[sourceKey] || "en";
 
     // 1. Try Gemini first if API key is present
     const ai = getAI();
@@ -383,10 +387,15 @@ CRITICAL GEOGRAPHIC RULES:
         const response = await generateWithFallback(
           ai,
           {
-            contents: `Translate the following phrase from ${sourceLang} into ${targetLang}.
-Text: "${text}"
-If target is Telugu, provide authentic Telugu script (తెలుగు) and an intuitive Telugu in English pronunciation guide (e.g. 'Ela unnaru', 'Dhanyavadalu', 'Bagunnara').
-Respond with JSON matching the schema.`,
+            contents: `You are an expert Indian multilingual translator and linguistic assistant.
+Translate the following input: "${cleanInput}"
+From: ${sourceLang} (${sourceCode})
+To: ${targetLang} (${targetCode})
+
+Special Instructions:
+1. If translating to Telugu, provide natural authentic Telugu script (తెలుగు) in 'translatedText'. In 'pronunciation', provide clear, easy-to-read Telugu written in English alphabet (Teluglish, e.g., 'Ekkada vellali', 'Namaskaram, ela unnaru', 'Idi entha cost?').
+2. If the user input is in Telugu written in English (Teluglish) and target is English or Telugu, accurately understand the meaning and translate it cleanly.
+3. In 'culturalNote', provide a brief polite tourist etiquette tip for this phrase.`,
             config: {
               responseMimeType: "application/json",
               responseSchema: {
@@ -404,68 +413,107 @@ Respond with JSON matching the schema.`,
         );
 
         const parsed = JSON.parse(response.text || "{}");
-        if (parsed.translatedText) {
+        if (parsed.translatedText && parsed.translatedText.trim()) {
           return res.json({
-            translatedText: parsed.translatedText,
+            translatedText: parsed.translatedText.trim(),
             pronunciation: parsed.pronunciation || "",
-            culturalNote: parsed.culturalNote || `Commonly spoken in ${targetLang} regions`,
-            engine: model || "gemini-ai",
+            culturalNote: parsed.culturalNote || `Commonly spoken across ${targetLang} regions`,
+            engine: model || "gemini-3.8-flash",
           });
         }
-      } catch {
-        // Silently proceed to universal translation engine
+      } catch (geminiErr: any) {
+        console.warn("[Translation Gemini Attempt Note]:", geminiErr?.message || geminiErr);
       }
     }
 
-    // 2. Resilient Universal Translation Fallback
-    try {
-      const gtxUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetCode}&dt=t&dt=rm&q=${encodeURIComponent(text)}`;
-      const gtxRes = await fetch(gtxUrl);
-      if (gtxRes.ok) {
-        const gtxData: any = await gtxRes.json();
-        let translatedText = "";
-        let romanized = "";
+    const culturalNotesMap: Record<string, string> = {
+      hi: "Used across North & Central India. Speak politely with 'Aap' for elders.",
+      te: "Prominently spoken in Andhra Pradesh & Telangana. Add 'Garu' as a polite suffix.",
+      ta: "Spoken across Tamil Nadu with ancient classical heritage. Fold hands with 'Vanakkam'.",
+      bn: "Spoken in West Bengal. Use 'Nomoshkar' as standard respectful greeting.",
+      mr: "Spoken in Maharashtra. Use 'Namaskar' and polite tone in temples and bazaars.",
+      gu: "Spoken in Gujarat. Famous for warm hospitability and business courtesy.",
+      kn: "Spoken across Karnataka. Use 'Namaskara' with a pleasant smile.",
+      ml: "Spoken across Kerala. Highly appreciated by locals when greetings are in Malayalam.",
+      pa: "Spoken in Punjab. Greet with 'Sat Sri Akal' at gurdwaras and heritage monuments.",
+      or: "Spoken in Odisha. Respectful greetings used at Puri Jagannath Temple & Konark.",
+      en: "Universal tourist language across airports, hotels, and tourist guides in India.",
+    };
 
-        if (Array.isArray(gtxData[0])) {
-          translatedText = gtxData[0].map((chunk: any) => chunk[0]).filter(Boolean).join(" ");
-          // Romanization is often in index 1 of chunk or last item
-          const lastChunk = gtxData[0][gtxData[0].length - 1];
-          if (lastChunk && typeof lastChunk[2] === "string") {
-            romanized = lastChunk[2];
-          } else if (lastChunk && typeof lastChunk[3] === "string") {
-            romanized = lastChunk[3];
+    // 2. High-speed Multi-Gateway Universal Translation Engine (No API Key Required)
+    const gateways = [
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceCode}&tl=${targetCode}&dt=t&dt=rm&q=${encodeURIComponent(cleanInput)}`,
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetCode}&dt=t&dt=rm&q=${encodeURIComponent(cleanInput)}`,
+      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanInput)}&langpair=${sourceCode}|${targetCode}`,
+    ];
+
+    for (const url of gateways) {
+      try {
+        const fetchRes = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+        if (!fetchRes.ok) continue;
+
+        const data: any = await fetchRes.json();
+
+        // Handle Google GTX Gateway Format
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+          const translatedChunks: string[] = [];
+          let romanized = "";
+
+          for (const item of data[0]) {
+            if (Array.isArray(item) && item[0]) {
+              translatedChunks.push(item[0]);
+            }
+          }
+
+          // Extract Romanized / Phonetic Pronunciation
+          if (data[0] && Array.isArray(data[0])) {
+            for (let k = data[0].length - 1; k >= 0; k--) {
+              const row = data[0][k];
+              if (Array.isArray(row)) {
+                for (let elem of row) {
+                  if (typeof elem === "string" && elem !== translatedChunks.join(" ") && elem.length > 1 && !/[^\x00-\x7F]/.test(elem)) {
+                    romanized = elem;
+                    break;
+                  }
+                }
+              }
+              if (romanized) break;
+            }
+          }
+
+          const finalTranslated = translatedChunks.join("").trim();
+          if (finalTranslated) {
+            return res.json({
+              translatedText: finalTranslated,
+              pronunciation: romanized || finalTranslated,
+              culturalNote: culturalNotesMap[targetCode] || "Universal respectful communication.",
+              engine: "universal-fast-engine",
+            });
           }
         }
 
-        const culturalNotesMap: Record<string, string> = {
-          hi: "Used across North & Central India. Speak politely with 'Aap' for elders.",
-          te: "Prominently spoken in Andhra Pradesh & Telangana. Add 'Garu' as a polite suffix.",
-          ta: "Spoken across Tamil Nadu with ancient classical heritage. Fold hands with 'Vanakkam'.",
-          bn: "Spoken in West Bengal. Use 'Nomoshkar' as standard respectful greeting.",
-          mr: "Spoken in Maharashtra. Use 'Namaskar' and polite tone in temples and bazaars.",
-          gu: "Spoken in Gujarat. Famous for warm hospitability and business courtesy.",
-          kn: "Spoken across Karnataka. Use 'Namaskara' with a pleasant smile.",
-          ml: "Spoken across Kerala. Highly appreciated by locals when greetings are in Malayalam.",
-          pa: "Spoken in Punjab. Greet with 'Sat Sri Akal' at gurdwaras and heritage monuments.",
-          or: "Spoken in Odisha. Respectful greetings used at Puri Jagannath Temple & Konark.",
-        };
-
-        return res.json({
-          translatedText: translatedText || text,
-          pronunciation: romanized || "Pronounce clearly at moderate pace",
-          culturalNote: culturalNotesMap[targetCode] || "Universal polite greeting suitable for travelers",
-          engine: "universal-gtx",
-        });
+        // Handle MyMemory Gateway Format
+        if (data?.responseData?.translatedText) {
+          const memoryTrans = data.responseData.translatedText.trim();
+          if (memoryTrans) {
+            return res.json({
+              translatedText: memoryTrans,
+              pronunciation: memoryTrans,
+              culturalNote: culturalNotesMap[targetCode] || "Universal polite phrasing.",
+              engine: "universal-memory-engine",
+            });
+          }
+        }
+      } catch (gateErr) {
+        console.warn("[Gateway attempt notice]:", gateErr);
       }
-    } catch (fallbackErr: any) {
-      console.error("[Translation Fallback Error]:", fallbackErr);
     }
 
-    // 3. Final safe response
+    // 3. Resilient Final Fallback Response
     return res.json({
-      translatedText: text,
-      pronunciation: text,
-      culturalNote: "Offline phrasebook ready",
+      translatedText: cleanInput,
+      pronunciation: cleanInput,
+      culturalNote: culturalNotesMap[targetCode] || "Offline phrasebook ready.",
       engine: "offline-echo",
     });
   });
