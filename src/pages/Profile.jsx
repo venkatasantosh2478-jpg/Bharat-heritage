@@ -70,6 +70,7 @@ export default function Profile() {
   // Personal Profile State
   const [profile, setProfile] = useState({
     name: "Aditya Sharma",
+    fatherName: "Ramesh Sharma",
     email: "aditya.travels@bharatyatra.gov.in",
     phone: "+91 98490 12345",
     homeCity: "Visakhapatnam",
@@ -381,6 +382,21 @@ export default function Profile() {
 
                   <div>
                     <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                      Father's / Guardian's Name
+                    </label>
+                    <input
+                      type="text"
+                      value={profile.fatherName || ""}
+                      onChange={(e) => setProfile({ ...profile, fatherName: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:ring-2 focus:ring-primary text-foreground"
+                      placeholder="e.g. Ramesh Sharma"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
                       Phone Number
                     </label>
                     <input
@@ -390,9 +406,7 @@ export default function Profile() {
                       className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:ring-2 focus:ring-primary text-foreground"
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
                       Official Email
@@ -404,7 +418,9 @@ export default function Profile() {
                       className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:ring-2 focus:ring-primary text-foreground"
                     />
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
                       Home City / Base
@@ -414,6 +430,18 @@ export default function Profile() {
                       value={profile.homeCity}
                       onChange={(e) => setProfile({ ...profile, homeCity: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:ring-2 focus:ring-primary text-foreground"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                      Device / Smartphone Linked
+                    </label>
+                    <input
+                      type="text"
+                      value={profile.deviceName || ""}
+                      onChange={(e) => setProfile({ ...profile, deviceName: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:ring-2 focus:ring-primary text-foreground"
+                      placeholder="e.g. Personal Smartphone (Verified)"
                     />
                   </div>
                 </div>

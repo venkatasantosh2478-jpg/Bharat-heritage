@@ -63,6 +63,7 @@ export const DEFAULT_SITE_CONFIG = {
   
   curfewAlerts: false,
   offlineModeAvailable: true,
+  showDemoCredentialsInLogin: true, // Configurable in Admin -> Settings: toggle display of 1-click demo accounts on Login page
 };
 
 export function getSiteConfig() {

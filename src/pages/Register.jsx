@@ -5,7 +5,7 @@ import { useAuth } from "@/components/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2, KeyRound } from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, KeyRound, UserCheck } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
@@ -14,6 +14,7 @@ import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
+  const [fatherName, setFatherName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,6 +37,27 @@ export default function Register() {
     try {
       // Create real account in Firebase Auth and send verification
       const newUser = await registerWithFirebase(email, password, fullName, phone);
+
+      // Save complete default user details to profile storage
+      try {
+        const userProfileData = {
+          name: fullName || email.split("@")[0],
+          fatherName: fatherName || "",
+          email: email,
+          phone: phone ? (phone.startsWith("+91") ? phone : `+91 ${phone.trim()}`) : "+91 98490 12345",
+          homeCity: "Visakhapatnam",
+          deviceName: "Personal Smartphone (Verified)",
+          bloodGroup: "O+ Positive",
+          emergencyContactName: fatherName ? `${fatherName} (Father)` : "Emergency Contact",
+          emergencyContactPhone: phone ? (phone.startsWith("+91") ? phone : `+91 ${phone.trim()}`) : "+91 98490 54321",
+          sosRegistered: true,
+          liveLocationSharing: true,
+          lastCoordinates: "17.6868° N, 83.2185° E (Visakhapatnam Beach Road)",
+        };
+        localStorage.setItem("by-user-profile", JSON.stringify(userProfileData));
+      } catch (saveErr) {
+        console.warn("Profile save note:", saveErr);
+      }
       
       toast({
         title: "Account Created Successfully!",
@@ -254,7 +276,21 @@ export default function Register() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="phone">Mobile Number</Label>
+          <Label htmlFor="fatherName">Father's / Guardian's Name</Label>
+          <div className="relative">
+            <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Input
+              id="fatherName"
+              type="text"
+              placeholder="e.g. Ramesh Sharma"
+              value={fatherName}
+              onChange={(e) => setFatherName(e.target.value)}
+              className="pl-10 h-12"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="phone">Mobile Phone Number</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-bold">🇮🇳 +91</span>
             <Input

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, getSystemCredentials } from "@/components/lib/AuthContext";
+import { getSiteConfig } from "@/components/lib/siteConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,9 +18,18 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showGoogleChooser, setShowGoogleChooser] = useState(false);
+  const [siteConfig, setSiteConfig] = useState(getSiteConfig);
   const { loginWithEmailPassword, loginWithGoogle, loginWithGoogleEmail, quickSwitchRole } = useAuth();
   const navigate = useNavigate();
   const returnTo = safeReturnTo();
+
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      if (e.detail) setSiteConfig(e.detail);
+    };
+    window.addEventListener("by-site-config-updated", handleUpdate);
+    return () => window.removeEventListener("by-site-config-updated", handleUpdate);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -240,41 +250,43 @@ export default function Login() {
           </form>
         </AuthLayout>
 
-        {/* Quick Demo Credentials for Fast Testing & Verification */}
-        <div className="mt-6 p-4 bg-card/80 backdrop-blur border border-border/80 rounded-2xl shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-xs font-bold text-foreground">1-Click Test Credentials & Role Switcher</span>
+        {/* Quick Demo Credentials for Fast Testing & Verification (Toggled in Admin Settings) */}
+        {siteConfig?.showDemoCredentialsInLogin !== false && (
+          <div className="mt-6 p-4 bg-card/80 backdrop-blur border border-border/80 rounded-2xl shadow-sm space-y-3 animate-in fade-in">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-xs font-bold text-foreground">1-Click Test Credentials & Role Switcher</span>
+              </div>
+              <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider bg-muted px-2 py-0.5 rounded-full">
+                Instant Access
+              </span>
             </div>
-            <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider bg-muted px-2 py-0.5 rounded-full">
-              Instant Access
-            </span>
-          </div>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Click any designated role below to auto-fill credentials and test any employee or admin dashboard instantly:
-          </p>
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            {getSystemCredentials().map((cred) => (
-              <button
-                key={cred.role}
-                type="button"
-                onClick={() => handleQuickSelect(cred)}
-                className="flex flex-col text-left p-2.5 rounded-xl border border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-all text-xs group cursor-pointer"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="font-semibold text-foreground group-hover:text-primary transition-colors text-xs truncate">
-                    {cred.roleName.split(' ')[0]} {cred.roleName.split(' ')[1] || ''}
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Click any designated role below to auto-fill credentials and test any employee or admin dashboard instantly:
+            </p>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              {getSystemCredentials().map((cred) => (
+                <button
+                  key={cred.role}
+                  type="button"
+                  onClick={() => handleQuickSelect(cred)}
+                  className="flex flex-col text-left p-2.5 rounded-xl border border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-all text-xs group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-semibold text-foreground group-hover:text-primary transition-colors text-xs truncate">
+                      {cred.roleName.split(' ')[0]} {cred.roleName.split(' ')[1] || ''}
+                    </span>
+                    <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 ml-1" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground truncate mt-0.5">
+                    {cred.email}
                   </span>
-                  <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 ml-1" />
-                </div>
-                <span className="text-[10px] text-muted-foreground truncate mt-0.5">
-                  {cred.email}
-                </span>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

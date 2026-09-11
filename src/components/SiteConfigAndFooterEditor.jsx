@@ -135,6 +135,7 @@ export default function SiteConfigAndFooterEditor() {
         {/* Sub-Tabs */}
         <div className="flex items-center gap-2 border-b border-border pb-1 overflow-x-auto text-xs">
           {[
+            { id: "login_toggles", label: "🔑 Login Page & Demo Toggle", icon: Settings },
             { id: "whatsapp_footer", label: "💬 WhatsApp Bot & Contact Info", icon: MessageCircle },
             { id: "links", label: "🔗 Footer Navigation & Custom Links", icon: LinkIcon },
             { id: "social", label: "🌐 Social Networks & Address", icon: Share2 },
@@ -155,6 +156,78 @@ export default function SiteConfigAndFooterEditor() {
           ))}
         </div>
       </div>
+
+      {/* SUB-TAB 0: LOGIN PAGE & DEMO ACCOUNTS TOGGLE */}
+      {activeSubTab === "login_toggles" && (
+        <form onSubmit={handleSave} className="space-y-6 text-xs">
+          <div className="p-6 rounded-3xl bg-card border-2 border-primary/30 space-y-5 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/15 text-primary flex items-center justify-center font-bold text-base">
+                  🔑
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-foreground">Login Page Demo Credentials Visibility</h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Enable or disable the 1-Click Test Credentials & Role Switcher box shown at the bottom of the /login page.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-muted/50 border border-border flex items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="font-bold text-foreground text-sm block">
+                  Show 1-Click Demo Accounts on Login Page
+                </span>
+                <p className="text-[11px] text-muted-foreground">
+                  When turned OFF, users only see the standard Google Sign-in and Email/Password fields. Ideal for clean production mode.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={config.showDemoCredentialsInLogin !== false}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      showDemoCredentialsInLogin: e.target.checked,
+                    })
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-12 h-6 bg-muted-foreground/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+              </label>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-2 text-xs">
+              <span className="font-bold text-primary flex items-center gap-1.5">
+                💡 Current Status:
+              </span>
+              <p className="text-muted-foreground leading-relaxed">
+                {config.showDemoCredentialsInLogin !== false ? (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                    ✓ Demo accounts box is currently <strong>VISIBLE</strong> on <a href="/login" target="_blank" className="underline font-mono">/login</a>.
+                  </span>
+                ) : (
+                  <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                    ✕ Demo accounts box is currently <strong>HIDDEN</strong> on <a href="/login" target="_blank" className="underline font-mono">/login</a>.
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-bold text-xs shadow-md hover:opacity-90 flex items-center gap-2 cursor-pointer"
+            >
+              <Save className="w-4 h-4" /> Save Login Visibility Settings
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* SUB-TAB 1: WHATSAPP BOT & CONTACT HELPLINE */}
       {activeSubTab === "whatsapp_footer" && (
