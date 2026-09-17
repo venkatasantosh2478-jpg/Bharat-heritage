@@ -405,7 +405,7 @@ export default function TravelJournal({ onAskAssistant }) {
             </div>
           </div>
 
-          {/* Search bar with Voice Input */}
+          {/* Search bar with cleanly aligned Voice Input button */}
           <div className="flex items-center gap-2 w-full md:w-80">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
@@ -414,14 +414,14 @@ export default function TravelJournal({ onAskAssistant }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search monuments or crafts..."
-                className="w-full pl-9 pr-10 py-2 rounded-xl bg-muted/60 border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
-              />
-              <VoiceToTextInput
-                variant="compact"
-                onTranscript={(txt) => setSearchQuery(txt)}
-                className="absolute right-1 top-1/2 -translate-y-1/2"
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-muted/60 border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
               />
             </div>
+            <VoiceToTextInput
+              variant="compact"
+              onTranscript={(txt) => setSearchQuery(txt)}
+              className="shrink-0"
+            />
           </div>
         </div>
 

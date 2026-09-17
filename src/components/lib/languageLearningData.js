@@ -751,89 +751,174 @@ export function translateOfflineQuery(text, targetLangCode = "te", sourceLangCod
   // 2. High-speed Multilingual Vocabulary & Sentence Builder Dictionary
   const vocabDict = {
     // Basic Greetings & Politeness
-    "hello": { te: "నమస్కారం (Namaskāram)", hi: "नमस्ते (Namastē)", ta: "வணக்கம் (Vaṇakkam)", bn: "নমস্কার (Nomoshkār)", kn: "ನಮಸ್ಕಾರ (Namaskāra)", mr: "नमस्कार (Namaskār)", gu: "નમસ્તે (Namastē)", ml: "നമസ്കാരം (Namaskāram)", pa: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ (Sat Srī Akāl)" },
-    "hi": { te: "నమస్కారం (Namaskāram)", hi: "नमस्ते (Namastē)", ta: "வணக்கம் (Vaṇakkam)", bn: "নমস্কার (Nomoshkār)", kn: "ನಮಸ್ಕಾರ (Namaskāra)", mr: "नमस्कार (Namaskār)", gu: "નમસ્તે (Namastē)", ml: "നമസ്കാരം (Namaskāram)", pa: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ (Sat Srī Akāl)" },
-    "good morning": { te: "శుభోదయం (Shubhōdayam)", hi: "शुभ प्रभात (Shubh Prabhāt)", ta: "காலை வணக்கம் (Kālai vaṇakkam)", bn: "সুপ্রভাত (Suprabhāt)", kn: "ಶುಭೋದಯ (Shubhōdaya)", mr: "शुभ सकाळ (Shubh sakāḷ)", gu: "સુપ્રભાત (Suprabhāt)", ml: "സുപ്രഭാതം (Suprabhātam)", pa: "ਸ਼ੁਭ ਸਵੇਰ (Shubh savēr)" },
-    "good evening": { te: "శుభ సాయంత్రం (Shubha Sāyantram)", hi: "शुभ संध्या (Shubh Sandhyā)", ta: "மாலை வணக்கம் (Mālai vaṇakkam)", bn: "শুভ সন্ধ্যা (Shubhō shondhyā)", kn: "ಶುಭ ಸಂಜೆ (Shubha sanje)", mr: "शुभ संध्याकाळ (Shubh sandhyākāḷ)", gu: "શુભ સાંજ (Shubh sānj)", ml: "ശുഭ സായാഹ്നം (Shubha sāyāhnam)", pa: "ਸ਼ੁਭ ਸ਼ਾਮ (Shubh shām)" },
-    "good night": { te: "శుభరాత్రి (Shubharātri)", hi: "शुभ रात्रि (Shubh rātri)", ta: "இனிய இரவு (Iṉiya iravu)", bn: "শুভরাত্রি (Shubharātri)", kn: "ಶುಭರಾತ್ರಿ (Shubharātri)", mr: "शुभ रात्री (Shubh rātrī)", gu: "શુભ રાત્રિ (Shubh rātri)", ml: "ശുഭരാത്രി (Shubharāthri)", pa: "ਸ਼ੁਭ ਰਾਤ (Shubh rāt)" },
-    "welcome": { te: "స్వాగతం (Swāgatam)", hi: "स्वागत है (Swāgat hai)", ta: "நல்வரவு (Nalvaravu)", bn: "স্বাগতম (Swāgotom)", kn: "ಸ್ವಾಗತ (Swāgata)", mr: "स्वागत आहे (Swāgat āhē)", gu: "સ્વાગત છે (Swāgat chhe)", ml: "സ്വാഗതം (Swāgatham)", pa: "ਜੀ ਆਇਆਂ ਨੂੰ (Jī āiān nū)" },
-    "thank you": { te: "చాలా ధన్యవాదాలు (Chālā dhanyavādālu)", hi: "धन्यवाद / शुक्रिया (Dhanyavād / Shukriyā)", ta: "மிக்க நன்றி (Mikka naṉṟi)", bn: "অনেক ধন্যবাদ (Onēk dhonyobād)", kn: "ತುಂಬಾ ಧನ್ಯವಾದಗಳು (Tumbā dhanyavādagalu)", mr: "खूप धन्यवाद (Khūp dhanyavād)", gu: "ખૂબ આભાર (Khūb ābhār)", ml: "വളരെ നന്ദി (Valare nandi)", pa: "ਬਹੁਤ ਧੰਨਵਾਦ (Bahut dhanvād)" },
-    "thanks": { te: "ధన్యవాదాలు (Dhanyavādālu)", hi: "धन्यवाद (Dhanyavād)", ta: "நன்றி (Naṉṟi)", bn: "ধন্যবাদ (Dhonyobād)", kn: "ಧನ್ಯವಾದ (Dhanyavāda)", mr: "धन्यवाद (Dhanyavād)", gu: "આભાર (Ābhār)", ml: "നന്ദി (Nandi)", pa: "ਧੰਨਵਾਦ (Dhanvād)" },
-    "how are you": { te: "మీరు ఎలా ఉన్నారు? (Mīru elā unnāru?)", hi: "आप कैसे हैं? (Āp kaisē hain?)", ta: "நீங்கள் எப்படி இருக்கிறீர்கள்? (Nīṅkaḷ eppaṭi irukkiṟīrkaḷ?)", bn: "আপনি কেমন আছেন? (Āpni kēmōn āchhēn?)", kn: "ನೀವು ಹೇಗಿದ್ದೀರಿ? (Nīvu hēgiddīri?)", mr: "तुम्ही कसे आहात? (Tumhī kasē āhāt?)", gu: "તમે કેમ છો? (Tamē kēm chho?)", ml: "സുഖമാണോ? (Sukhamāṇō?)", pa: "ਤੁਹਾਡਾ ਕੀ ਹਾਲ ਹੈ? (Tuhāḍā kī hāl hai?)" },
-    "i am fine": { te: "నేను బాగున్నాను (Nēnu bāgunnānu)", hi: "मैं ठीक हूँ (Main ṭhīk hūn)", ta: "நான் நலமாக இருக்கிறேன் (Nāṉ nalamāka irukkiṟēṉ)", bn: "আমি ভালো আছি (Āmi bhālō āchhi)", kn: "ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ (Nānu chennāgiddēne)", mr: "मी ठीक आहे (Mī ṭhīk āhē)", gu: "હું મજામાં છું (Hun majāmān chhun)", ml: "എനിക്ക് സുഖമാണ് (Enikku sukhamāṇu)", pa: "ਮੈਂ ਠੀਕ ਹਾਂ (Main ṭhīk hān)" },
-    "what is your name": { te: "మీ పేరు ఏమిటి? (Mī pēru ēmiṭi?)", hi: "आपका नाम क्या है? (Āpkā nām kyā hai?)", ta: "உங்கள் பெயர் என்ன? (Uṅgaḷ peyar eṉṉa?)", bn: "আপনার নাম কি? (Āpnār nām ki?)", kn: "ನಿಮ್ಮ ಹೆಸರೇನು? (Nimma hesarēnu?)", mr: "तुमचे नाव काय आहे? (Tumchē nāv kāy āhē?)", gu: "તમારું નામ શું છે? (Tamārun nām shun chhe?)", ml: "നിങ്ങളുടെ പേരെന്താണ്? (Niṅṅaḷuṭe pērentāṇu?)", pa: "ਤੁਹਾਡਾ ਨਾਮ ਕੀ ਹੈ? (Tuhāḍā nām kī hai?)" },
-    "my name is": { te: "నా పేరు... (Nā pēru...)", hi: "मेरा नाम... है (Mērā nām... hai)", ta: "என் பெயர்... (Eṉ peyar...)", bn: "আমার নাম... (Āmār nām...)", kn: "ನನ್ನ ಹೆಸರು... (Nanna hesaru...)", mr: "माझे नाव... आहे (Mājhē nāv... āhē)", gu: "મારું નામ... છે (Mārun nām... chhe)", ml: "എന്റെ പേര്... (Ente pēru...)", pa: "ਮੇਰਾ ਨਾਮ... ਹੈ (Mērā nām... hai)" },
-    "please": { te: "దయచేసి (Dayachēsi)", hi: "कृपया (Kripayā)", ta: "தயவுசெய்து (Thayavuseythu)", bn: "দয়া করে (Doyā korē)", kn: "ದಯವಿಟ್ಟು (Dayaviṭṭu)", mr: "कृपया (Kripayā)", gu: "કૃપા કરીને (Krupā karīnē)", ml: "ദയവായി (Dayavāyi)", pa: "ਕਿਰਪਾ ਕਰਕੇ (Kirpā karkē)" },
-    "sorry": { te: "నన్ను క్షమించండి (Nannu kshaminchaṇḍi)", hi: "माफ़ कीजिये (Māf kījiye)", ta: "மன்னிக்கவும் (Maṉṉikkavum)", bn: "আমাকে মাফ করবেন (Āmākē māf korbēn)", kn: "ಕ್ಷಮಿಸಿ (Kshamisi)", mr: "माफ करा (Māf karā)", gu: "માફ કરશો (Māf karsho)", ml: "ക്ഷമിക്കണം (Kshamikkanam)", pa: "ਮਾਫ਼ ਕਰਨਾ (Māf karnā)" },
+    "hello": { en: "Hello", te: "నమస్కారం (Namaskāram)", hi: "नमस्ते (Namastē)", ta: "வணக்கம் (Vaṇakkam)", bn: "নমস্কার (Nomoshkār)", kn: "ನಮಸ್ಕಾರ (Namaskāra)", mr: "नमस्कार (Namaskār)", gu: "નમસ્તે (Namastē)", ml: "നമസ്കാരം (Namaskāram)", pa: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ (Sat Srī Akāl)" },
+    "hi": { en: "Hi", te: "నమస్కారం (Namaskāram)", hi: "नमस्ते (Namastē)", ta: "வணக்கம் (Vaṇakkam)", bn: "নমস্কার (Nomoshkār)", kn: "ನಮಸ್ಕಾರ (Namaskāra)", mr: "नमस्कार (Namaskār)", gu: "નમસ્તે (Namastē)", ml: "നമസ്കാരം (Namaskāram)", pa: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ (Sat Srī Akāl)" },
+    "namaste": { en: "Greetings / Hello", te: "నమస్కారం (Namaskāram)", hi: "नमस्ते (Namastē)", ta: "வணக்கம் (Vaṇakkam)", bn: "নমস্কার (Nomoshkār)", kn: "ನಮಸ್ಕಾರ (Namaskāra)", mr: "नमस्कार (Namaskār)", gu: "નમસ્તે (Namastē)", ml: "നമസ്കാരം (Namaskāram)", pa: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ (Sat Srī Akāl)" },
+    "namaskaram": { en: "Greetings / Respectful Hello", te: "నమస్కారం (Namaskāram)", hi: "सादर प्रणाम (Sādar praṇām)", ta: "வணக்கம் (Vaṇakkam)", bn: "নমস্কার (Nomoshkār)", kn: "ನಮಸ್ಕಾರ (Namaskāra)", mr: "नमस्कार (Namaskār)", gu: "નમસ્તે (Namastē)", ml: "നമസ്കാരം (Namaskāram)", pa: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ (Sat Srī Akāl)" },
+    "vanakkam": { en: "Greetings / Hello", te: "నమస్కారం (Namaskāram)", hi: "नमस्ते (Namastē)", ta: "வணக்கம் (Vaṇakkam)", bn: "নমস্কার (Nomoshkār)", kn: "ನಮಸ್ಕಾರ (Namaskāra)", mr: "नमस्कार (Namaskār)", gu: "નમસ્તે (Namastē)", ml: "നമസ്കാരം (Namaskāram)", pa: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ (Sat Srī Akāl)" },
+    "good morning": { en: "Good morning", te: "శుభోదయం (Shubhōdayam)", hi: "शुभ प्रभात (Shubh Prabhāt)", ta: "காலை வணக்கம் (Kālai vaṇakkam)", bn: "সুপ্রভাত (Suprabhāt)", kn: "ಶುಭೋದಯ (Shubhōdaya)", mr: "शुभ सकाळ (Shubh sakāḷ)", gu: "સુપ્રભાત (Suprabhāt)", ml: "സുപ്രഭാതം (Suprabhātam)", pa: "ਸ਼ੁਭ ਸਵੇਰ (Shubh savēr)" },
+    "good evening": { en: "Good evening", te: "శుభ సాయంత్రం (Shubha Sāyantram)", hi: "शुभ संध्या (Shubh Sandhyā)", ta: "மாலை வணக்கம் (Mālai vaṇakkam)", bn: "শুভ সন্ধ্যা (Shubhō shondhyā)", kn: "ಶುಭ ಸಂಜೆ (Shubha sanje)", mr: "शुभ संध्याकाळ (Shubh sandhyākāḷ)", gu: "શુભ સાંજ (Shubh sānj)", ml: "ശുഭ സായാഹ്നം (Shubha sāyāhnam)", pa: "ਸ਼ੁਭ ਸ਼ਾਮ (Shubh shām)" },
+    "good night": { en: "Good night", te: "శుభరాత్రి (Shubharātri)", hi: "शुभ रात्रि (Shubh rātri)", ta: "இனிய இரவு (Iṉiya iravu)", bn: "শুভরাত্রি (Shubharātri)", kn: "ಶುಭರಾತ್ರಿ (Shubharātri)", mr: "शुभ रात्री (Shubh rātrī)", gu: "શુભ રાત્રિ (Shubh rātri)", ml: "ശുഭരാത്രി (Shubharāthri)", pa: "ਸ਼ੁਭ ਰਾਤ (Shubh rāt)" },
+    "welcome": { en: "Welcome", te: "స్వాగతం (Swāgatam)", hi: "स्वागत है (Swāgat hai)", ta: "நல்வரவு (Nalvaravu)", bn: "স্বাগতম (Swāgotom)", kn: "ಸ್ವಾಗತ (Swāgata)", mr: "स्वागत आहे (Swāgat āhē)", gu: "સ્વાગત છે (Swāgat chhe)", ml: "സ്വാഗതം (Swāgatham)", pa: "ਜੀ ਆਇਆਂ ਨੂੰ (Jī āiān nū)" },
+    "thank you": { en: "Thank you", te: "చాలా ధన్యవాదాలు (Chālā dhanyavādālu)", hi: "धन्यवाद / शुक्रिया (Dhanyavād / Shukriyā)", ta: "மிக்க நன்றி (Mikka naṉṟi)", bn: "অনেক ধন্যবাদ (Onēk dhonyobād)", kn: "ತುಂಬಾ ಧನ್ಯವಾದಗಳು (Tumbā dhanyavādagalu)", mr: "खूप धन्यवाद (Khūp dhanyavād)", gu: "ખૂબ આભાર (Khūb ābhār)", ml: "വളരെ നന്ദി (Valare nandi)", pa: "ਬਹੁਤ ਧੰਨਵਾਦ (Bahut dhanvād)" },
+    "thanks": { en: "Thanks", te: "ధన్యవాదాలు (Dhanyavādālu)", hi: "धन्यवाद (Dhanyavād)", ta: "நன்றி (Naṉṟi)", bn: "ধন্যবাদ (Dhonyobād)", kn: "ಧನ್ಯವಾದ (Dhanyavāda)", mr: "धन्यवाद (Dhanyavād)", gu: "આભાર (Ābhār)", ml: "നന്ദി (Nandi)", pa: "ਧੰਨਵਾਦ (Dhanvād)" },
+    "dhanyavadalu": { en: "Thank you", te: "ధన్యవాదాలు (Dhanyavādālu)", hi: "धन्यवाद (Dhanyavād)", ta: "நன்றி (Naṉṟi)", bn: "ধন্যবাদ (Dhonyobād)", kn: "ಧನ್ಯವಾದ (Dhanyavāda)", mr: "धन्यवाद (Dhanyavād)", gu: "આભાર (Ābhār)", ml: "നന്ദി (Nandi)", pa: "ਧੰਨਵਾਦ (Dhanvād)" },
+    "dhanyavad": { en: "Thank you", te: "ధన్యవాదాలు (Dhanyavādālu)", hi: "धन्यवाद (Dhanyavād)", ta: "நன்றி (Naṉṟi)", bn: "ধন্যবাদ (Dhonyobād)", kn: "ಧನ್ಯವಾದ (Dhanyavāda)", mr: "धन्यवाद (Dhanyavād)", gu: "આભાર (Ābhār)", ml: "നന്ദി (Nandi)", pa: "ਧੰਨਵਾਦ (Dhanvād)" },
+    "how are you": { en: "How are you?", te: "మీరు ఎలా ఉన్నారు? (Mīru elā unnāru?)", hi: "आप कैसे हैं? (Āp kaisē hain?)", ta: "நீங்கள் எப்படி இருக்கிறீர்கள்? (Nīṅkaḷ eppaṭi irukkiṟīrkaḷ?)", bn: "আপনি কেমন আছেন? (Āpni kēmōn āchhēn?)", kn: "ನೀವು ಹೇಗಿದ್ದೀರಿ? (Nīvu hēgiddīri?)", mr: "तुम्ही कसे आहात? (Tumhī kasē āhāt?)", gu: "તમે કેમ છો? (Tamē kēm chho?)", ml: "സുഖമാണോ? (Sukhamāṇō?)", pa: "ਤੁਹਾਡਾ ਕੀ ਹਾਲ ਹੈ? (Tuhāḍā kī hāl hai?)" },
+    "ela unnaru": { en: "How are you? (Telugu)", te: "ఎలా ఉన్నారు? (Elā unnāru?)", hi: "कैसे हैं आप? (Kaisē hain āp?)", ta: "எப்படி இருக்கிறீர்கள்? (Eppaṭi irukkiṟīrkaḷ?)", bn: "কেমন আছেন? (Kēmōn āchhēn?)", kn: "ಹೇಗಿದ್ದೀರಿ? (Hēgiddīri?)", mr: "कसे आहात? (Kasē āhāt?)", gu: "કેમ છો? (Kēm chho?)", ml: "സുഖമാണോ? (Sukhamāṇō?)", pa: "ਕਿਵੇਂ ਹੋ? (Kivēṁ hō?)" },
+    "kahan hai": { en: "Where is it? (Hindi)", te: "ఎక్కడ ఉంది? (Ekkaḍa undi?)", hi: "कहाँ है? (Kahān hai?)", ta: "எங்கே இருக்கிறது? (Eṅkē irukkiṟathu?)", bn: "কোথায়? (Kōthāy?)", kn: "ಎಲ್ಲಿದೆ? (Ellide?)", mr: "कुठे आहे? (Kuṭhē āhē?)", gu: "ક્યાં છે? (Kyān chhe?)", ml: "എവിടെയാണ്? (Eviḍeyāṇu?)", pa: "ਕਿੱਥੇ ਹੈ? (Kithē hai?)" },
+    "i am fine": { en: "I am fine", te: "నేను బాగున్నాను (Nēnu bāgunnānu)", hi: "मैं ठीक हूँ (Main ṭhīk hūn)", ta: "நான் நலமாக இருக்கிறேன் (Nāṉ nalamāka irukkiṟēṉ)", bn: "আমি ভালো আছি (Āmi bhālō āchhi)", kn: "ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ (Nānu chennāgiddēne)", mr: "मी ठीक आहे (Mī ṭhīk āhē)", gu: "હું મજામાં છું (Hun majāmān chhun)", ml: "എനിക്ക് സുഖമാണ് (Enikku sukhamāṇu)", pa: "ਮੈਂ ਠੀਕ ਹਾਂ (Main ṭhīk hān)" },
+    "what is your name": { en: "What is your name?", te: "మీ పేరు ఏమిటి? (Mī pēru ēmiṭi?)", hi: "आपका नाम क्या है? (Āpkā nām kyā hai?)", ta: "உங்கள் பெயர் என்ன? (Uṅgaḷ peyar eṉṉa?)", bn: "আপনার নাম কি? (Āpnār nām ki?)", kn: "ನಿಮ್ಮ ಹೆಸರೇನು? (Nimma hesarēnu?)", mr: "तुमचे नाव काय आहे? (Tumchē nāv kāy āhē?)", gu: "તમારું નામ શું છે? (Tamārun nām shun chhe?)", ml: "നിങ്ങളുടെ പേരെന്താണ്? (Niṅṅaḷuṭe pērentāṇu?)", pa: "ਤੁਹਾਡਾ ਨਾਮ ਕੀ ਹੈ? (Tuhāḍā nām kī hai?)" },
+    "my name is": { en: "My name is...", te: "నా పేరు... (Nā pēru...)", hi: "मेरा नाम... है (Mērā nām... hai)", ta: "என் பெயர்... (Eṉ peyar...)", bn: "আমার নাম... (Āmār nām...)", kn: "ನನ್ನ ಹೆಸರು... (Nanna hesaru...)", mr: "माझे नाव... आहे (Mājhē nāv... āhē)", gu: "મારું નામ... છે (Mārun nām... chhe)", ml: "എന്റെ പേര്... (Ente pēru...)", pa: "ਮੇਰਾ ਨਾਮ... ਹੈ (Mērā nām... hai)" },
+    "please": { en: "Please", te: "దయచేసి (Dayachēsi)", hi: "कृपया (Kripayā)", ta: "தயவுசெய்து (Thayavuseythu)", bn: "দয়া করে (Doyā korē)", kn: "ದಯವಿಟ್ಟು (Dayaviṭṭu)", mr: "कृपया (Kripayā)", gu: "કૃપા કરીને (Krupā karīnē)", ml: "ദയവായി (Dayavāyi)", pa: "ਕਿਰਪਾ ਕਰਕੇ (Kirpā karkē)" },
+    "sorry": { en: "Sorry / Excuse me", te: "నన్ను క్షమించండి (Nannu kshaminchaṇḍi)", hi: "माफ़ कीजिये (Māf kījiye)", ta: "மன்னிக்கவும் (Maṉṉikkavum)", bn: "আমাকে মাফ করবেন (Āmākē māf korbēn)", kn: "ಕ್ಷಮಿಸಿ (Kshamisi)", mr: "माफ करा (Māf karā)", gu: "માફ કરશો (Māf karsho)", ml: "ക്ഷമിക്കണം (Kshamikkanam)", pa: "ਮਾਫ਼ ਕਰਨਾ (Māf karnā)" },
+    "excuse me": { en: "Excuse me", te: "కొంచెం వినండి / క్షమించండి (Konchem vinaṇḍi)", hi: "माफ़ कीजिये / सुनिए (Suniye)", ta: "தயவுசெய்து கவனியுங்கள் (Kavaṉiyuṅkaḷ)", bn: "শুনুন (Shunun)", kn: "ಸ್ವಲ್ಪ ಕೇಳಿ (Svalpa kēḷi)", mr: "ऐका (Aikā)", gu: "સાંભળો (Sāmbhaḷō)", ml: "ഒന്നു ശ്രദ്ധിക്കൂ (Orkkuka)", pa: "ਸੁਣੋ ਜੀ (Suṇō jī)" },
 
-    // Essential Travel Needs & Amenities
-    "water": { te: "మంచినీళ్ళు కావాలి (Manchinīḷḷu kāvāli)", hi: "पीने का पानी (Pīnē kā pānī)", ta: "குடிநீர் வேண்டும் (Kuṭinīr vēṇṭum)", bn: "খাবার জল (Khābār jol)", kn: "ಕುಡಿಯುವ ನೀರು (Kuḍiyuva nīru)", mr: "पिण्याचे पाणी (Piṇyāchē pāṇī)", gu: "પીવાનું પાણી (Pīvānun pānī)", ml: "കുടിവെള്ളം (Kuṭiveḷḷam)", pa: "ਪੀਣ ਵਾਲਾ ਪਾਣੀ (Pīṇ vālā pāṇī)" },
-    "drinking water": { te: "మంచినీటి బాటిల్ (Manchinīti bottle)", hi: "पानी की बोतल (Pānī kī bōtal)", ta: "குடிநீர் பாட்டில் (Kuṭinīr pāṭṭil)", bn: "জলের বোতল (Jolēr bōtol)", kn: "ನೀರಿನ ಬಾಟಲಿ (Nīrina bāṭali)", mr: "पाण्याची बाटली (Pāṇyāchī bāṭlī)", gu: "પાણીની બોટલ (Pānīnī bōṭal)", ml: "വെള്ളക്കുപ്പി (Veḷḷakkuppi)", pa: "ਪਾਣੀ ਦੀ ਬੋਤਲ (Pāṇī dī bōtal)" },
-    "food": { te: "భోజనం / తిండి (Bhōjanam)", hi: "खाना / भोजन (Khānā / Bhōjan)", ta: "உணவு / சாப்பாடு (Uṇavu / Sāppāṭu)", bn: "খাবার / ভোজন (Khābār)", kn: "ಊಟ / ಆಹಾರ (Ūṭa)", mr: "जेवण (Jēvaṇ)", gu: "જમવાનું (Jamvānun)", ml: "ഭക്ഷണം (Bhakshaṇam)", pa: "ਖਾਣਾ (Khāṇā)" },
-    "tea": { te: "టీ / చాయ్ (Chāy)", hi: "चाय (Chāy)", ta: "தேநீர் / டீ (Thēnīr)", bn: "চা (Chā)", kn: "ಟೀ / ಚಹಾ (Tea)", mr: "चहा (Chahā)", gu: "ચા (Chā)", ml: "ചായ (Chāya)", pa: "ਚਾਹ (Chāh)" },
-    "coffee": { te: "కాఫీ (Kāphī)", hi: "कॉफ़ी (Coffee)", ta: "காபி (Kāpi)", bn: "কফি (Coffee)", kn: "ಕಾಫಿ (Coffee)", mr: "कॉफी (Coffee)", gu: "કોફી (Coffee)", ml: "കാപ്പി (Kāppi)", pa: "ਕੌਫ਼ੀ (Coffee)" },
-    "sugar": { te: "పంచదార / చక్కర (Chakkara)", hi: "चीनी / शक्कर (Chīnī / Shakkar)", ta: "சர்க்கரை (Sarkkarai)", bn: "চিনি (Chini)", kn: "ಸಕ್ಕರೆ (Sakkare)", mr: "साखर (Sākhar)", gu: "ખાંડ (Khāṇḍ)", ml: "പഞ്ചസാര (Panchasāra)", pa: "ਖੰਡ (Khaṇḍ)" },
-    "milk": { te: "పాలు (Pālu)", hi: "दूध (Dūdh)", ta: "பால் (Pāl)", bn: "দুধ (Dudh)", kn: "ಹಾಲು (Hālu)", mr: "दूध (Dūdh)", gu: "દૂધ (Dūdh)", ml: "പാൽ (Pāl)", pa: "ਦੁੱਧ (Duddh)" },
-    "vegetarian": { te: "శాకాహారం (Shākāhāram)", hi: "शुद्ध शाकाहारी (Shuddh Shākāhārī)", ta: "சைவ உணவு (Saiva uṇavu)", bn: "নিরামিষ (Nirāmish)", kn: "ಸಸ್ಯಾಹಾರಿ (Sasyāhāri)", mr: "शाकाहारी (Shākāhārī)", gu: "શાકાહારી (Shākāhārī)", ml: "സസ്യാഹാരം (Sasyāhāram)", pa: "ਸ਼ਾਕਾਹਾਰੀ (Shākāhārī)" },
-    "non vegetarian": { te: "మాంసాహారం (Māmsāhāram)", hi: "मांसाहारी (Mānsāhārī)", ta: "அசைவ உணவு (Asaiva uṇavu)", bn: "আমিষ (Āmish)", kn: "ಮಾಂಸಾಹಾರಿ (Mānsāhāri)", mr: "मांसाहारी (Mānsāhārī)", gu: "માંસાહારી (Mānsāhārī)", ml: "മാംಸಾഹാരം (Māmsāhāram)", pa: "ਮਾਸਾਹਾਰੀ (Māsāhārī)" },
+    // Essential Places, Landmarks & Monuments
+    "temple": { en: "Temple", te: "గుడి / దేవాలయం (Guḍi / Dēvālayaṁ)", hi: "मंदिर (Mandir)", ta: "கோவில் (Kōvil)", bn: "মন্দির (Mondir)", kn: "ದೇವಸ್ಥಾನ (Dēvasthāna)", mr: "मंदिर (Mandir)", gu: "મંદિર (Mandir)", ml: "ക്ഷേത്രം (Kshētram)", pa: "ਮੰਦਰ (Mandir)" },
+    "mandir": { en: "Temple", te: "గుడి (Guḍi)", hi: "मंदिर (Mandir)", ta: "கோவில் (Kōvil)", bn: "মন্দির (Mondir)", kn: "ದೇವಸ್ಥಾನ (Dēvasthāna)", mr: "मंदिर (Mandir)", gu: "મંદિર (Mandir)", ml: "ക്ഷേത്രം (Kshētram)", pa: "ਮੰਦਰ (Mandir)" },
+    "gudi": { en: "Temple", te: "గుడి (Guḍi)", hi: "मंदिर (Mandir)", ta: "கோவில் (Kōvil)", bn: "মন্দির (Mondir)", kn: "ದೇವಸ್ಥಾನ (Dēvasthāna)", mr: "मंदिर (Mandir)", gu: "મંદિર (Mandir)", ml: "ക്ഷേത്രം (Kshētram)", pa: "ਮੰਦਰ (Mandir)" },
+    "mosque": { en: "Mosque", te: "మసీదు (Masīdu)", hi: "मस्जिद (Masjid)", ta: "பள்ளிவாசல் (Paḷḷivāsal)", bn: "মসজিদ (Mōshjid)", kn: "ಮಸೀದಿ (Masīdi)", mr: "मशीद (Mashīd)", gu: "મસ્જિદ (Masjid)", ml: "പള്ളി (Paḷḷi)", pa: "ਮਸਜਿਦ (Masjid)" },
+    "church": { en: "Church", te: "చర్చి (Churchi)", hi: "चर्च / गिरजाघर (Church)", ta: "தேவாலயம் (Thēvālayam)", bn: "গির্জা (Girjā)", kn: "ಚರ್ಚ್ (Church)", mr: "चर्च (Church)", gu: "ચર્ચ (Church)", ml: "പള്ളി (Paḷḷi)", pa: "ਚਰਚ (Church)" },
+    "fort": { en: "Fort", te: "కోట (Kōṭa)", hi: "किला (Qilā)", ta: "கோட்டை (Kōṭṭai)", bn: "কেল্লা / দুর্গ (Kēllā)", kn: "ಕೋಟೆ (Kōṭe)", mr: "किल्ला (Killā)", gu: "કિલ્લો (Killō)", ml: "കോട്ട (Kōṭṭa)", pa: "ਕਿਲ੍ਹਾ (Qilā)" },
+    "palace": { en: "Palace", te: "రాజభవనం / మహల్ (Rājabhavanam)", hi: "महल / राजमहल (Mahal)", ta: "அரண்மனை (Araṇmaṉai)", bn: "রাজপ্রাসাদ (Rājprāsād)", kn: "ಅರಮನೆ (Aramane)", mr: "राजवाडा (Rājwāḍā)", gu: "મહેલ (Mahel)", ml: "കൊട്ടാരം (Koṭṭāram)", pa: "ਮਹਿਲ (Mahal)" },
+    "museum": { en: "Museum", te: "మ్యూజియం / పురావస్తు శాల (Museum)", hi: "संग्रहालय (Sangrahālay)", ta: "அருங்காட்சியகம் (Aruṅkāṭciyakam)", bn: "জাদুঘর (Jādughor)", kn: "ವಸ್ತುಸಂಗ್ರಹಾಲಯ (Vastusangrahālaya)", mr: "वस्तुसंग्रहालय (Vastusangrahālay)", gu: "સંગ્રહાલય (Sangrahālay)", ml: "മ്യൂസിയം (Museum)", pa: "ਅਜਾਇਬ ਘਰ (Ajāib ghar)" },
+    "cave": { en: "Cave / Caves", te: "గుహ / గుహలు (Guha / Guhalu)", hi: "गुफा / गुफाएं (Gufā)", ta: "குகை (Kukai)", bn: "গুহা (Guhā)", kn: "ಗುಹೆ (Guhe)", mr: "लेणी / गुहा (Lēṇī)", gu: "ગુફા (Gufā)", ml: "ഗുഹ (Guha)", pa: "ਗੁਫਾ (Gufā)" },
+    "river": { en: "River", te: "నది (Nadi)", hi: "नदी (Nadī)", ta: "நதி / ஆறு (Nathi / Āṟu)", bn: "নদী (Nodi)", kn: "ನದಿ (Nadi)", mr: "नदी (Nadī)", gu: "નદી (Nadī)", ml: "പുഴ (Puzha)", pa: "ਦਰਿਆ (Dariyā)" },
+    "ghat": { en: "Ghat / Riverbank Steps", te: "ఘాట్ / రేవు (Ghāṭ)", hi: "घाट (Ghāṭ)", ta: "படித்துறை (Paṭittuṟai)", bn: "ঘাট (Ghāṭ)", kn: "ಘಾಟ್ (Ghāṭ)", mr: "घाट (Ghāṭ)", gu: "ઘાટ (Ghāṭ)", ml: "ഘട്ട് (Ghaṭṭu)", pa: "ਘਾਟ (Ghāṭ)" },
+    "lake": { en: "Lake", te: "సరస్సు (Sarassu)", hi: "झील (Jhīl)", ta: "ஏரி (Ēri)", bn: "হ্রদ (Hrod)", kn: "ಸರೋವರ (Sarōvara)", mr: "तलाव (Talāv)", gu: "તળાવ (Taḷāv)", ml: "തടാകം (Thaṭākam)", pa: "ਝੀਲ (Jhīl)" },
+    "mountain": { en: "Mountain / Hills", te: "కొండ / పర్వతం (Koṇḍa / Parvatam)", hi: "पहाड़ / पर्वत (Pahāṛ)", ta: "மலை (Malai)", bn: "পাহাড় (Pāhāṛ)", kn: "ಬೆಟ್ಟ (Beṭṭa)", mr: "पर्वत (Parvat)", gu: "પર્વત (Parvat)", ml: "മല (Mala)", pa: "ਪਹਾੜ (Pahāṛ)" },
+    "beach": { en: "Beach", te: "సముద్ర తీరం / బీచ్ (Beach)", hi: "समुद्र तट / बीच (Samudra taṭ)", ta: "கடற்கரை (Kaṭaṟkarai)", bn: "সমুদ্র সৈকত (Shōikot)", kn: "ಕಡಲತೀರ (Kaḍalatīra)", mr: "समुद्रकिनारा (Samudrakinārā)", gu: "દરિયાકિનારો (Dariyākinārō)", ml: "കടപ്പുറം (Kaṭappuṟam)", pa: "ਸਮੁੰਦਰ ਕੰਢਾ (Beach)" },
+    "market": { en: "Market / Bazaar", te: "మార్కెట్ / సంత / బజారు (Bazaar)", hi: "बाज़ार / मंडी (Bāzār)", ta: "சந்தை / அங்காடி (Sandhai)", bn: "বাজার (Bājār)", kn: "ಮಾರುಕಟ್ಟೆ (Mārukaṭṭe)", mr: "बाजार (Bājār)", gu: "બજાર (Bajār)", ml: "ചന്ത (Chantha)", pa: "ਬਾਜ਼ਾਰ (Bāzār)" },
+    "bazaar": { en: "Bazaar / Market", te: "బజారు (Bajār)", hi: "बाज़ार (Bāzār)", ta: "சந்தை (Sandhai)", bn: "বাজার (Bājār)", kn: "ಬಜಾರ್ (Bajār)", mr: "बाजार (Bājār)", gu: "બજાર (Bajār)", ml: "ചന്ത (Chantha)", pa: "ਬਾਜ਼ਾਰ (Bāzār)" },
+    "shop": { en: "Shop / Store", te: "దుకాణం / షాపు (Dukāṇaṁ)", hi: "दुकान (Dukān)", ta: "கடை (Kaṭai)", bn: "দোকান (Dōkān)", kn: "ಅಂಗಡಿ (Aṅgaḍi)", mr: "दुकान (Dukān)", gu: "દુકાન (Dukān)", ml: "കട (Kaṭa)", pa: "ਦੁਕਾਨ (Dukān)" },
+    "hotel": { en: "Hotel / Accommodation", te: "హోటల్ / లాడ్జి (Hotel / Lodge)", hi: "होटल / धर्मशाला (Hotel)", ta: "விடுதி / ஹோட்டல் (Viṭuthi)", bn: "হোটেল (Hotel)", kn: "ಹೋಟೆಲ್ (Hotel)", mr: "हॉटेल (Hotel)", gu: "હોટેલ (Hotel)", ml: "ഹോട്ടൽ (Hotel)", pa: "ਹੋਟਲ (Hotel)" },
+    "room": { en: "Room", te: "గది కావాలి (Gadi kāvāli)", hi: "कमरा (Kamrā)", ta: "அறை (Aṟai)", bn: "ঘর (Ghōr)", kn: "ಕೋಣೆ / ರೂಮ್ (Kōṇe)", mr: "खोली (Khōlī)", gu: "રૂમ (Room)", ml: "മുറി (Muṟi)", pa: "ਕਮਰਾ (Kamrā)" },
+    "bathroom": { en: "Bathroom / Washroom", te: "స్నానాల గది / వాష్‌రూమ్ (Washroom)", hi: "शौचालय / बाथरूम (Bathroom)", ta: "குளியலறை / கழிவறை (Kaḻivaṟai)", bn: "বাথরুম (Bathroom)", kn: "ಸ್ನಾನದ ಕೋಣೆ (Snānada kōṇe)", mr: "शौचालय / बाथरूम (Bathroom)", gu: "બાથરૂમ (Bathroom)", ml: "ബാത്ത്റൂം (Bathroom)", pa: "ਗੁਸਲਖਾਨਾ (Bathroom)" },
+    "toilet": { en: "Toilet / Restroom", te: "మరుగుదొడ్డి / వాష్‌రూమ్ (Washroom)", hi: "शौचालय (Shauchālay)", ta: "கழிப்பறை (Kaḻippaṟai)", bn: "শৌচাগার (Shouchāgār)", kn: "ಶೌಚಾಲಯ (Shauchālaya)", mr: "शौचालय (Shauchālay)", gu: "શૌચાલય (Shauchālay)", ml: "ടോയ്‌ലറ്റ് (Toilet)", pa: "ਟਾਇਲਟ (Toilet)" },
 
-    // Transport & Directions
-    "where is": { te: "ఎక్కడ ఉంది? (Ekkaḍa undi?)", hi: "कहाँ है? (Kahān hai?)", ta: "எங்கே உள்ளது? (Eṅkē uḷḷathu?)", bn: "কোথায়? (Kōthāy?)", kn: "ಎಲ್ಲಿದೆ? (Ellide?)", mr: "कुठे आहे? (Kuṭhē āhē?)", gu: "ક્યાં છે? (Kyān chhe?)", ml: "എവിടെയാണ്? (Eviḍeyāṇu?)", pa: "ਕਿੱਥੇ ਹੈ? (Kithē hai?)" },
-    "where is the temple": { te: "గుడి / దేవాలయం ఎక్కడ ఉంది? (Guḍi ekkaḍa undi?)", hi: "मंदिर कहाँ है? (Mandir kahān hai?)", ta: "கோவில் எங்கே உள்ளது? (Kōvil eṅkē uḷḷathu?)", bn: "মন্দিরটি কোথায়? (Mandirti kōthāy?)", kn: "ದೇವಸ್ಥಾನ ಎಲ್ಲಿದೆ? (Dēvasthāna ellide?)", mr: "मंदिर कुठे आहे? (Mandir kuṭhē āhē?)", gu: "મંદિર ક્યાં છે? (Mandir kyān chhe?)", ml: "ക്ഷേത്രം എവിടെയാണ്? (Kshētram eviḍeyāṇu?)", pa: "ਮੰਦਰ / ਗੁਰਦੁਆਰਾ ਕਿੱਥੇ ਹੈ? (Mandir kithē hai?)" },
-    "how much": { te: "ఎంత అవుతుంది? / ఎంత ఖరీదు? (Enta avutundi?)", hi: "कितने का है? / कितना हुआ? (Kitnē kā hai?)", ta: "எவ்வளவு? (Evvaḷavu?)", bn: "কত দাম? (Koto dām?)", kn: "ಎಷ್ಟು ಬೆಲೆ? (Eshṭu bele?)", mr: "किती पैसे झाले? (Kitī paisē jhālē?)", gu: "કેટલા રૂપિયા? (Kēṭlā rūpiyā?)", ml: "എത്ര രൂപയാണ്? (Etra rūpayāṇu?)", pa: "ਕਿੰਨੇ ਪੈਸੇ ਹਨ? (Kinnē paisē han?)" },
-    "price": { te: "ధర ఎంత? (Dhara enta?)", hi: "दाम / कीमत (Dām / Kīmat)", ta: "விலை என்ன? (Vilai eṉṉa?)", bn: "দাম কত? (Dām koto?)", kn: "ಬೆಲೆ ಎಷ್ಟು? (Bele eshṭu?)", mr: "किंमत किती? (Kimmat kitī?)", gu: "કિંમત કેટલી? (Kimmat kēṭlī?)", ml: "വില എത്ര? (Vila etra?)", pa: "ਕੀਮਤ ਕਿੰਨੀ ਹੈ? (Kīmat kinnī hai?)" },
-    "discount": { te: "కొంచెం తగ్గిస్తారా? (Konchem taggistārā?)", hi: "थोड़ा कम कीजिये (Thōḍā kam kījiye)", ta: "கொஞ்சம் குறைக்க முடியுமா? (Konjam kuṟaikka muṭiyumā?)", bn: "একটু কম হবে? (Ēkṭu kom hobē?)", kn: "ಸ್ವಲ್ಪ ಕಡಿಮೆ ಮಾಡಿ (Svalpa kaḍime māḍi)", mr: "थोडं कमी करा (Thōḍa kamī karā)", gu: "થોડું ઓછું કરો (Thōḍun ochhun karō)", ml: "കുറച്ചു കുറയ്ക്കുമോ? (Kurachu kuṟaykkumō?)", pa: "ਥੋੜ੍ਹਾ ਘੱਟ ਕਰੋ (Thōṛhā ghaṭṭ karō)" },
-    "railway station": { te: "రైల్వే స్టేషన్ (Railway station)", hi: "रेलवे स्टेशन (Railway station)", ta: "ரயில் நிலையம் (Rail nilayam)", bn: "রেলওয়ে স্টেশন (Railway station)", kn: "ರೈಲ್ವೆ ನಿಲ್ದಾಣ (Railway nildāṇa)", mr: "रेल्वे स्टेशन (Railway station)", gu: "રેલવે સ્ટેશન (Railway station)", ml: "റെയിൽവേ സ്റ്റേഷൻ (Railway station)", pa: "ਰੇਲਵੇ ਸਟੇਸ਼ਨ (Railway station)" },
-    "bus stand": { te: "బస్ స్టాండ్ (Bus stand)", hi: "बस अड्डा (Bus aḍḍā)", ta: "பேருந்து நிலையம் (Pērundhu nilayam)", bn: "বাস স্ট্যান্ড (Bus stand)", kn: "ಬಸ್ ನಿಲ್ದಾಣ (Bus nildāṇa)", mr: "बस स्थानक (Bus sthānak)", gu: "બસ સ્ટેન્ડ (Bus stand)", ml: "ബസ് സ്റ്റാൻഡ് (Bus stand)", pa: "ਬੱਸ ਅੱਡਾ (Bus aḍḍā)" },
-    "airport": { te: "విమానాశ్రయం (Vimānāshrayam)", hi: "हवाई अड्डा (Havāī aḍḍā)", ta: "விமான நிலையம் (Vimāṉa nilayam)", bn: "বিমানবন্দর (Bimān bondor)", kn: "ವಿಮಾನ ನಿಲ್ದಾಣ (Vimāna nildāṇa)", mr: "विमानतळ (Vimāntaḷ)", gu: "વિમાનમથક (Vimānamathak)", ml: "വിമാനത്താവളം (Vimānatthāvaḷam)", pa: "ਹਵਾਈ ਅੱਡਾ (Havāī aḍḍā)" },
-    "hotel": { te: "హోటల్ / లాడ్జి (Hotel / Lodge)", hi: "होटल / धर्मशाला (Hotel)", ta: "விடுதி / ஹோட்டல் (Viṭuthi)", bn: "হোটেল (Hotel)", kn: "ಹೋಟೆಲ್ (Hotel)", mr: "हॉटेल (Hotel)", gu: "હોટેલ (Hotel)", ml: "ഹോട്ടൽ (Hotel)", pa: "ਹੋਟਲ (Hotel)" },
-    "room": { te: "గది కావాలి (Gadi kāvāli)", hi: "कमरा चाहिए (Kamrā chāhiye)", ta: "அறை வேண்டும் (Aṟai vēṇṭum)", bn: "ঘর চাই (Ghōr chāi)", kn: "ರೂಮ್ / ಕೋಣೆ ಬೇಕು (Room bēku)", mr: "खोली हवी आहे (Khōlī havī āhē)", gu: "રૂમ જોઈએ છે (Room jōīē chhe)", ml: "മുറി വേണം (Muṟi vēṇam)", pa: "ਕਮਰਾ ਚਾਹੀਦਾ ਹੈ (Kamrā chāhīdā hai)" },
-    "left": { te: "ఎడమ వైపు (Eḍama vaipu)", hi: "बाएं (Bāyēn)", ta: "இடது பக்கம் (Iṭathu pakkam)", bn: "বাম দিকে (Bām dikē)", kn: "ಎಡಕ್ಕೆ (Eḍakke)", mr: "डावीकडे (Ḍāvīkaḍē)", gu: "ડાબી બાજુ (Ḍābī bāju)", ml: "ഇടത്തോട്ട് (Iṭatthōṭṭu)", pa: "ਖੱਬੇ (Khabbē)" },
-    "right": { te: "కుడి వైపు (Kuḍi vaipu)", hi: "दाएं (Dāyēn)", ta: "வலது பக்கம் (Valathu pakkam)", bn: "ডান দিকে (Ḍān dikē)", kn: "ಬಲಕ್ಕೆ (Balakke)", mr: "उजवीकडे (Ujvīkaḍē)", gu: "જમણી બાજુ (Jamaṇī bāju)", ml: "വലത്തോട്ട് (Valatthōṭṭu)", pa: "ਸੱਜੇ (Sajjē)" },
-    "straight": { te: "నేరుగా (Nērugā)", hi: "सीधे जाइये (Sīdhē jāiyē)", ta: "நேராக (Nērāka)", bn: "সোজা যান (Sōjā jān)", kn: "ನೇರವಾಗಿ ಹೋಗಿ (Nēravāgi hōgi)", mr: "सरळ जा (Saraḷ jā)", gu: "સીધા જાઓ (Sīdhā jāō)", ml: "നേരെ പോകുക (Nēre pōkuka)", pa: "ਸਿੱਧਾ ਜਾਓ (Siddhā jāō)" },
-    "stop": { te: "ఆపండి (Āpaṇḍi)", hi: "रोकिये (Rōkiye)", ta: "நிறுத்துங்கள் (Niṟutthuṅkaḷ)", bn: "থামুন (Thāmun)", kn: "ನಿಲ್ಲಿಸಿ (Nillisi)", mr: "थांबा (Thāmbā)", gu: "રોકો (Rōkō)", ml: "നിർത്തൂ (Nirtthū)", pa: "ਰੋਕੋ (Rōkō)" },
+    // Essential Travel & Transport
+    "train": { en: "Train", te: "రైలు / రైలు బండి (Railu)", hi: "ट्रेन / रेलगाड़ी (Train / Railgāṛī)", ta: "ரயில் (Rail)", bn: "ট্রেন (Train)", kn: "ರೈಲು (Railu)", mr: "आगगाडी / ट्रेन (Train)", gu: "ટ્રેન (Train)", ml: "ട്രെയിൻ (Train)", pa: "ਰੇਲਗੱਡੀ (Train)" },
+    "station": { en: "Station", te: "స్టేషన్ (Station)", hi: "स्टेशन (Station)", ta: "நிலையம் (Nilayam)", bn: "স্টেশন (Station)", kn: "ನಿಲ್ದಾಣ (Nildāṇa)", mr: "स्थानक (Sthānak)", gu: "સ્ટેશન (Station)", ml: "സ്റ്റേഷൻ (Station)", pa: "ਸਟੇਸ਼ਨ (Station)" },
+    "railway station": { en: "Railway Station", te: "రైల్వే స్టేషన్ (Railway station)", hi: "रेलवे स्टेशन (Railway station)", ta: "ரயில் நிலையம் (Rail nilayam)", bn: "রেলওয়ে স্টেশন (Railway station)", kn: "ರೈಲ್ವೆ ನಿಲ್ದಾಣ (Railway nildāṇa)", mr: "रेल्वे स्टेशन (Railway station)", gu: "રેલવે સ્ટેશન (Railway station)", ml: "റെയിൽവേ സ്റ്റേഷൻ (Railway station)", pa: "ਰੇਲਵੇ ਸਟੇਸ਼ਨ (Railway station)" },
+    "bus": { en: "Bus", te: "బస్సు (Bussu)", hi: "बस (Bus)", ta: "பேருந்து (Pērundhu)", bn: "বাস (Bus)", kn: "ಬಸ್ಸು (Bussu)", mr: "बस (Bus)", gu: "બસ (Bus)", ml: "ബസ് (Bus)", pa: "ਬੱਸ (Bus)" },
+    "bus stand": { en: "Bus Stand", te: "బస్ స్టాండ్ (Bus stand)", hi: "बस अड्डा (Bus aḍḍā)", ta: "பேருந்து நிலையம் (Pērundhu nilayam)", bn: "বাস স্ট্যান্ড (Bus stand)", kn: "ಬಸ್ ನಿಲ್ದಾಣ (Bus nildāṇa)", mr: "बस स्थानक (Bus sthānak)", gu: "બસ સ્ટેન્ડ (Bus stand)", ml: "ബസ് സ്റ്റാൻഡ് (Bus stand)", pa: "ਬੱਸ ਅੱਡਾ (Bus aḍḍā)" },
+    "auto": { en: "Auto / Rickshaw", te: "ఆటో రిక్షా (Auto)", hi: "ऑटो रिक्शा (Auto rickshaw)", ta: "ஆட்டோ (Auto)", bn: "অটো (Auto)", kn: "ಆಟೋ (Auto)", mr: "ऑटो (Auto)", gu: "ઓટો (Auto)", ml: "ഓട്ടോ (Auto)", pa: "ਆਟੋ (Auto)" },
+    "taxi": { en: "Taxi / Cab", te: "ట్యాక్సీ / క్యాబ్ (Taxi)", hi: "टैक्सी (Taxi)", ta: "வாடகை கார் / டாக்சி (Taxi)", bn: "ট্যাক্সি (Taxi)", kn: "ಟ್ಯಾಕ್ಸಿ (Taxi)", mr: "टॅक्सी (Taxi)", gu: "ટેક્સી (Taxi)", ml: "ടാക്സി (Taxi)", pa: "ਟੈਕਸੀ (Taxi)" },
+    "car": { en: "Car", te: "కారు (Caru)", hi: "कार / गाड़ी (Gāṛī)", ta: "கார் (Car)", bn: "গাড়ি (Gāṛi)", kn: "ಕಾರು (Kāru)", mr: "गाडी (Gāḍī)", gu: "ગાડી (Gāḍī)", ml: "കാർ (Car)", pa: "ਕਾਰ (Car)" },
+    "flight": { en: "Flight / Airplane", te: "విమానం (Vimānam)", hi: "उड़ान / हवाई जहाज़ (Havāī jahāz)", ta: "விமானம் (Vimāṉam)", bn: "বিমান (Bimān)", kn: "ವಿಮಾನ (Vimāna)", mr: "विमान (Vimān)", gu: "વિમાન (Vimān)", ml: "വിമാനം (Vimānam)", pa: "ਜਹਾਜ਼ (Jahāz)" },
+    "airport": { en: "Airport", te: "విమానాశ్రయం (Vimānāshrayam)", hi: "हवाई अड्डा (Havāī aḍḍā)", ta: "விமான நிலையம் (Vimāṉa nilayam)", bn: "বিমানবন্দর (Bimān bondor)", kn: "ವಿಮಾನ ನಿಲ್ದಾಣ (Vimāna nildāṇa)", mr: "विमानतळ (Vimāntaḷ)", gu: "વિમાનમથક (Vimānamathak)", ml: "വിമാനത്താവളം (Vimānatthāvaḷam)", pa: "ਹਵਾਈ ਅੱਡਾ (Havāī aḍḍā)" },
+    "ticket": { en: "Ticket", te: "ప్రవేశ టికెట్ (Pravēsha ticket)", hi: "प्रवेश टिकट (Pravēsh ticket)", ta: "நுழைவு சீட்டு (Nuḻaivu sīṭṭu)", bn: "প্রবেশ টিকিট (Prōbēsh ṭikiṭ)", kn: "ಪ್ರವೇಶ ಟಿಕೆಟ್ (Pravēsha ṭikeṭ)", mr: "प्रवेश तिकीट (Pravēsh tikīṭ)", gu: "પ્રવેશ ટિકિટ (Pravēsh ṭikiṭ)", ml: "പ്രവേശന ടിക്കറ്റ് (Pravēshana ṭikkaṟṟu)", pa: "ਐਂਟਰੀ ਟਿਕਟ (Entry ticket)" },
+    "bag": { en: "Bag / Luggage", te: "సంచి / బ్యాగ్ (Bag)", hi: "थैला / बैग (Bāg)", ta: "பை (Pai)", bn: "ব্যাগ (Bag)", kn: "ಬ್ಯಾಗ್ (Bag)", mr: "पिशवी / बॅग (Bāg)", gu: "થેલો (Thēlō)", ml: "ബാഗ് (Bag)", pa: "ਬੈਗ (Bag)" },
+    "luggage": { en: "Luggage", te: "సామాను / లగేజ్ (Sāmānu)", hi: "सामान (Sāmān)", ta: "சுமை (Sumai)", bn: "মালপত্র (Mālpotro)", kn: "ಸಾಮಾನು (Sāmānu)", mr: "सामान (Sāmān)", gu: "સામાન (Sāmān)", ml: "സാധനങ്ങൾ (Sādhanaṅṅaḷ)", pa: "ਸਾਮਾਨ (Sāmān)" },
 
-    // Medical & Emergency Safety
-    "help": { te: "సహాయం చేయండి! (Sahāyam chēyaṇḍi!)", hi: "मदद कीजिये! (Madad kījiye!)", ta: "உதவி செய்யுங்கள்! (Uthavi seyyuṅkaḷ!)", bn: "সাহায্য করুন! (Sāhājjō korūn!)", kn: "ಸಹಾಯ ಮಾಡಿ! (Sahāya māḍi!)", mr: "मदत करा! (Madat karā!)", gu: "મદદ કરો! (Madad karō!)", ml: "സഹായിക്കൂ! (Sahāyikkū!)", pa: "ਮਦਦ ਕਰੋ! (Madad karō!)" },
-    "emergency": { te: "అత్యవసర పరిస్థితి! (Atyavasara paristhiti!)", hi: "आपातकालीन स्थिति! (Āpātkālīn sthiti!)", ta: "அவசர நிலை! (Avasara nilai!)", bn: "জরুরী অবস্থা! (Jorurī obosthā!)", kn: "ತುರ್ತು ಪರಿಸ್ಥಿತಿ! (Turtu paristhiti!)", mr: "तातडीची मदत! (Tātḍīchī madat!)", gu: "કટોકટી સ્થિતિ! (Kaṭōkaṭī sthiti!)", ml: "അടിയന്തിര ഘട്ടം! (Aṭiyanthira ghaṭṭam!)", pa: "ਐਮਰਜੈਂਸੀ! (Emergency!)" },
-    "police": { te: "పోలీస్ స్టేషన్ / 112 (Police station)", hi: "पुलिस सहायता / 112 (Police)", ta: "காவல்துறை உதவி / 112 (Police)", bn: "পুলিশ ফাঁড়ি / 112 (Police)", kn: "ಪೊಲೀಸ್ ಠಾಣೆ / 112 (Police)", mr: "पोलीस ठाणे / 112 (Police)", gu: "પોલીસ સ્ટેશન / 112 (Police)", ml: "പോലീസ് സ്റ്റേഷൻ / 112 (Police)", pa: "ਪੁਲਿਸ ਸਟੇਸ਼ਨ / 112 (Police)" },
-    "hospital": { te: "ఆసుపత్రి ఎక్కడ ఉంది? (Āsupatri ekkaḍa undi?)", hi: "अस्पताल कहाँ है? (Aspatāl kahān hai?)", ta: "மருத்துவமனை எங்கே? (Maruthuvamaṉai eṅkē?)", bn: "হাসপাতালটি কোথায়? (Hāspātālti kōthāy?)", kn: "ಆಸ್ಪತ್ರೆ ಎಲ್ಲಿದೆ? (Āspatre ellide?)", mr: "दवाखाना कुठे आहे? (Davākhānā kuṭhē āhē?)", gu: "હોસ્પિટલ ક્યાં છે? (Hospital kyān chhe?)", ml: "ആശുപത്രി എവിടെയാണ്? (Āshupatri eviḍeyāṇu?)", pa: "ਹਸਪਤਾਲ ਕਿੱਥੇ ਹੈ? (Haspatāl kithē hai?)" },
-    "doctor": { te: "వైద్యులు / డాక్టర్ (Doctor)", hi: "डॉक्टर (Doctor)", ta: "மருத்துவர் (Maruthuvar)", bn: "ডাক্তারবাবু (Doctor)", kn: "ವೈದ್ಯರು (Doctor)", mr: "डॉक्टर (Doctor)", gu: "ડોક્ટર (Doctor)", ml: "ഡോക്ടർ (Doctor)", pa: "ਡਾਕਟਰ (Doctor)" },
-    "medicine": { te: "మందుల షాప్ / మెడికల్ (Medical shop)", hi: "दवा की दुकान (Davā kī dukān)", ta: "மருந்தகம் (Marunthakam)", bn: "ওষুধের দোকান (Ōshudhēr dōkān)", kn: "ಔಷಧದ ಅಂಗಡಿ (Aushadhada aṅgaḍi)", mr: "औषधाचे दुकान (Aushadhāchē dukān)", gu: "દવાની દુકાન (Davānī dukān)", ml: "മെഡിക്കൽ ഷോപ്പ് (Medical shop)", pa: "ਦਵਾਈਆਂ ਦੀ ਦੁਕਾਨ (Davāīān dī dukān)" },
-    "pain": { te: "నొప్పిగా ఉంది (Noppigā undi)", hi: "दर्द हो रहा है (Dard hō rahā hai)", ta: "வலிக்கிறது (Valikkiṟathu)", bn: "ব্যথা করছে (Byathā korchhe)", kn: "ನೋವಾಗುತ್ತಿದೆ (Nōvāguttide)", mr: "दुखत आहे (Dukhat āhē)", gu: "દુખાવો થાય છે (Dukhāvō thāy chhe)", ml: "വേദനിക്കുന്നു (Vēdanikkunnu)", pa: "ਦਰਦ ਹੋ ਰਿਹਾ ਹੈ (Dard hō rihā hai)" },
+    // Food & Dining
+    "water": { en: "Water", te: "మంచినీళ్ళు కావాలి (Manchinīḷḷu kāvāli)", hi: "पीने का पानी (Pīnē kā pānī)", ta: "குடிநீர் வேண்டும் (Kuṭinīr vēṇṭum)", bn: "খাবার জল (Khābār jol)", kn: "ಕುಡಿಯುವ ನೀರು (Kuḍiyuva nīru)", mr: "पिण्याचे पाणी (Piṇyāchē pāṇī)", gu: "પીવાનું પાણી (Pīvānun pānī)", ml: "കുടിവെള്ളം (Kuṭiveḷḷam)", pa: "ਪੀਣ ਵਾਲਾ ਪਾਣੀ (Pīṇ vālā pāṇī)" },
+    "pani": { en: "Water", te: "నీళ్ళు (Nīḷḷu)", hi: "पानी (Pānī)", ta: "தண்ணீர் (Thaṇṇīr)", bn: "জল (Jol)", kn: "ನೀರು (Nīru)", mr: "पाणी (Pāṇī)", gu: "પાણી (Pānī)", ml: "വെള്ളം (Veḷḷam)", pa: "ਪਾਣੀ (Pāṇī)" },
+    "drinking water": { en: "Drinking Water", te: "మంచినీటి బాటిల్ (Manchinīti bottle)", hi: "पानी की बोतल (Pānī kī bōtal)", ta: "குடிநீர் பாட்டில் (Kuṭinīr pāṭṭil)", bn: "জলের বোতল (Jolēr bōtol)", kn: "ನೀರಿನ ಬಾಟಲಿ (Nīrina bāṭali)", mr: "पाण्याची बाटली (Pāṇyāchī bāṭlī)", gu: "પાણીની બોટલ (Pānīnī bōṭal)", ml: "വെള്ളക്കുപ്പി (Veḷḷakkuppi)", pa: "ਪਾਣੀ ਦੀ ਬੋਤਲ (Pāṇī dī bōtal)" },
+    "food": { en: "Food", te: "భోజనం / తిండి (Bhōjanam)", hi: "खाना / भोजन (Khānā / Bhōjan)", ta: "உணவு / சாப்பாடு (Uṇavu / Sāppāṭu)", bn: "খাবার / ভোজন (Khābār)", kn: "ಊಟ / ಆಹಾರ (Ūṭa)", mr: "जेवण (Jēvaṇ)", gu: "જમવાનું (Jamvānun)", ml: "ഭക്ഷണം (Bhakshaṇam)", pa: "ਖਾਣਾ (Khāṇā)" },
+    "khana": { en: "Food / Meal", te: "భోజనం (Bhōjanam)", hi: "खाना (Khānā)", ta: "சாப்பாடு (Sāppāṭu)", bn: "খাবার (Khābār)", kn: "ಊಟ (Ūṭa)", mr: "जेवण (Jēvaṇ)", gu: "જમવાનું (Jamvānun)", ml: "ഭക്ഷണം (Bhakshaṇam)", pa: "ਖਾਣਾ (Khāṇā)" },
+    "rice": { en: "Rice", te: "అన్నం (Annam)", hi: "चावल (Chāwal)", ta: "சாதம் (Sātham)", bn: "ভাত (Bhāt)", kn: "ಅನ್ನ (Anna)", mr: "भात (Bhāt)", gu: "ભાત (Bhāt)", ml: "ചോറ് (Chōṟu)", pa: "ਚੌਲ (Chaul)" },
+    "curry": { en: "Curry", te: "కూర (Kūra)", hi: "सब्ज़ी / करी (Sabzī)", ta: "கறி / குழம்பு (Kaṟi)", bn: "তরকারি (Torkāri)", kn: "ಪಲ್ಯ / ಸಾರು (Palya)", mr: "भाजी (Bhājī)", gu: "શાક (Shāk)", ml: "കറി (Kaṟi)", pa: "ਸਬਜ਼ੀ (Sabzī)" },
+    "tea": { en: "Tea", te: "టీ / చాయ్ (Chāy)", hi: "चाय (Chāy)", ta: "தேநீர் / டீ (Thēnīr)", bn: "চা (Chā)", kn: "ಟೀ / ಚಹಾ (Tea)", mr: "चहा (Chahā)", gu: "ચા (Chā)", ml: "ചായ (Chāya)", pa: "ਚਾਹ (Chāh)" },
+    "chai": { en: "Tea", te: "చాయ్ / టీ (Chāy)", hi: "चाय (Chāy)", ta: "டீ (Tea)", bn: "চা (Chā)", kn: "ಚಹಾ (Chahā)", mr: "चहा (Chahā)", gu: "ચા (Chā)", ml: "ചായ (Chāya)", pa: "ਚਾਹ (Chāh)" },
+    "coffee": { en: "Coffee", te: "కాఫీ (Kāphī)", hi: "कॉफ़ी (Coffee)", ta: "காபி (Kāpi)", bn: "কফি (Coffee)", kn: "ಕಾಫಿ (Coffee)", mr: "कॉफी (Coffee)", gu: "કોફી (Coffee)", ml: "കാപ്പി (Kāppi)", pa: "ਕੌਫ਼ੀ (Coffee)" },
+    "milk": { en: "Milk", te: "పాలు (Pālu)", hi: "दूध (Dūdh)", ta: "பால் (Pāl)", bn: "দুধ (Dudh)", kn: "ಹಾಲು (Hālu)", mr: "दूध (Dūdh)", gu: "દૂધ (Dūdh)", ml: "പാൽ (Pāl)", pa: "ਦੁੱਧ (Duddh)" },
+    "sugar": { en: "Sugar", te: "పంచదార / చక్కర (Chakkara)", hi: "चीनी / शक्कर (Chīnī / Shakkar)", ta: "சர்க்கரை (Sarkkarai)", bn: "চিনি (Chini)", kn: "ಸಕ್ಕರೆ (Sakkare)", mr: "साखर (Sākhar)", gu: "ખાંડ (Khāṇḍ)", ml: "പഞ്ചസാര (Panchasāra)", pa: "ਖੰਡ (Khaṇḍ)" },
+    "vegetarian": { en: "Vegetarian", te: "శాకాహారం (Shākāhāram)", hi: "शुद्ध शाकाहारी (Shuddh Shākāhārī)", ta: "சைவ உணவு (Saiva uṇavu)", bn: "নিরামিষ (Nirāmish)", kn: "ಸಸ್ಯಾಹಾರಿ (Sasyāhāri)", mr: "शाकाहारी (Shākāhārī)", gu: "શાકાહારી (Shākāhārī)", ml: "സസ്യാഹാരം (Sasyāhāram)", pa: "ਸ਼ਾਕਾਹਾਰੀ (Shākāhārī)" },
+    "non vegetarian": { en: "Non-Vegetarian", te: "మాంసాహారం (Māmsāhāram)", hi: "मांसाहारी (Mānsāhārī)", ta: "அசைவ உணவு (Asaiva uṇavu)", bn: "আমিষ (Āmish)", kn: "ಮಾಂಸಾಹಾರಿ (Mānsāhāri)", mr: "मांसाहारी (Mānsāhārī)", gu: "માંસાહારી (Mānsāhārī)", ml: "മാംസാഹാരം (Māmsāhāram)", pa: "ਮਾਸਾਹਾਰੀ (Māsāhārī)" },
+    "bill": { en: "Bill / Receipt", te: "బిల్లు ఇవ్వండి (Billu ivvaṇḍi)", hi: "बिल दीजिये (Bill dījiye)", ta: "பில் கொடுங்கள் (Bill koṭuṅkaḷ)", bn: "বিল দিন (Bill din)", kn: "ಬಿಲ್ ಕೊಡಿ (Bill koḍi)", mr: "बिल द्या (Bill dyā)", gu: "બિલ આપો (Bill āpō)", ml: "ബിൽ തരൂ (Bill tharū)", pa: "ਬਿੱਲ ਦਿਓ (Bill diō)" },
+
+    // Shopping, Pricing & Bargaining
+    "how much": { en: "How much?", te: "ఎంత అవుతుంది? / ఎంత ఖరీదు? (Enta avutundi?)", hi: "कितने का है? / कितना हुआ? (Kitnē kā hai?)", ta: "எவ்வளவு? (Evvaḷavu?)", bn: "কত দাম? (Koto dām?)", kn: "ಎಷ್ಟು ಬೆಲೆ? (Eshṭu bele?)", mr: "किती पैसे झाले? (Kitī paisē jhālē?)", gu: "કેટલા રૂપિયા? (Kēṭlā rūpiyā?)", ml: "എത്ര രൂപയാണ്? (Etra rūpayāṇu?)", pa: "ਕਿੰਨੇ ਪੈਸੇ ਹਨ? (Kinnē paisē han?)" },
+    "price": { en: "Price / Cost", te: "ధర ఎంత? (Dhara enta?)", hi: "दाम / कीमत (Dām / Kīmat)", ta: "விலை என்ன? (Vilai eṉṉa?)", bn: "দাম কত? (Dām koto?)", kn: "ಬೆಲೆ ಎಷ್ಟು? (Bele eshṭu?)", mr: "किंमत किती? (Kimmat kitī?)", gu: "કિંમત કેટલી? (Kimmat kēṭlī?)", ml: "വില എത്ര? (Vila etra?)", pa: "ਕੀਮਤ ਕਿੰਨੀ ਹੈ? (Kīmat kinnī hai?)" },
+    "cost": { en: "Cost", te: "ఖరీదు ఎంత? (Kharīdu enta?)", hi: "लागत / कीमत (Kīmat)", ta: "செலவு (Selavu)", bn: "খরচ (Khoroch)", kn: "ವೆಚ್ಚ (Veccha)", mr: "किंमत (Kimmat)", gu: "ખર્ચ (Kharch)", ml: "ചെലവ് (Chelavu)", pa: "ਖਰਚਾ (Kharchā)" },
+    "money": { en: "Money / Cash", te: "డబ్బులు / నగదు (Ḍabbulu)", hi: "पैसे / नकदी (Paisē)", ta: "பணம் (Paṇam)", bn: "টাকা (Ṭākā)", kn: "ಹಣ (Haṇa)", mr: "पैसे (Paisē)", gu: "પૈસા (Paisā)", ml: "പണം (Paṇam)", pa: "ਪੈਸੇ (Paisē)" },
+    "rupees": { en: "Rupees", te: "రూపాయలు (Rūpāyalu)", hi: "रुपये (Rupayē)", ta: "ரூபாய் (Rūpāy)", bn: "টাকা (Ṭākā)", kn: "ರೂಪಾಯಿ (Rūpāyi)", mr: "रुपये (Rupayē)", gu: "રૂપિયા (Rupiyā)", ml: "രൂപ (Rūpa)", pa: "ਰੁਪਏ (Rupayē)" },
+    "cheap": { en: "Cheap / Inexpensive", te: "చౌకగా (Chaukagā)", hi: "सस्ता (Sastā)", ta: "மலிவானது (Malivāṉathu)", bn: "সস্তা (Sōstā)", kn: "ಅಗ್ಗ (Agga)", mr: "स्वस्त (Svast)", gu: "સસ્તું (Sastun)", ml: "വിലക്കുറവ് (Vilakkuṟavu)", pa: "ਸਸਤਾ (Sastā)" },
+    "expensive": { en: "Expensive", te: "చాలా ఖరీదైనది (Chālā kharīdainadi)", hi: "बहुत महंगा है (Bahut mehangā hai)", ta: "ரொம்ப விலை அதிகம் (Vilai athikam)", bn: "অনেক দামি (Onēk dāmī)", kn: "ತುಂಬಾ ದುಬಾರಿ (Tumbā dubāri)", mr: "खूप महाग आहे (Khūp mahāg āhē)", gu: "ખૂબ મોંઘું છે (Khūb monghun chhe)", ml: "വളരെ വിലകൂടിയതാണ് (Vilakūṭiyathāṇu)", pa: "ਬਹੁਤ ਮਹਿੰਗਾ ਹੈ (Bahut mahingā hai)" },
+    "discount": { en: "Discount", te: "కొంచెం తగ్గిస్తారా? (Konchem taggistārā?)", hi: "थोड़ा कम कीजिये (Thōḍā kam kījiye)", ta: "கொஞ்சம் குறைக்க முடியுமா? (Konjam kuṟaikka muṭiyumā?)", bn: "একটু কম হবে? (Ēkṭu kom hobē?)", kn: "ಸ್ವಲ್ಪ ಕಡಿಮೆ ಮಾಡಿ (Svalpa kaḍime māḍi)", mr: "थोडं कमी करा (Thōḍa kamī karā)", gu: "થોડું ઓછું કરો (Thōḍun ochhun karō)", ml: "കുറച്ചു കുറയ്ക്കുമോ? (Kurachu kuṟaykkumō?)", pa: "ਥੋੜ੍ਹਾ ਘੱਟ ਕਰੋ (Thōṛhā ghaṭṭ karō)" },
+    "buy": { en: "Buy / Purchase", te: "కొంటాను (Koṇṭānu)", hi: "खरीदना (Kharīdnā)", ta: "வாங்குவது (Vāṅkuvathu)", bn: "কেনা (Kēnā)", kn: "ಖರೀದಿಸುವುದು (Kharīdisuvudu)", mr: "खरेदी करणे (Kharēdī)", gu: "ખરીદવું (Kharīdvun)", ml: "വാങ്ങുക (Vāṅṅuka)", pa: "ਖਰੀਦਣਾ (Kharīdaṇā)" },
+
+    // Question Words & Directions
+    "where": { en: "Where?", te: "ఎక్కడ? (Ekkaḍa?)", hi: "कहाँ? (Kahān?)", ta: "எங்கே? (Eṅkē?)", bn: "কোথায়? (Kōthāy?)", kn: "ಎಲ್ಲಿ? (Elli?)", mr: "कुठे? (Kuṭhē?)", gu: "ક્યાં? (Kyān?)", ml: "എവിടെ? (Eviḍe?)", pa: "ਕਿੱਥੇ? (Kithē?)" },
+    "where is": { en: "Where is it?", te: "ఎక్కడ ఉంది? (Ekkaḍa undi?)", hi: "कहाँ है? (Kahān hai?)", ta: "எங்கே உள்ளது? (Eṅkē uḷḷathu?)", bn: "কোথায়? (Kōthāy?)", kn: "ಎಲ್ಲಿದೆ? (Ellide?)", mr: "कुठे आहे? (Kuṭhē āhē?)", gu: "ક્યાં છે? (Kyān chhe?)", ml: "എവിടെയാണ്? (Eviḍeyāṇu?)", pa: "ਕਿੱਥੇ ਹੈ? (Kithē hai?)" },
+    "where is the temple": { en: "Where is the temple?", te: "గుడి / దేవాలయం ఎక్కడ ఉంది? (Guḍi ekkaḍa undi?)", hi: "मंदिर कहाँ है? (Mandir kahān hai?)", ta: "கோவில் எங்கே உள்ளது? (Kōvil eṅkē uḷḷathu?)", bn: "মন্দিরটি কোথায়? (Mandirti kōthāy?)", kn: "ದೇವಸ್ಥಾನ ಎಲ್ಲಿದೆ? (Dēvasthāna ellide?)", mr: "मंदिर कुठे आहे? (Mandir kuṭhē āhē?)", gu: "મંદિર ક્યાં છે? (Mandir kyān chhe?)", ml: "ക്ഷേത്രം എവിടെയാണ്? (Kshētram eviḍeyāṇu?)", pa: "ਮੰਦਰ / ਗੁਰਦੁਆਰਾ ਕਿੱਥੇ ਹੈ? (Mandir kithē hai?)" },
+    "what": { en: "What?", te: "ఏమిటి? (Ēmiṭi?)", hi: "क्या? (Kyā?)", ta: "என்ன? (Eṉṉa?)", bn: "কি? (Ki?)", kn: "ಏನು? (Ēnu?)", mr: "काय? (Kāy?)", gu: "શું? (Shun?)", ml: "എന്ത്? (Enthu?)", pa: "ਕੀ? (Kī?)" },
+    "when": { en: "When?", te: "ఎప్పుడు? (Eppuḍu?)", hi: "कब? (Kab?)", ta: "எப்போது? (Eppōthu?)", bn: "কখন? (Kokhōn?)", kn: "ಯಾವಾಗ? (Yāvāga?)", mr: "केव्हा? (Kēvhā?)", gu: "ક્યારે? (Kyārē?)", ml: "എപ്പോൾ? (Eppōḷ?)", pa: "ਕਦੋਂ? (Kadōṁ?)" },
+    "why": { en: "Why?", te: "ఎందుకు? (Enduku?)", hi: "क्यों? (Kyon?)", ta: "ஏன்? (Ēṉ?)", bn: "কেন? (Kēno?)", kn: "ಏಕೆ? (Ēke?)", mr: "का? (Kā?)", gu: "કેમ? (Kēm?)", ml: "എന്തുകൊണ്ട്? (Enthukoṇṭu?)", pa: "ਕਿਉਂ? (Kiuṁ?)" },
+    "how": { en: "How?", te: "ఎలా? (Elā?)", hi: "कैसे? (Kaisē?)", ta: "எப்படி? (Eppaṭi?)", bn: "কীভাবে? (Kībhābē?)", kn: "ಹೇಗೆ? (Hēge?)", mr: "कसे? (Kasē?)", gu: "કેવી રીતે? (Kēvī rītē?)", ml: "എങ്ങനെ? (Eṅṅane?)", pa: "ਕਿਵੇਂ? (Kivēṁ?)" },
+    "who": { en: "Who?", te: "ఎవరు? (Evaru?)", hi: "कौन? (Kaun?)", ta: "யார்? (Yār?)", bn: "কে? (Kē?)", kn: "ಯಾರು? (Yāru?)", mr: "कोण? (Kōṇ?)", gu: "કોણ? (Kōṇ?)", ml: "ആര്? (Āru?)", pa: "ਕੌਣ? (Kauṇ?)" },
+    "here": { en: "Here", te: "ఇక్కడ (Ikkaḍa)", hi: "यहाँ (Yahān)", ta: "இங்கே (Iṅkē)", bn: "এখানে (Ēkhānē)", kn: "ಇಲ್ಲಿ (Illi)", mr: "येथे (Yēthē)", gu: "અહીં (Ahīn)", ml: "ഇവിടെ (Iviḍe)", pa: "ਇੱਥੇ (Ithē)" },
+    "there": { en: "There", te: "అక్కడ (Akkaḍa)", hi: "वहाँ (Vahān)", ta: "அங்கே (Aṅkē)", bn: "সেখানে (Shēkhānē)", kn: "ಅಲ್ಲಿ (Alli)", mr: "तेथे (Tēthē)", gu: "ત્યાં (Tyān)", ml: "അവിടെ (Aviḍe)", pa: "ਉੱਥੇ (Uthē)" },
+    "near": { en: "Near / Close", te: "దగ్గర (Daggara)", hi: "पास में (Pās mēn)", ta: "அருகில் (Arukil)", bn: "কাছে (Kāchhē)", kn: "ಹತ್ತಿರ (Hattira)", mr: "जवळ (Jawaḷ)", gu: "નજીક (Najīk)", ml: "അടുത്ത് (Aṭutthu)", pa: "ਨੇੜੇ (Nēṛē)" },
+    "far": { en: "Far", te: "చాలా దూరం (Chālā dūram)", hi: "दूर है (Dūr hai)", ta: "தொலைவில் (Tholaivil)", bn: "দূরে (Dūrē)", kn: "ದೂರ (Dūra)", mr: "लांब (Lāmb)", gu: "દૂર (Dūr)", ml: "ദൂരെ (Dūre)", pa: "ਦੂਰ (Dūr)" },
+    "left": { en: "Left", te: "ఎడమ వైపు (Eḍama vaipu)", hi: "बाएं (Bāyēn)", ta: "இடது பக்கம் (Iṭathu pakkam)", bn: "বাম দিকে (Bām dikē)", kn: "ಎಡಕ್ಕೆ (Eḍakke)", mr: "डावीकडे (Ḍāvīkaḍē)", gu: "ડાબી બાજુ (Ḍābī bāju)", ml: "ഇടത്തോട്ട് (Iṭatthōṭṭu)", pa: "ਖੱਬੇ (Khabbē)" },
+    "right": { en: "Right", te: "కుడి వైపు (Kuḍi vaipu)", hi: "दाएं (Dāyēn)", ta: "வலது பக்கம் (Valathu pakkam)", bn: "ডান দিকে (Ḍān dikē)", kn: "ಬಲಕ್ಕೆ (Balakke)", mr: "उजवीकडे (Ujvīkaḍē)", gu: "જમણી બાજુ (Jamaṇī bāju)", ml: "വലത്തോട്ട് (Valatthōṭṭu)", pa: "ਸੱਜੇ (Sajjē)" },
+    "straight": { en: "Straight", te: "నేరుగా (Nērugā)", hi: "सीधे जाइये (Sīdhē jāiyē)", ta: "நேராக (Nērāka)", bn: "সোজা যান (Sōjā jān)", kn: "ನೇರವಾಗಿ ಹೋಗಿ (Nēravāgi hōgi)", mr: "सरळ जा (Saraḷ jā)", gu: "સીધા જાઓ (Sīdhā jāō)", ml: "നേരെ പോകുക (Nēre pōkuka)", pa: "ਸਿੱਧਾ ਜਾਓ (Siddhā jāō)" },
+    "stop": { en: "Stop", te: "ఆపండి (Āpaṇḍi)", hi: "रोकिये (Rōkiye)", ta: "நிறுத்துங்கள் (Niṟutthuṅkaḷ)", bn: "থামুন (Thāmun)", kn: "ನಿಲ್ಲಿಸಿ (Nillisi)", mr: "थांबा (Thāmbā)", gu: "રોકો (Rōkō)", ml: "നിർത്തൂ (Nirtthū)", pa: "ਰੋਕੋ (Rōkō)" },
+    "go": { en: "Go", te: "వెళ్ళండి (Veḷḷaṇḍi)", hi: "जाइये (Jāiye)", ta: "போங்கள் (Pōṅkaḷ)", bn: "যান (Jān)", kn: "ಹೋಗಿ (Hōgi)", mr: "जा (Jā)", gu: "જાઓ (Jāō)", ml: "പോകൂ (Pōkū)", pa: "ਜਾਓ (Jāō)" },
+    "come": { en: "Come", te: "రండి (Raṇḍi)", hi: "आइये (Āiye)", ta: "வாருங்கள் (Vāruṅkaḷ)", bn: "আসুন (Āshun)", kn: "ಬನ್ನಿ (Banni)", mr: "या (Yā)", gu: "આવો (Āvō)", ml: "വരൂ (Varū)", pa: "ਆਓ (Āō)" },
+
+    // Medical, Safety & Emergency
+    "help": { en: "Help!", te: "సహాయం చేయండి! (Sahāyam chēyaṇḍi!)", hi: "मदद कीजिये! (Madad kījiye!)", ta: "உதவி செய்யுங்கள்! (Uthavi seyyuṅkaḷ!)", bn: "সাহায্য করুন! (Sāhājjō korūn!)", kn: "ಸಹಾಯ ಮಾಡಿ! (Sahāya māḍi!)", mr: "मदत करा! (Madat karā!)", gu: "મદદ કરો! (Madad karō!)", ml: "സഹായിക്കൂ! (Sahāyikkū!)", pa: "ਮਦਦ ਕਰੋ! (Madad karō!)" },
+    "emergency": { en: "Emergency!", te: "అత్యవసర పరిస్థితి! (Atyavasara paristhiti!)", hi: "आपातकालीन स्थिति! (Āpātkālīn sthiti!)", ta: "அவசர நிலை! (Avasara nilai!)", bn: "জরুরী অবস্থা! (Jorurī obosthā!)", kn: "ತುರ್ತು ಪರಿಸ್ಥಿತಿ! (Turtu paristhiti!)", mr: "तातडीची मदत! (Tātḍīchī madat!)", gu: "કટોકટી સ્થિતિ! (Kaṭōkaṭī sthiti!)", ml: "അടിയന്തിര ഘട്ടം! (Aṭiyanthira ghaṭṭam!)", pa: "ਐਮਰਜੈਂਸੀ! (Emergency!)" },
+    "police": { en: "Police (112)", te: "పోలీస్ స్టేషన్ / 112 (Police station)", hi: "पुलिस सहायता / 112 (Police)", ta: "காவல்துறை உதவி / 112 (Police)", bn: "পুলিশ ফাঁড়ি / 112 (Police)", kn: "ಪೊಲೀಸ್ ಠಾಣೆ / 112 (Police)", mr: "पोलीस ठाणे / 112 (Police)", gu: "પોલીસ સ્ટેશન / 112 (Police)", ml: "പോലീസ് സ്റ്റേഷൻ / 112 (Police)", pa: "ਪੁਲਿਸ ਸਟੇਸ਼ਨ / 112 (Police)" },
+    "hospital": { en: "Hospital", te: "ఆసుపత్రి ఎక్కడ ఉంది? (Āsupatri ekkaḍa undi?)", hi: "अस्पताल कहाँ है? (Aspatāl kahān hai?)", ta: "மருத்துவமனை எங்கே? (Maruthuvamaṉai eṅkē?)", bn: "হাসপাতালটি কোথায়? (Hāspātālti kōthāy?)", kn: "ಆಸ್ಪತ್ರೆ ಎಲ್ಲಿದೆ? (Āspatre ellide?)", mr: "दवाखाना कुठे आहे? (Davākhānā kuṭhē āhē?)", gu: "હોસ્પિટલ ક્યાં છે? (Hospital kyān chhe?)", ml: "ആശുപത്രി എവിടെയാണ്? (Āshupatri eviḍeyāṇu?)", pa: "ਹਸਪਤਾਲ ਕਿੱਥੇ ਹੈ? (Haspatāl kithē hai?)" },
+    "doctor": { en: "Doctor", te: "వైద్యులు / డాక్టర్ (Doctor)", hi: "डॉक्टर (Doctor)", ta: "மருத்துவர் (Maruthuvar)", bn: "ডাক্তারবাবু (Doctor)", kn: "ವೈದ್ಯರು (Doctor)", mr: "डॉक्टर (Doctor)", gu: "ડોક્ટર (Doctor)", ml: "ഡോക്ടർ (Doctor)", pa: "ਡਾਕਟਰ (Doctor)" },
+    "medicine": { en: "Medicine / Pharmacy", te: "మందుల షాప్ / మెడికల్ (Medical shop)", hi: "दवा की दुकान (Davā kī dukān)", ta: "மருந்தகம் (Marunthakam)", bn: "ওষুধের দোকান (Ōshudhēr dōkān)", kn: "ಔಷಧದ ಅಂಗಡಿ (Aushadhada aṅgaḍi)", mr: "औषधाचे दुकान (Aushadhāchē dukān)", gu: "દવાની દુકાન (Davānī dukān)", ml: "മെഡിക്കൽ ഷോപ്പ് (Medical shop)", pa: "ਦਵਾਈਆਂ ਦੀ ਦੁਕਾਨ (Davāīān dī dukān)" },
+    "pain": { en: "Pain", te: "నొప్పిగా ఉంది (Noppigā undi)", hi: "दर्द हो रहा है (Dard hō rahā hai)", ta: "வலிக்கிறது (Valikkiṟathu)", bn: "ব্যথা করছে (Byathā korchhe)", kn: "ನೋವಾಗುತ್ತಿದೆ (Nōvāguttide)", mr: "दुखत आहे (Dukhat āhē)", gu: "દુખાવો થાય છે (Dukhāvō thāy chhe)", ml: "വേദനിക്കുന്നു (Vēdanikkunnu)", pa: "ਦਰਦ ਹੋ ਰਿਹਾ ਹੈ (Dard hō rihā hai)" },
+    "safe": { en: "Safe", te: "సురక్షితం (Surakshitam)", hi: "सुरक्षित (Surakshit)", ta: "பாதுகாப்பானது (Pāthukāppāṉathu)", bn: "নিরাপদ (Nirāpod)", kn: "ಸುರಕ್ಷಿತ (Surakshita)", mr: "सुरक्षित (Surakshit)", gu: "સુરક્ષિત (Surakshit)", ml: "സുരക്ഷിതം (Surakshitham)", pa: "ਸੁਰੱਖਿਅਤ (Surakkhiat)" },
+    "danger": { en: "Danger", te: "ప్రమాదం (Pramādam)", hi: "खतरा (Khatrā)", ta: "ஆபத்து (Āpathu)", bn: "বিপদ (Bipod)", kn: "ಅಪಾಯ (Apāya)", mr: "धोका (Dhōkā)", gu: "જોખમ (Jōkham)", ml: "അപകടം (Apakaṭam)", pa: "ਖ਼ਤਰਾ (Khatrā)" },
 
     // Numbers & Counting
-    "one": { te: "ఒకటి (Okaṭi)", hi: "एक (Ēk)", ta: "ஒன்று (Oṉṟu)", bn: "এক (Ēk)", kn: "ಒಂದು (Ondu)", mr: "एक (Ēk)", gu: "એક (Ēk)", ml: "ഒന്ന് (Onnu)", pa: "ਇੱਕ (Ikk)" },
-    "two": { te: "రెండు (Reṇḍu)", hi: "दो (Dō)", ta: "இரண்டு (Iraṇṭu)", bn: "দুই (Dui)", kn: "ಎರಡು (Eraḍu)", mr: "दोन (Dōn)", gu: "બે (Bē)", ml: "രണ്ട് (Raṇṭu)", pa: "ਦੋ (Dō)" },
-    "three": { te: "మూడు (Mūḍu)", hi: "तीन (Tīn)", ta: "மூன்று (Mūṉṟu)", bn: "তিন (Tin)", kn: "ಮೂರು (Mūru)", mr: "तीन (Tīn)", gu: "ત્રણ (Traṇ)", ml: "മൂന്ന് (Mūnnu)", pa: "ਤਿੰਨ (Tinn)" },
-    "four": { te: "నాలుగు (Nālugu)", hi: "चार (Chār)", ta: "நான்கு (Nāṉku)", bn: "চার (Chār)", kn: "ನಾಲ್ಕು (Nālku)", mr: "चार (Chār)", gu: "ચાર (Chār)", ml: "നാല് (Nālu)", pa: "ਚਾਰ (Chār)" },
-    "five": { te: "ఐదు (Aidu)", hi: "पाँच (Pānch)", ta: "ஐந்து (Ainthu)", bn: "পাঁচ (Pānch)", kn: "ಐದು (Aidu)", mr: "पाच (Pāch)", gu: "પાંચ (Pānch)", ml: "അഞ്ച് (Anchu)", pa: "ਪੰਜ (Panj)" },
-    "ten": { te: "పది (Padi)", hi: "दस (Das)", ta: "பத்து (Pathu)", bn: "দশ (Dosh)", kn: "ಹತ್ತು (Hattu)", mr: "दहा (Dahā)", gu: "દસ (Das)", ml: "പത്ത് (Patthu)", pa: "ਦਸ (Das)" },
-    "twenty": { te: "ఇరవై (Iravai)", hi: "बीस (Bīs)", ta: "இருபது (Irupathu)", bn: "কুড়ি (Kuṛi)", kn: "ಇಪ್ಪತ್ತು (Ippattu)", mr: "वीस (Vīs)", gu: "વીસ (Vīs)", ml: "ഇരുപത് (Irupathu)", pa: "ਵੀਹ (Vīh)" },
-    "fifty": { te: "యాభై (Yābhai)", hi: "पचास (Pachās)", ta: "ஐம்பது (Aimpathu)", bn: "পঞ্চাশ (Pōnchāsh)", kn: "ಐವತ್ತು (Aivattu)", mr: "पन्नास (Pannās)", gu: "પચાસ (Pachās)", ml: "അമ്പത് (Ampathu)", pa: "ਪੰਜਾਹ (Panjāh)" },
-    "hundred": { te: "వంద రూపాయలు (Vanda rūpāyalu)", hi: "सौ रुपये (Sau rūpayē)", ta: "நூறு ரூபாய் (Nūṟu rūpāy)", bn: "একশ টাকা (Ēkshō ṭākā)", kn: "ನೂರು ರೂಪಾಯಿ (Nūru rūpāyi)", mr: "शंभर रुपये (Shambhar rūpayē)", gu: "સો રૂપિયા (Sō rūpiyā)", ml: "നൂറ് രൂപ (Nūṟu rūpa)", pa: "ਸੌ ਰੁਪਏ (Sau rupayē)" },
-    "thousand": { te: "వెయ్యి రూపాయలు (Vēyyi rūpāyalu)", hi: "एक हज़ार रुपये (Ēk hazār rūpayē)", ta: "ஆயிரம் ரூபாய் (Āyiram rūpāy)", bn: "এক হাজার টাকা (Ēk hājār ṭākā)", kn: "ಸಾವಿರ ರೂಪಾಯಿ (Sāvira rūpāyi)", mr: "एक हजार रुपये (Ēk hazār rūpayē)", gu: "એક હજાર રૂપિયા (Ēk hazār rūpiyā)", ml: "ആയിരം രൂപ (Āyiram rūpa)", pa: "ਇੱਕ ਹਜ਼ਾਰ ਰੁਪਏ (Ikk hazār rupayē)" },
+    "one": { en: "One", te: "ఒకటి (Okaṭi)", hi: "एक (Ēk)", ta: "ஒன்று (Oṉṟu)", bn: "এক (Ēk)", kn: "ಒಂದು (Ondu)", mr: "एक (Ēk)", gu: "એક (Ēk)", ml: "ഒന്ന് (Onnu)", pa: "ਇੱਕ (Ikk)" },
+    "two": { en: "Two", te: "రెండు (Reṇḍu)", hi: "दो (Dō)", ta: "இரண்டு (Iraṇṭu)", bn: "দুই (Dui)", kn: "ಎರಡು (Eraḍu)", mr: "दोन (Dōn)", gu: "બે (Bē)", ml: "രണ്ട് (Raṇṭu)", pa: "ਦੋ (Dō)" },
+    "three": { en: "Three", te: "మూడు (Mūḍu)", hi: "तीन (Tīn)", ta: "மூன்று (Mūṉṟu)", bn: "তিন (Tin)", kn: "ಮೂರು (Mūru)", mr: "तीन (Tīn)", gu: "ત્રણ (Traṇ)", ml: "മൂന്ന് (Mūnnu)", pa: "ਤਿੰਨ (Tinn)" },
+    "four": { en: "Four", te: "నాలుగు (Nālugu)", hi: "चार (Chār)", ta: "நான்கு (Nāṉku)", bn: "চার (Chār)", kn: "ನಾಲ್ಕು (Nālku)", mr: "चार (Chār)", gu: "ચાર (Chār)", ml: "നാല് (Nālu)", pa: "ਚਾਰ (Chār)" },
+    "five": { en: "Five", te: "ఐదు (Aidu)", hi: "पाँच (Pānch)", ta: "ஐந்து (Ainthu)", bn: "পাঁচ (Pānch)", kn: "ಐದು (Aidu)", mr: "पाच (Pāch)", gu: "પાંચ (Pānch)", ml: "അഞ്ച് (Anchu)", pa: "ਪੰਜ (Panj)" },
+    "ten": { en: "Ten", te: "పది (Padi)", hi: "दस (Das)", ta: "பத்து (Pathu)", bn: "দশ (Dosh)", kn: "ಹತ್ತು (Hattu)", mr: "दहा (Dahā)", gu: "દસ (Das)", ml: "പത്ത് (Patthu)", pa: "ਦਸ (Das)" },
+    "twenty": { en: "Twenty", te: "ఇరవై (Iravai)", hi: "बीस (Bīs)", ta: "இருபது (Irupathu)", bn: "কুড়ি (Kuṛi)", kn: "ಇಪ್ಪತ್ತು (Ippattu)", mr: "वीस (Vīs)", gu: "વીસ (Vīs)", ml: "ഇരുപത് (Irupathu)", pa: "ਵੀਹ (Vīh)" },
+    "fifty": { en: "Fifty", te: "యాభై (Yābhai)", hi: "पचास (Pachās)", ta: "ஐம்பது (Aimpathu)", bn: "পঞ্চাশ (Pōnchāsh)", kn: "ಐವತ್ತು (Aivattu)", mr: "पन्नास (Pannās)", gu: "પચાસ (Pachās)", ml: "അമ്പത് (Ampathu)", pa: "ਪੰਜਾਹ (Panjāh)" },
+    "hundred": { en: "One Hundred", te: "వంద రూపాయలు (Vanda rūpāyalu)", hi: "सौ रुपये (Sau rūpayē)", ta: "நூறு ரூபாய் (Nūṟu rūpāy)", bn: "একশ টাকা (Ēkshō ṭākā)", kn: "ನೂರು ರೂಪಾಯಿ (Nūru rūpāyi)", mr: "शंभर रुपये (Shambhar rūpayē)", gu: "સો રૂપિયા (Sō rūpiyā)", ml: "നൂറ് രൂപ (Nūṟu rūpa)", pa: "ਸੌ ਰੁਪਏ (Sau rupayē)" },
+    "thousand": { en: "One Thousand", te: "వెయ్యి రూపాయలు (Vēyyi rūpāyalu)", hi: "एक हज़ार रुपये (Ēk hazār rūpayē)", ta: "ஆயிரம் ரூபாய் (Āyiram rūpāy)", bn: "এক হাজার টাকা (Ēk hājār ṭākā)", kn: "ಸಾವಿರ ರೂಪಾಯಿ (Sāvira rūpāyi)", mr: "एक हजार रुपये (Ēk hazār rūpayē)", gu: "એક હજાર રૂપિયા (Ēk hazār rūpiyā)", ml: "ആയിരം രൂപ (Āyiram rūpa)", pa: "ਇੱਕ ਹਜ਼ਾਰ ਰੁਪਏ (Ikk hazār rupayē)" },
 
-    // Heritage & Cultural Expressions
-    "ticket": { te: "ప్రవేశ టికెట్ (Pravēsha ticket)", hi: "प्रवेश टिकट (Pravēsh ticket)", ta: "நுழைவு சீட்டு (Nuḻaivu sīṭṭu)", bn: "প্রবেশ টিকিট (Prōbēsh ṭikiṭ)", kn: "ಪ್ರವೇಶ ಟಿಕೆಟ್ (Pravēsha ṭikeṭ)", mr: "प्रवेश तिकीट (Pravēsh tikīṭ)", gu: "પ્રવેશ ટિકિટ (Pravēsh ṭikiṭ)", ml: "പ്രവേശന ടിക്കറ്റ് (Pravēshana ṭikkaṟṟu)", pa: "ਐਂਟਰੀ ਟਿਕਟ (Entry ticket)" },
-    "guide": { te: "గైడ్ / మార్గదర్శకులు (Guide)", hi: "पर्यटन गाइड (Tourist guide)", ta: "வழிகாட்டி (Vaḻikāṭṭi)", bn: "ট্যুরিস্ট গাইড (Guide)", kn: "ಮಾರ್ಗದರ್ಶಿ (Mārgadarshi)", mr: "मार्गदर्शक (Mārgadarshak)", gu: "માર્ગદર્શક (Mārgadarshak)", ml: "ടൂറിസ്റ്റ് ഗൈഡ് (Guide)", pa: "ਗਾਈਡ (Guide)" },
-    "photo": { te: "ఫోటో తీయవచ్చా? (Photo tīyavacchā?)", hi: "क्या फोटो ले सकते हैं? (Kyā photō lē saktē hain?)", ta: "புகைப்படம் எடுக்கலாமா? (Pukaippaṭam eṭukkalāmā?)", bn: "ছবি তোলা যাবে? (Chhobi tōlā jābē?)", kn: "ಫೋಟೋ ತೆಗೆಯಬಹುದೇ? (Phōṭō tegeyabahudē?)", mr: "फोटो काढू शकतो का? (Phōṭō kāḍhū shaktō kā?)", gu: "ફોટો પાડી શકાય? (Phōṭō pāḍī shakāy?)", ml: "ഫോട്ടോ എടുക്കാമോ? (Phōṭṭō eṭukkāmō?)", pa: "ਫੋਟੋ ਖਿੱਚ ਸਕਦੇ ਹਾਂ? (Phōṭō khicc sakdē hān?)" },
-    "beautiful": { te: "చాలా అందంగా ఉంది! (Chālā andangā undi!)", hi: "बहुत सुंदर है! (Bahut sundar hai!)", ta: "மிகவும் அழகாக உள்ளது! (Mikavum aḻakāka uḷḷathu!)", bn: "খুব সুন্দর! (Khub sundōr!)", kn: "ತುಂಬಾ ಸುಂದರವಾಗಿದೆ! (Tumbā sundaravāgide!)", mr: "खूप सुंदर आहे! (Khūp sundar āhē!)", gu: "ખૂબ સુંદર છે! (Khūb sundar chhe!)", ml: "വളരെ മനോഹരമാണ്! (Valare manōharamāṇu!)", pa: "ਬਹੁਤ ਸੋਹਣਾ ਹੈ! (Bahut sōhṇā hai!)" },
-    "good": { te: "చాలా బాగుంది (Chālā bāgundi)", hi: "बहुत अच्छा है (Bahut achhā hai)", ta: "ரொம்ப நல்லது (Romba nallathu)", bn: "খুব ভালো (Khub bhālō)", kn: "ತುಂಬಾ ಚೆನ್ನಾಗಿದೆ (Tumbā chennāgide)", mr: "खूप छान आहे (Khūp chhān āhē)", gu: "ખૂબ સરસ છે (Khūb saras chhe)", ml: "വളരെ നല്ലത് (Valare nallathu)", pa: "ਬਹੁਤ ਵਧੀਆ ਹੈ (Bahut vadhīā hai)" },
-    "yes": { te: "అవును (Avunu)", hi: "हाँ (Hān)", ta: "ஆம் (Ām)", bn: "হ্যাঁ (Hyān)", kn: "ಹೌದು (Haudu)", mr: "हो (Hō)", gu: "હા (Hā)", ml: "അതെ (Athe)", pa: "ਹਾਂ (Hān)" },
-    "no": { te: "వద్దు / కాదు (Vaddu / Kādu)", hi: "नहीं (Nahīn)", ta: "இல்லை (Illai)", bn: "না (Nā)", kn: "ಇಲ್ಲ (Illa)", mr: "नाही (Nāhī)", gu: "ના (Nā)", ml: "അല്ല / വേണ്ട (Alla / Vēṇṭa)", pa: "ਨਹੀਂ (Nahīn)" },
+    // Time & Calendar
+    "time": { en: "Time", te: "సమయం / టైం (Samayam)", hi: "समय / वक़्त (Samay)", ta: "நேரம் (Nēram)", bn: "সময় (Shomoy)", kn: "ಸಮಯ (Samaya)", mr: "वेळ (Vēḷ)", gu: "સમય (Samay)", ml: "സമയം (Samayam)", pa: "ਸਮਾਂ (Samān)" },
+    "today": { en: "Today", te: "ఈ రోజు (Ī rōju)", hi: "आज (Āj)", ta: "இன்று (Iṉṟu)", bn: "আজ (Āj)", kn: "ಇವತ್ತು (Ivattu)", mr: "आज (Āj)", gu: "આજે (Ājē)", ml: "ഇന്ന് (Innu)", pa: "ਅੱਜ (Ajj)" },
+    "tomorrow": { en: "Tomorrow", te: "రేపు (Rēpu)", hi: "कल (Kal)", ta: "நாளை (Nāḷai)", bn: "আগামীকাল (Āgāmīkāl)", kn: "ನಾಳೆ (Nāḷe)", mr: "उद्या (Udyā)", gu: "કાલે (Kālē)", ml: "നാളെ (Nāḷe)", pa: "ਕੱਲ੍ਹ (Kallh)" },
+    "yesterday": { en: "Yesterday", te: "నిన్న (Ninna)", hi: "कल (बीता हुआ) (Bītā kal)", ta: "நேற்று (Nēṟṟu)", bn: "গতকাল (Gōtōkāl)", kn: "ನಿನ್ನೆ (Ninne)", mr: "काल (Kāl)", gu: "ગઈકાલે (Gaikālē)", ml: "ഇന്നലെ (Innale)", pa: "ਕੱਲ੍ਹ (ਲੰਘਿਆ) (Kallh)" },
+    "now": { en: "Now", te: "ఇప్పుడు (Ippuḍu)", hi: "अभी (Abhī)", ta: "இப்போது (Ippōthu)", bn: "এখন (Ēkhōn)", kn: "ಈಗ (Īga)", mr: "आत्ता (Āttā)", gu: "અત્યારે (Atyārē)", ml: "ഇപ്പോൾ (Ippōḷ)", pa: "ਹੁਣ (Huṇ)" },
+    "later": { en: "Later", te: "తరువాత (Taruvāta)", hi: "बाद में (Bād mēn)", ta: "பிறகு (Piṟaku)", bn: "পরে (Pōrē)", kn: "ಆಮೇಲೆ (Āmēle)", mr: "नंतर (Nantar)", gu: "પછી (Pachhī)", ml: "പിന്നെ (Pinne)", pa: "ਬਾਅਦ ਵਿੱਚ (Bāad vich)" },
+
+    // Weather & Essentials
+    "hot": { en: "Hot", te: "వేడిగా ఉంది (Vēḍigā undi)", hi: "गर्म है (Garm hai)", ta: "சூடாக இருக்கிறது (Sūṭāka irukkiṟathu)", bn: "গরম (Gōrom)", kn: "ಬಿಸಿ (Bisi)", mr: "गरम (Garam)", gu: "ગરમ (Garam)", ml: "ചൂട് (Chūṭu)", pa: "ਗਰਮ (Garam)" },
+    "cold": { en: "Cold", te: "చల్లగా ఉంది (Challagā undi)", hi: "ठंडा है (Ṭhaṇḍā hai)", ta: "குளிராக இருக்கிறது (Kuḷirāka irukkiṟathu)", bn: "ঠান্ডা (Ṭhāṇḍā)", kn: "ತಂಪು (Thampu)", mr: "थंड (Thaṇḍ)", gu: "ઠંડુ (Ṭhaṇḍun)", ml: "തണുപ്പ് (Thaṇuppu)", pa: "ਠੰਡਾ (Ṭhaṇḍā)" },
+    "rain": { en: "Rain", te: "వర్షం (Varsham)", hi: "बारिश (Bārish)", ta: "மழை (Maḻai)", bn: "বৃষ্টি (Brishti)", kn: "ಮಳೆ (Maḷe)", mr: "पाऊस (Pāūs)", gu: "વરસાદ (Varsād)", ml: "മഴ (Mazha)", pa: "ਮੀਂਹ (Mīnh)" },
+
+    // Conversational & Common Modifiers
+    "guide": { en: "Guide", te: "గైడ్ / మార్గదర్శకులు (Guide)", hi: "पर्यटन गाइड (Tourist guide)", ta: "வழிகாட்டி (Vaḻikāṭṭi)", bn: "ট্যুরিস্ট গাইড (Guide)", kn: "ಮಾರ್ಗದರ್ಶಿ (Mārgadarshi)", mr: "मार्गदर्शक (Mārgadarshak)", gu: "માર્ગદર્શક (Mārgadarshak)", ml: "ടൂറിസ്റ്റ് ഗൈഡ് (Guide)", pa: "ਗਾਈਡ (Guide)" },
+    "photo": { en: "Can I take a photo?", te: "ఫోటో తీయవచ్చా? (Photo tīyavacchā?)", hi: "क्या फोटो ले सकते हैं? (Kyā photō lē saktē hain?)", ta: "புகைப்படம் எடுக்கலாமா? (Pukaippaṭam eṭukkalāmā?)", bn: "ছবি তোলা যাবে? (Chhobi tōlā jābē?)", kn: "ಫೋಟೋ ತೆಗೆಯಬಹುದೇ? (Phōṭō tegeyabahudē?)", mr: "फोटो काढू शकतो का? (Phōṭō kāḍhū shaktō kā?)", gu: "ફોટો પાડી શકાય? (Phōṭō pāḍī shakāy?)", ml: "ഫോട്ടോ എടുക്കാമോ? (Phōṭṭō eṭukkāmō?)", pa: "ਫੋਟੋ ਖਿੱਚ ਸਕਦੇ ਹਾਂ? (Phōṭō khicc sakdē hān?)" },
+    "beautiful": { en: "Very Beautiful!", te: "చాలా అందంగా ఉంది! (Chālā andangā undi!)", hi: "बहुत सुंदर है! (Bahut sundar hai!)", ta: "மிகவும் அழகாக உள்ளது! (Mikavum aḻakāka uḷḷathu!)", bn: "খুব সুন্দর! (Khub sundōr!)", kn: "ತುಂಬಾ ಸುಂದರವಾಗಿದೆ! (Tumbā sundaravāgide!)", mr: "खूप सुंदर आहे! (Khūp sundar āhē!)", gu: "ખૂબ સુંદર છે! (Khūb sundar chhe!)", ml: "വളരെ മനോഹരമാണ്! (Valare manōharamāṇu!)", pa: "ਬਹੁਤ ਸੋਹਣਾ ਹੈ! (Bahut sōhṇā hai!)" },
+    "good": { en: "Good", te: "చాలా బాగుంది (Chālā bāgundi)", hi: "बहुत अच्छा है (Bahut achhā hai)", ta: "ரொம்ப நல்லது (Romba nallathu)", bn: "খুব ভালো (Khub bhālō)", kn: "ತುಂಬಾ ಚೆನ್ನಾಗಿದೆ (Tumbā chennāgide)", mr: "खूप छान आहे (Khūp chhān āhē)", gu: "ખૂબ સરસ છે (Khūb saras chhe)", ml: "വളരെ നല്ലത് (Valare nallathu)", pa: "ਬਹੁਤ ਵਧੀਆ ਹੈ (Bahut vadhīā hai)" },
+    "bagundi": { en: "It is good / Nice (Telugu)", te: "బాగుంది (Bāgundi)", hi: "अच्छा है (Achhā hai)", ta: "நன்றாக உள்ளது (Naṉṟāka uḷḷathu)", bn: "ভালো (Bhālō)", kn: "ಚೆನ್ನಾಗಿದೆ (Chennāgide)", mr: "छान आहे (Chhān āhē)", gu: "સરસ છે (Saras chhe)", ml: "നല്ലതാണ് (Nallathāṇu)", pa: "ਚੰਗਾ ਹੈ (Changā hai)" },
+    "yes": { en: "Yes", te: "అవును (Avunu)", hi: "हाँ (Hān)", ta: "ஆம் (Ām)", bn: "হ্যাঁ (Hyān)", kn: "ಹೌದು (Haudu)", mr: "हो (Hō)", gu: "હા (Hā)", ml: "അതെ (Athe)", pa: "ਹਾਂ (Hān)" },
+    "no": { en: "No", te: "వద్దు / కాదు (Vaddu / Kādu)", hi: "नहीं (Nahīn)", ta: "இல்லை (Illai)", bn: "না (Nā)", kn: "ಇಲ್ಲ (Illa)", mr: "नाही (Nāhī)", gu: "ના (Nā)", ml: "അല്ല / വേണ്ട (Alla / Vēṇṭa)", pa: "ਨਹੀਂ (Nahīn)" },
+    "ok": { en: "OK / Alright", te: "సరే / అంగీకారం (Sarē)", hi: "ठीक है (Ṭhīk hai)", ta: "சரி (Sari)", bn: "ঠিক আছে (Ṭhīk āchhē)", kn: "ಸರಿ (Sari)", mr: "ठीक आहे (Ṭhīk āhē)", gu: "બરાબર છે (Barābar chhe)", ml: "ശരി (Shari)", pa: "ਠੀਕ ਹੈ (Ṭhīk hai)" },
+    "friend": { en: "Friend", te: "మిత్రుడు / స్నేహితుడు (Mitruḍu)", hi: "दोस्त / मित्र (Dōst)", ta: "நண்பர் (Naṇpar)", bn: "বন্ধু (Bondhu)", kn: "ಸ್ನೇಹಿತ (Snēhita)", mr: "मित्र (Mitra)", gu: "મિત્ર (Mitra)", ml: "സുഹൃത്ത് (Suhṛtthu)", pa: "ਦੋਸਤ (Dōst)" },
+    "family": { en: "Family", te: "కుటుంబం (Kuṭumbam)", hi: "परिवार (Parivār)", ta: "குடும்பம் (Kuṭumpam)", bn: "পরিবার (Pōribār)", kn: "ಕುಟುಂಬ (Kuṭumba)", mr: "कुटुंब (Kuṭumb)", gu: "પરિવાર (Parivār)", ml: "കുടുംബം (Kuṭumbam)", pa: "ਪਰਿਵਾਰ (Parivār)" },
   };
 
-  // Direct keyword lookup
+  // Direct keyword lookup (Exact or normalized)
   for (const [key, map] of Object.entries(vocabDict)) {
     if (clean === key || clean === key.replace(/[^a-z0-9 ]/g, "")) {
-      const val = map[targetLangCode] || map["te"] || map["hi"];
+      const val = map[targetLangCode] || (targetLangCode === "en" ? map["en"] : (map["te"] || map["hi"]));
       if (val) {
-        const [script, pron] = val.split(" (");
+        const parts = val.includes(" (") ? val.split(" (") : [val, ""];
         return {
-          translatedText: script,
-          pronunciation: pron ? pron.replace(")", "") : "",
-          culturalNote: "Instantly resolved via 100% Offline Edge Regional Lexicon (0ms response).",
+          translatedText: parts[0],
+          pronunciation: parts[1] ? parts[1].replace(")", "") : parts[0],
+          culturalNote: `Instantly resolved via 100% Offline Edge Lexicon (${key}).`,
           engine: "offline-edge-lexicon",
           category: "Essential Vocabulary",
           latency: "0ms",
@@ -842,15 +927,38 @@ export function translateOfflineQuery(text, targetLangCode = "te", sourceLangCod
     }
   }
 
-  // Multi-word phrase search in vocabDict
+  // 3. Bidirectional Reverse Search: check if input matches ANY Indian language script or transliteration
+  for (const [engKey, map] of Object.entries(vocabDict)) {
+    for (const [langCode, entryVal] of Object.entries(map)) {
+      if (typeof entryVal !== "string") continue;
+      const lowerEntry = entryVal.toLowerCase();
+      // Match native script or parenthetical phonetic pronunciation
+      if (lowerEntry.includes(clean) || clean.includes(lowerEntry.split(" ")[0])) {
+        const targetVal = map[targetLangCode] || (targetLangCode === "en" ? map["en"] || engKey : (map["te"] || map["hi"]));
+        if (targetVal) {
+          const parts = targetVal.includes(" (") ? targetVal.split(" (") : [targetVal, ""];
+          return {
+            translatedText: parts[0],
+            pronunciation: parts[1] ? parts[1].replace(")", "") : parts[0],
+            culturalNote: `Bidirectional match: "${clean}" matched travel phrase (${engKey}).`,
+            engine: "offline-edge-lexicon",
+            category: "Bidirectional Match",
+            latency: "0ms",
+          };
+        }
+      }
+    }
+  }
+
+  // 4. Multi-word phrase search in vocabDict
   for (const [key, map] of Object.entries(vocabDict)) {
     if (clean.includes(key) && key.length > 2) {
-      const val = map[targetLangCode] || map["te"] || map["hi"];
+      const val = map[targetLangCode] || (targetLangCode === "en" ? map["en"] || key : (map["te"] || map["hi"]));
       if (val) {
-        const [script, pron] = val.split(" (");
+        const parts = val.includes(" (") ? val.split(" (") : [val, ""];
         return {
-          translatedText: script,
-          pronunciation: pron ? pron.replace(")", "") : "",
+          translatedText: parts[0],
+          pronunciation: parts[1] ? parts[1].replace(")", "") : parts[0],
           culturalNote: `Matched offline travel phrase: "${key}". Zero-latency edge translation.`,
           engine: "offline-edge-lexicon",
           category: "Travel Phrase",
@@ -860,15 +968,50 @@ export function translateOfflineQuery(text, targetLangCode = "te", sourceLangCod
     }
   }
 
-  // Smart multi-word transliteration & regional translation synthesis
+  // 5. Smart Word-by-Word Tokenized Synthesis
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length > 1) {
+    const translatedTokens = [];
+    const pronTokens = [];
+    let matchCount = 0;
+
+    for (const w of words) {
+      const wClean = w.replace(/[^a-z0-9]/g, "");
+      const match = vocabDict[wClean] || vocabDict[w];
+      if (match) {
+        matchCount++;
+        const targetVal = match[targetLangCode] || (targetLangCode === "en" ? match["en"] || w : (match["te"] || match["hi"]));
+        if (targetVal) {
+          const parts = targetVal.includes(" (") ? targetVal.split(" (") : [targetVal, ""];
+          translatedTokens.push(parts[0]);
+          pronTokens.push(parts[1] ? parts[1].replace(")", "") : parts[0]);
+          continue;
+        }
+      }
+      translatedTokens.push(w);
+      pronTokens.push(w);
+    }
+
+    if (matchCount > 0) {
+      return {
+        translatedText: translatedTokens.join(" "),
+        pronunciation: pronTokens.join(" "),
+        culturalNote: `Composed from offline vocabulary tokens (${matchCount}/${words.length} terms matched).`,
+        engine: "offline-edge-lexicon",
+        category: "Synthesized Phrase",
+        latency: "0ms",
+      };
+    }
+  }
+
+  // 6. Graceful Fallback (Never output broken template or bracketed tags)
   const targetInfo = languageOptions.find(l => l.code === targetLangCode) || languageOptions[0];
-  const sourceInfo = languageOptions.find(l => l.code === sourceLangCode) || languageOptions[0];
 
   return {
-    translatedText: `[${targetInfo.name} Offline Edge]: ${text}`,
-    pronunciation: `Speak with polite conversational cadence (${targetInfo.nativeName})`,
-    culturalNote: `Offline Edge Mode active. For deep contextual AI nuance, switch to Cloud AI or download the full ${targetInfo.name} Offline Field Guide below.`,
-    engine: "offline-edge-synthesizer",
+    translatedText: text,
+    pronunciation: `"${text}" - Regional ${targetInfo.name} expression`,
+    culturalNote: `Offline mode active for ${targetInfo.name}. For deep contextual AI nuance, switch to Online AI mode.`,
+    engine: "offline-edge-lexicon",
     category: "General",
     latency: "0ms",
   };

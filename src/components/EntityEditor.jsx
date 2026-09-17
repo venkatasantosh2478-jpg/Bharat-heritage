@@ -296,9 +296,22 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
                     className="by-input resize-none"
                     placeholder={`Enter ${f.label.toLowerCase()}...`}
                   />
+                ) : f.type === "select" ? (
+                  <select
+                    value={editing[f.key] ?? ""}
+                    onChange={(e) => setEditing({ ...editing, [f.key]: e.target.value })}
+                    className="by-input"
+                  >
+                    <option value="">Select {f.label}...</option>
+                    {(f.options || []).map((opt) => (
+                      <option key={opt.value || opt} value={opt.value || opt}>
+                        {opt.label || opt}
+                      </option>
+                    ))}
+                  </select>
                 ) : (
                   <input
-                    type={f.type === "number" ? "number" : "text"}
+                    type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
                     value={editing[f.key] ?? ""}
                     onChange={(e) =>
                       setEditing({

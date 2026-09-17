@@ -418,9 +418,10 @@ export const AuthProvider = ({ children }) => {
       console.warn("Firebase popup not available, trying Google Identity Services:", fbErr?.message || fbErr);
     }
 
-    // 2. Try official Google Identity Services OAuth2 token client
+    // 2. Try official Google Identity Services OAuth2 token client (only when not in an iframe sandbox)
+    const isIframe = typeof window !== "undefined" && window.self !== window.top;
     const oAuthClientId = firebaseConfig?.oAuthClientId || "100631044302-ipdd1cfnkn0i3cli7s4r9p24ag2c93gi.apps.googleusercontent.com";
-    if (typeof window !== "undefined" && window.google?.accounts?.oauth2 && oAuthClientId) {
+    if (!isIframe && typeof window !== "undefined" && window.google?.accounts?.oauth2 && oAuthClientId) {
       try {
         const tokenPromise = new Promise((resolve, reject) => {
           const client = window.google.accounts.oauth2.initTokenClient({

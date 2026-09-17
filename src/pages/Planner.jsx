@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { 
-  Mic, MicOff, MapPin, Star, Bus, Car, Train, Plane, Bot, CreditCard, 
+  Mic, MapPin, Star, Bus, Car, Train, Plane, Bot, CreditCard, 
   Wallet, Download, CheckCircle, Phone, ShieldCheck, 
   Compass, Gift, CheckCircle2, Calendar, Accessibility, 
   X, QrCode, Award, Sparkles, Volume2
@@ -228,11 +228,9 @@ export default function Planner() {
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
 
-  // Voice Input State
-  const [isListening, setIsListening] = useState(false);
+  // Voice Prompt State
   const [voiceNotice, setVoiceNotice] = useState("");
   const [spokenTripPrompt, setSpokenTripPrompt] = useState("");
-  const recognitionRef = useRef(null);
 
   // Synchronize URL destination param
   useEffect(() => {
@@ -273,59 +271,6 @@ export default function Planner() {
       setSelectedFacility(null);
     }
   }, [from, to, transport]);
-
-  // Handle Voice Input
-  function toggleVoiceInput() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setVoiceNotice("Speech Recognition is not supported in this browser. Please type your destination.");
-      setTimeout(() => setVoiceNotice(""), 4000);
-      return;
-    }
-
-    if (isListening) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      setIsListening(false);
-      return;
-    }
-
-    try {
-      const rec = new SpeechRecognition();
-      rec.lang = "en-IN";
-      rec.interimResults = false;
-      rec.maxAlternatives = 1;
-
-      rec.onstart = () => {
-        setIsListening(true);
-        setVoiceNotice("Listening... Say e.g. 'Plan a 3-day trip to Visakhapatnam for family'");
-      };
-
-      rec.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setVoiceNotice(`Heard: "${transcript}"`);
-        parseVoiceCommand(transcript);
-        setTimeout(() => setVoiceNotice(""), 4000);
-      };
-
-      rec.onerror = (e) => {
-        setIsListening(false);
-        setVoiceNotice(`Voice error: ${e.error || "Could not hear audio"}`);
-        setTimeout(() => setVoiceNotice(""), 4000);
-      };
-
-      rec.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = rec;
-      rec.start();
-    } catch (err) {
-      setIsListening(false);
-      setVoiceNotice("Could not access microphone.");
-    }
-  }
 
   function parseVoiceCommand(text) {
     if (!text) return;
@@ -685,17 +630,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
               <h2 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
                 <Compass className="w-4 h-4 text-primary" /> Step 1: Destination & Dates
               </h2>
-              <button
-                onClick={toggleVoiceInput}
-                className={`p-2 rounded-full border transition-all ${
-                  isListening 
-                    ? "bg-red-500 text-white border-red-600 animate-bounce" 
-                    : "bg-muted text-muted-foreground hover:text-primary border-border"
-                }`}
-                title="Voice Input (Microphone)"
-              >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </button>
+              <span className="text-xs text-muted-foreground font-medium">Auto Route & Stays</span>
             </div>
 
             {/* Voice-to-Text Dream Trip Input */}

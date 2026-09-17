@@ -33,10 +33,11 @@ async function startServer() {
 
   // Supported modern Gemini models with prioritized fallback
   const SUPPORTED_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+    "gemini-1.5-flash",
     "gemini-3.8-flash",
     "gemini-3.1-pro-preview",
-    "gemini-3.1-flash-lite",
-    "gemini-2.5-flash",
   ];
 
   async function generateWithFallback(ai: GoogleGenAI, params: any, preferredModel?: string) {
@@ -479,7 +480,7 @@ Special Instructions:
           }
 
           const finalTranslated = translatedChunks.join("").trim();
-          if (finalTranslated) {
+          if (finalTranslated && finalTranslated.toLowerCase() !== cleanInput.toLowerCase()) {
             return res.json({
               translatedText: finalTranslated,
               pronunciation: romanized || finalTranslated,
@@ -492,7 +493,11 @@ Special Instructions:
         // Handle MyMemory Gateway Format
         if (data?.responseData?.translatedText) {
           const memoryTrans = data.responseData.translatedText.trim();
-          if (memoryTrans) {
+          if (
+            memoryTrans && 
+            !memoryTrans.toUpperCase().includes("MYMEMORY WARNING") &&
+            memoryTrans.toLowerCase() !== cleanInput.toLowerCase()
+          ) {
             return res.json({
               translatedText: memoryTrans,
               pronunciation: memoryTrans,
@@ -506,7 +511,154 @@ Special Instructions:
       }
     }
 
-    // 3. Resilient Final Fallback Response
+    // 3. Server-Side Comprehensive Travel Lexicon Fallback (Zero Failures for Common Words & Phrases)
+    const serverLexicon: Record<string, Record<string, { trans: string; pron: string; tip?: string }>> = {
+      "water": {
+        te: { trans: "మంచి నీళ్ళు (Manchi nīḷḷu)", pron: "Manchi neellu", tip: "Ask for packaged sealed mineral water." },
+        hi: { trans: "पीने का पानी (Pīnē kā pānī)", pron: "Peene ka paani", tip: "Ensure bottle cap seal is intact." },
+        ta: { trans: "குடிநீர் (Kuṭinīr)", pron: "Kudineer", tip: "Common in Tamil Nadu." },
+        bn: { trans: "খাবার জল (Khābār jōl)", pron: "Khabar jol" },
+        kn: { trans: "ಕುಡಿಯುವ ನೀರು (Kuḍiyuva nīru)", pron: "Kudiyuva neeru" },
+        mr: { trans: "पिण्याचे पाणी (Piṇyāchē pāṇī)", pron: "Pinyache paani" },
+        gu: { trans: "પીવાનું પાણી (Pīvānun pānī)", pron: "Peevanu paani" },
+        ml: { trans: "കുടിവെള്ളം (Kuṭiveḷḷam)", pron: "Kudivellam" },
+        en: { trans: "Drinking Water", pron: "Water" }
+      },
+      "food": {
+        te: { trans: "భోజనం / ఆహారం (Bhōjanam)", pron: "Bhojanam", tip: "South Indian thali is wholesome." },
+        hi: { trans: "खाना / भोजन (Khānā / Bhōjan)", pron: "Khaana / Bhojan" },
+        ta: { trans: "சாப்பாடு (Sāppāṭu)", pron: "Saappaadu" },
+        bn: { trans: "খাবার (Khābār)", pron: "Khabar" },
+        kn: { trans: "ಊಟ (Ūṭa)", pron: "Oota" },
+        mr: { trans: "जेवण (Jēvaṇ)", pron: "Jevan" },
+        gu: { trans: "જમવાનું (Jamvānu)", pron: "Jamvanu" },
+        ml: { trans: "ഭക്ഷണം (Bhakshaṇam)", pron: "Bhakshanam" },
+        en: { trans: "Food / Meals", pron: "Food" }
+      },
+      "hotel": {
+        te: { trans: "హోటల్ / వసతి గృహం (Hotel)", pron: "Hotel / Vasathi gruham" },
+        hi: { trans: "होटल / धर्मशाला (Hotel / Dharamshālā)", pron: "Hotel" },
+        ta: { trans: "தங்குமிடம் / ஹோட்டல் (Hotel)", pron: "Hotel" },
+        bn: { trans: "হোটেল (Hōṭēl)", pron: "Hotel" },
+        kn: { trans: "ಹೋಟೆಲ್ (Hōṭel)", pron: "Hotel" },
+        mr: { trans: "हॉटेल (Hōṭel)", pron: "Hotel" },
+        en: { trans: "Hotel / Lodging", pron: "Hotel" }
+      },
+      "room": {
+        te: { trans: "గది / రూమ్ (Gadi / Room)", pron: "Gadi / Room", tip: "Inspect AC and hot water availability before check-in." },
+        hi: { trans: "कमरा / रूम (Kamrā / Room)", pron: "Kamra" },
+        ta: { trans: "அறை (Aṟai / Room)", pron: "Arai" },
+        bn: { trans: "ঘর / রুম (Ghōr / Room)", pron: "Ghor" },
+        kn: { trans: "ಕೋಣೆ (Kōṇe)", pron: "Kone" },
+        mr: { trans: "खोली (Khōlī)", pron: "Kholi" },
+        en: { trans: "Room", pron: "Room" }
+      },
+      "temple": {
+        te: { trans: "దేవాలయం / గుడి (Dēvālayam / Guḍi)", pron: "Gudi / Devalayam", tip: "Remove footwear outside temple sanctum." },
+        hi: { trans: "मंदिर (Mandir)", pron: "Mandir", tip: "Remove shoes outside and dress respectfully." },
+        ta: { trans: "கோவில் (Kōvil)", pron: "Kovil" },
+        bn: { trans: "মন্দির (Mōndir)", pron: "Mondir" },
+        kn: { trans: "ದೇವಾಲಯ / ದೇವಸ್ಥಾನ (Dēvālaya)", pron: "Devasthana" },
+        mr: { trans: "मंदिर (Mandir)", pron: "Mandir" },
+        gu: { trans: "મંદિર (Mandir)", pron: "Mandir" },
+        ml: { trans: "ക്ഷേത്രം (Kshētram)", pron: "Kshethram" },
+        en: { trans: "Temple / Shrine", pron: "Temple" }
+      },
+      "how much": {
+        te: { trans: "ఇది ఎంత? / ధర ఎంత? (Idi entha? / Dhara entha?)", pron: "Idi entha cost?", tip: "Polite bargaining in bazaars is customary." },
+        hi: { trans: "यह कितने का है? (Yeh kitnē kā hai?)", pron: "Kitne ka hai?", tip: "Ask for final bill or meter in autos." },
+        ta: { trans: "இது எவ்வளவு? (Ithu evvaḷavu?)", pron: "Ithu evvalavu?" },
+        bn: { trans: "এটার দাম কত? (Ēṭār dām kōtō?)", pron: "Daam koto?" },
+        kn: { trans: "ಇದು ಎಷ್ಟು? (Idu eshṭu?)", pron: "Idu eshtu?" },
+        mr: { trans: "हे कितीचे आहे? (Hē kitīchē āhē?)", pron: "Kiti aahe?" },
+        gu: { trans: "આ કેટલાનું છે? (Ā kēṭlānun chhe?)", pron: "Ketla nu chhe?" },
+        ml: { trans: "ഇതിന് എത്ര രൂപയാണ്? (Ithinu ethra rūpayāṇu?)", pron: "Ethra roopa?" },
+        en: { trans: "How much is this?", pron: "How much?" }
+      },
+      "where is": {
+        te: { trans: "ఎక్కడ ఉంది? (Ekkaḍa undi?)", pron: "Ekkada undi?", tip: "Locals are welcoming when asked with a smile." },
+        hi: { trans: "कहाँ है? (Kahān hai?)", pron: "Kahan hai?" },
+        ta: { trans: "எங்கே இருக்கிறது? (Eṅkē irukkiṟathu?)", pron: "Enge irukkirathu?" },
+        bn: { trans: "কোথায়? (Kōthāy?)", pron: "Kothay?" },
+        kn: { trans: "ಎಲ್ಲಿದೆ? (Ellide?)", pron: "Ellide?" },
+        mr: { trans: "कुठे आहे? (Kuṭhē āhē?)", pron: "Kuthe aahe?" },
+        en: { trans: "Where is it located?", pron: "Where is it?" }
+      },
+      "help": {
+        te: { trans: "సహాయం చేయండి! (Sahāyam chēyaṇḍi!)", pron: "Sahayam cheyandi!", tip: "Emergency services: 112 / Tourist police: 1363." },
+        hi: { trans: "मदद कीजिये! (Madad kījiye!)", pron: "Madad kijiye!", tip: "Emergency 112 or highway helpline 1033." },
+        ta: { trans: "உதவி செய்யுங்கள்! (Uthavi seyyuṅkaḷ!)", pron: "Uthavi seyyungal!" },
+        bn: { trans: "সাহায্য করুন! (Sāhājjō korūn!)", pron: "Sahajjo korun!" },
+        kn: { trans: "ಸಹಾಯ ಮಾಡಿ! (Sahāya māḍi!)", pron: "Sahaya maadi!" },
+        mr: { trans: "मदत करा! (Madat karā!)", pron: "Madat kara!" },
+        en: { trans: "Help! / Assistance needed", pron: "Help!" }
+      },
+      "train": {
+        te: { trans: "రైలు / రైల్వే స్టేషన్ (Railu / Railway Station)", pron: "Railu", tip: "Check IRCTC platform number at station screens." },
+        hi: { trans: "रेलगाड़ी / ट्रेन (Rēlgāṛī / Train)", pron: "Train" },
+        ta: { trans: "ரயில் (Rayil)", pron: "Rayil" },
+        bn: { trans: "ট্রেন (Ṭrēn)", pron: "Train" },
+        kn: { trans: "ರೈಲು (Railu)", pron: "Railu" },
+        mr: { trans: "आगगाडी / ट्रेन (Train)", pron: "Train" },
+        en: { trans: "Train / Railway", pron: "Train" }
+      },
+      "station": {
+        te: { trans: "రైల్వే స్టేషన్ (Railway Station)", pron: "Railway Station" },
+        hi: { trans: "रेलवे स्टेशन (Railway Station)", pron: "Railway Station" },
+        ta: { trans: "ரயில் நிலையம் (Rayil nilayam)", pron: "Station" },
+        kn: { trans: "ರೈಲ್ವೆ ನಿಲ್ದಾಣ (Railway nildāṇa)", pron: "Station" },
+        en: { trans: "Station", pron: "Station" }
+      },
+      "ticket": {
+        te: { trans: "టికెట్ / ప్రవేశ టికెట్ (Ticket / Pravēsha ticket)", pron: "Ticket" },
+        hi: { trans: "टिकट (Ṭikaṭ)", pron: "Ticket" },
+        ta: { trans: "டிக்கெட் (Ṭikkeṭ)", pron: "Ticket" },
+        kn: { trans: "ಟಿಕೆಟ್ (Ṭikeṭ)", pron: "Ticket" },
+        bn: { trans: "টিকিট (Ṭikiṭ)", pron: "Ticket" },
+        en: { trans: "Ticket", pron: "Ticket" }
+      },
+      "thank you": {
+        te: { trans: "ధన్యవాదాలు (Dhanyavādālu)", pron: "Dhanyavaadalu", tip: "Join palms in namaskaram." },
+        hi: { trans: "धन्यवाद (Dhanyavād)", pron: "Dhanyavaad", tip: "Warm greeting with palms pressed together." },
+        ta: { trans: "நன்றி (Naṉṟi)", pron: "Nandri" },
+        bn: { trans: "ধন্যবাদ (Dhonyobād)", pron: "Dhonyobad" },
+        kn: { trans: "ಧನ್ಯವಾದ (Dhanyavāda)", pron: "Dhanyavaada" },
+        mr: { trans: "धन्यवाद (Dhanyavād)", pron: "Dhanyavaad" },
+        en: { trans: "Thank you", pron: "Thank you" }
+      },
+      "hello": {
+        te: { trans: "నమస్కారం (Namaskāram)", pron: "Namaskaram", tip: "Join palms respectfully." },
+        hi: { trans: "नमस्ते / प्रणाम (Namastē)", pron: "Namaste" },
+        ta: { trans: "வணக்கம் (Vaṇakkam)", pron: "Vanakkam" },
+        bn: { trans: "নমস্কার (Nomoshkār)", pron: "Nomoshkar" },
+        kn: { trans: "ನಮಸ್ಕಾರ (Namaskāra)", pron: "Namaskara" },
+        mr: { trans: "नमस्कार (Namaskār)", pron: "Namaskar" },
+        en: { trans: "Hello / Greetings", pron: "Hello" }
+      },
+      "namaskaram": {
+        en: { trans: "Greetings / Hello (Telugu / Malayalam)", pron: "Namaskaram" },
+        hi: { trans: "नमस्ते / सादर प्रणाम (Namastē)", pron: "Namaste" },
+        te: { trans: "నమస్కారం (Namaskāram)", pron: "Namaskaram" },
+        ta: { trans: "வணக்கம் (Vaṇakkam)", pron: "Vanakkam" }
+      }
+    };
+
+    const normInput = cleanInput.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+    for (const [dictKey, dictLangs] of Object.entries(serverLexicon)) {
+      if (normInput === dictKey || normInput.includes(dictKey) || dictKey.includes(normInput)) {
+        const entry = dictLangs[targetCode] || (targetCode === "en" ? dictLangs["en"] : (dictLangs["te"] || dictLangs["hi"]));
+        if (entry) {
+          return res.json({
+            translatedText: entry.trans,
+            pronunciation: entry.pron,
+            culturalNote: entry.tip || culturalNotesMap[targetCode] || "Accurate regional phrasing.",
+            engine: "server-edge-lexicon",
+          });
+        }
+      }
+    }
+
+    // 4. Resilient Final Fallback Response
     return res.json({
       translatedText: cleanInput,
       pronunciation: cleanInput,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Mic, MicOff, Volume2, AlertCircle, Sparkles, Check, X } from "lucide-react";
+import { Mic, MicOff, Volume2, AlertCircle, Sparkles, Check, X, Search } from "lucide-react";
 
 /**
  * Universal Voice-to-Text Input Component
@@ -141,7 +141,7 @@ export default function VoiceToTextInput({
         <button
           type="button"
           onClick={startListening}
-          className={`p-2.5 rounded-xl border transition-all flex items-center justify-center ${
+          className={`h-9 w-9 rounded-xl border transition-all flex items-center justify-center cursor-pointer shrink-0 ${
             isListening
               ? "bg-red-500 text-white border-red-600 shadow-md animate-pulse ring-2 ring-red-400/40"
               : "bg-muted text-muted-foreground hover:text-primary hover:bg-muted/80 border-border"
@@ -196,35 +196,45 @@ export default function VoiceToTextInput({
           <button
             type="button"
             onClick={stopListening}
-            className="px-3 py-1 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shrink-0 hover:opacity-90"
+            className="px-3 py-1 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shrink-0 hover:opacity-90 cursor-pointer"
           >
             Done
           </button>
         </div>
       )}
 
-      {/* Input container with embedded Mic trigger */}
-      <div className="relative flex items-center">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange && onChange(e.target.value)}
-          placeholder={isListening ? "Listening to your voice..." : placeholder}
-          className="w-full pl-4 pr-12 py-3 rounded-2xl bg-card border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-xs"
-        />
+      {/* Search Input and Mic Button cleanly aligned side-by-side with matched heights */}
+      <div className="flex items-center gap-2.5">
+        <div className="relative flex-1 min-w-0">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange && onChange(e.target.value)}
+            placeholder={isListening ? "Listening to your voice..." : placeholder}
+            className="w-full h-11 sm:h-12 pl-10 pr-4 rounded-2xl bg-card border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-xs"
+          />
+        </div>
 
         <button
           type="button"
           onClick={startListening}
-          className={`absolute right-2 p-2 rounded-xl border transition-all ${
+          className={`h-11 sm:h-12 px-3.5 sm:px-4 rounded-2xl border transition-all flex items-center justify-center gap-1.5 shrink-0 font-medium text-xs shadow-xs select-none cursor-pointer ${
             isListening
-              ? "bg-red-500 text-white border-red-600 shadow-sm animate-pulse"
-              : "bg-muted text-muted-foreground hover:text-primary hover:bg-muted/80 border-border"
+              ? "bg-red-500 text-white border-red-600 shadow-md animate-pulse ring-2 ring-red-400/30"
+              : "bg-card hover:bg-primary/10 text-foreground hover:text-primary border-border hover:border-primary/40"
           }`}
-          title={isListening ? "Stop listening" : "Use device microphone (Voice-to-Text)"}
+          title={isListening ? "Stop listening" : "Speak with microphone (Voice-to-Text)"}
           aria-label={isListening ? "Stop voice listening" : "Speak using microphone"}
         >
-          {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          {isListening ? (
+            <MicOff className="w-4 h-4 text-white animate-bounce" />
+          ) : (
+            <Mic className="w-4 h-4 text-primary shrink-0" />
+          )}
+          <span className="font-semibold hidden sm:inline">
+            {isListening ? "Listening..." : "Voice Search"}
+          </span>
         </button>
       </div>
 

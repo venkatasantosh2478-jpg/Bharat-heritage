@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, useMap } from "react-leaflet";
 import { 
   Hospital, Fuel, Hotel, Shield, Route, MapPin, 
   Download, CheckCircle2, Compass, Info, Search, Layers, 
   Crosshair, Navigation2, FileDown, X, Ticket, ShieldAlert, PhoneCall,
-  ExternalLink
+  ExternalLink, Globe, ArrowRight, Smartphone
 } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import { siteCoords, facilities } from "@/lib/heritageData";
@@ -73,6 +73,20 @@ export default function MapPage() {
     { id: "SOS-903", traveler: "Vikram Malhotra", phone: "+91 98110 44219", location: "Kailasagiri Ropeway, Vizag", coords: [17.749, 83.342], time: "1 hr ago", status: "Resolved", severity: "Medium" },
     { id: "SOS-902", traveler: "Pooja Reddy", phone: "+91 90002 11983", location: "Golconda Fort Outer Moat", coords: [17.383, 78.401], time: "3 hrs ago", status: "Resolved", severity: "Low" },
   ]);
+
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const downloadParam = searchParams.get("download");
+    const regionParam = searchParams.get("region");
+    if (downloadParam === "true") {
+      setDownloadModalOpen(true);
+    }
+    if (regionParam && allIndianRegions[regionParam]) {
+      setDownloadArea(regionParam);
+      setSelectedState(regionParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     try {
@@ -143,7 +157,7 @@ export default function MapPage() {
     );
   };
 
-  // Real Map Generator: Google Maps Offline, Elder High-Contrast Printable Guide & GeoJSON
+  // Real Map Generator: Multi-Layer Offline Interactive HTML, Nano Satellite Visual Map, Apps Redirection, SOI & GeoJSON
   const executeMapDownload = () => {
     const regionObj = allIndianRegions[downloadArea] || allIndianRegions[selectedState];
     const regionName = regionObj.name.split(" ")[0];
@@ -155,29 +169,33 @@ export default function MapPage() {
 
     const timestamp = new Date().toISOString().slice(0, 10);
 
-    if (downloadFormat === "offline_html") {
-      // Standalone Offline Interactive HTML Single-File Map Pack
+    if (downloadFormat === "offline_html" || downloadFormat === "nano_satellite") {
+      const isSatelliteDefault = downloadFormat === "nano_satellite";
+      // Standalone Offline Interactive HTML Single-File Map Pack with zero OpenStreetMap rate limit errors
       const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bharat Yatra - Offline Interactive GIS Heritage Map (${regionObj.name})</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <title>Bharat Yatra - ${isSatelliteDefault ? "Nano Banana Satellite & Terrain Map" : "Offline Interactive GIS Heritage Map"} (${regionObj.name})</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     header { background: #1e293b; padding: 12px 20px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; z-index: 1000; }
     .title-group { display: flex; align-items: center; gap: 10px; }
-    h1 { font-size: 18px; font-weight: 800; color: #38bdf8; }
-    .badge { background: #0284c7; color: white; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: bold; }
-    .search-box { display: flex; gap: 8px; flex: 1; max-width: 400px; }
+    h1 { font-size: 16px; font-weight: 800; color: #38bdf8; }
+    .badge { background: ${isSatelliteDefault ? "#10b981" : "#0284c7"}; color: white; padding: 3px 10px; border-radius: 9999px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; }
+    .search-box { display: flex; gap: 8px; flex: 1; max-width: 380px; }
     input { width: 100%; padding: 8px 14px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 13px; outline: none; }
     input:focus { border-color: #38bdf8; }
-    .helpline-bar { background: #e11d48; color: white; padding: 6px 20px; font-size: 12px; font-weight: bold; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+    .links-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .quick-link { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; text-decoration: none; color: #fff; background: #334155; transition: background 0.2s; }
+    .quick-link:hover { background: #475569; }
+    .helpline-bar { background: #be123c; color: white; padding: 6px 20px; font-size: 11px; font-weight: bold; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
     #main-container { display: flex; flex: 1; position: relative; overflow: hidden; }
-    #map { flex: 1; height: 100%; background: #1e293b; }
+    #map { flex: 1; height: 100%; background: #0f172a radial-gradient(#334155 1px, transparent 1px); background-size: 24px 24px; }
     #sidebar { width: 340px; background: #1e293b; border-left: 1px solid #334155; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
     .site-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; }
     .site-card:hover { border-color: #38bdf8; transform: translateY(-2px); }
@@ -185,24 +203,31 @@ export default function MapPage() {
     .site-state { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
     .site-info { font-size: 12px; color: #cbd5e1; line-height: 1.4; margin-top: 4px; }
     .tag { display: inline-block; background: #334155; color: #38bdf8; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-top: 6px; }
+    .leaflet-control-layers { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #475569 !important; border-radius: 8px !important; padding: 6px 10px !important; font-size: 12px !important; }
+    .leaflet-control-layers label { color: #f8fafc !important; font-weight: 500; }
     @media (max-width: 768px) { #main-container { flex-direction: column; } #sidebar { width: 100%; height: 240px; border-left: none; border-top: 1px solid #334155; } }
   </style>
 </head>
 <body>
   <header>
     <div class="title-group">
-      <span class="badge">OFFLINE MAP PACK</span>
+      <span class="badge">${isSatelliteDefault ? "NANO SATELLITE & TERRAIN" : "OFFLINE INTERACTIVE MAP"}</span>
       <h1>Bharat Yatra - ${regionObj.name}</h1>
     </div>
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Search ${sitesToExport.length} monuments, caves, forts..." onkeyup="filterSites()">
+      <input type="text" id="searchInput" placeholder="Search ${sitesToExport.length} heritage sites, caves, forts..." onkeyup="filterSites()">
+    </div>
+    <div class="links-bar">
+      <a class="quick-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(regionObj.name + ' Tourism')}" target="_blank">Google Maps</a>
+      <a class="quick-link" href="https://organicmaps.app/" target="_blank">Organic Maps Offline</a>
+      <a class="quick-link" href="https://maps.me/" target="_blank">MAPS.ME</a>
     </div>
   </header>
   <div class="helpline-bar">
     <span>🚨 Tourist Police: 1363</span>
     <span>🚑 Medical Ambulance: 108</span>
-    <span>👮 Emergency 112</span>
-    <span>🛣️ Highway SOS: 1033</span>
+    <span>👮 Emergency SOS: 112</span>
+    <span>🛣️ Highway Help: 1033</span>
   </div>
   <div id="main-container">
     <div id="map"></div>
@@ -231,31 +256,59 @@ export default function MapPage() {
     const mapCenter = [${regionObj.coords[0]}, ${regionObj.coords[1]}];
     const map = L.map('map').setView(mapCenter, ${regionObj.zoom});
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Multi-Layer configuration without OpenStreetMap tile limit throttling
+    const streetLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
-      attribution: '© OpenStreetMap & Bharat Yatra Offline'
-    }).addTo(map);
+      subdomains: 'abcd',
+      attribution: '© CARTO, © OpenStreetMap contributors'
+    });
+
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: '© Esri World Imagery & Earth Observation'
+    });
+
+    const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17,
+      attribution: '© OpenTopoMap contributors'
+    });
+
+    // Set default base layer
+    ${isSatelliteDefault ? "satelliteLayer.addTo(map);" : "streetLayer.addTo(map);"}
+
+    // Add layer switch controls
+    L.control.layers({
+      "🗺️ Street View (CARTO Voyager)": streetLayer,
+      "🛰️ Nano Satellite Imagery (ESRI)": satelliteLayer,
+      "🏔️ Topographic Terrain (OpenTopo)": topoLayer
+    }, null, { position: 'topright', collapsed: false }).addTo(map);
 
     const markers = {};
 
     sites.forEach(s => {
       const marker = L.circleMarker(s.coords, {
-        color: '#f59e0b',
-        fillColor: '#f59e0b',
+        color: '${isSatelliteDefault ? "#10b981" : "#f59e0b"}',
+        fillColor: '${isSatelliteDefault ? "#34d399" : "#f59e0b"}',
         fillOpacity: 0.9,
-        radius: 8
+        radius: 8,
+        weight: 2
       }).addTo(map);
 
       marker.bindPopup(\`
-        <div style="font-family: sans-serif; color: #111;">
+        <div style="font-family: sans-serif; color: #111; min-width: 220px;">
           <strong style="font-size: 14px; color: #0284c7;">\${s.name}</strong><br/>
           <small style="color: #64748b;">\${s.state} · \${s.category}</small><br/>
-          <p style="font-size: 12px; margin: 4px 0;">\${s.brief}</p>
+          <p style="font-size: 12px; margin: 4px 0; color: #334155;">\${s.brief}</p>
           <div style="font-size: 11px; font-weight: bold; color: #d97706; margin-top: 4px;">
             🎟️ Entry: \${s.ticket} | ⏰ \${s.timings}
           </div>
           <div style="font-size: 11px; color: #475569; margin-top: 2px;">
             🚉 Nearest Station: \${s.nearestStation}
+          </div>
+          <div style="margin-top: 8px; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+            <a href="https://www.google.com/maps/search/?api=1&query=\${encodeURIComponent(s.name + ' ' + s.state)}" target="_blank" style="font-size: 11px; color: #0284c7; text-decoration: none; font-weight: bold;">
+              📍 Open in Google Maps ↗
+            </a>
           </div>
         </div>
       \`);
@@ -298,24 +351,28 @@ export default function MapPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `BharatYatra_Offline_Interactive_Map_${regionName}_${timestamp}.html`;
+      link.download = `BharatYatra_${isSatelliteDefault ? "Nano_Satellite" : "Offline_Interactive"}_Map_${regionName}_${timestamp}.html`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      setOfflinePackStatus(`Downloaded 100% Standalone Offline Interactive Map Pack for ${regionName}! Double-click the saved HTML file anywhere to explore offline.`);
+      setOfflinePackStatus(`Downloaded ${isSatelliteDefault ? "Nano Satellite & 3D Terrain" : "Offline Interactive"} Map for ${regionName}! Double-click to open in any web browser with full offline support.`);
+      setDownloadModalOpen(false);
+      setTimeout(() => setOfflinePackStatus(""), 8000);
+      return;
+    } else if (downloadFormat === "organic_maps") {
+      // Direct redirect to Organic Maps / MAPS.ME
+      window.open("https://organicmaps.app/", "_blank");
+      setOfflinePackStatus("Redirected to Organic Maps! Download the free open-source app on your phone or PC for 100% offline India maps with zero ads.");
       setDownloadModalOpen(false);
       setTimeout(() => setOfflinePackStatus(""), 8000);
       return;
     } else if (downloadFormat === "google") {
       // Direct Real Google Maps Feature
-      const lat = regionObj.coords[0];
-      const lng = regionObj.coords[1];
       const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(regionObj.name + " Tourist Heritage")}`;
-      
       window.open(googleMapsUrl, "_blank");
-      setOfflinePackStatus(`Opened ${regionName} in Google Maps! In the Google Maps app: Tap your profile -> 'Offline maps' -> 'Select your own map' to download 100% offline navigation.`);
+      setOfflinePackStatus(`Opened ${regionName} in Google Maps! In the app: Tap your profile picture -> 'Offline maps' -> 'Select your own map' to save the region permanently.`);
       setDownloadModalOpen(false);
       setTimeout(() => setOfflinePackStatus(""), 8000);
       return;
@@ -435,7 +492,7 @@ export default function MapPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `BharatYatra_Offline_Map_${regionName}_${timestamp}.geojson`;
+      link.download = `BharatYatra_GIS_Vector_Data_${regionName}_${timestamp}.geojson`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -444,7 +501,7 @@ export default function MapPage() {
 
     setOfflinePackStatus(`Saved ${downloadFormat.toUpperCase()} map for ${regionName}!`);
     setDownloadModalOpen(false);
-    setTimeout(() => setOfflinePackStatus(""), 5000);
+    setTimeout(() => setOfflinePackStatus(""), 6000);
   };
 
   return (
@@ -904,11 +961,11 @@ export default function MapPage() {
       {/* DOWNLOAD MODAL FOR ANY AREA */}
       {downloadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-card border border-border w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5">
+          <div className="bg-card border border-border w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
                 <Download className="w-5 h-5 text-primary" />
-                <h3 className="font-bold text-lg text-foreground">Download Map of Any Area</h3>
+                <h3 className="font-bold text-lg text-foreground">Download Regional Offline GIS Maps</h3>
               </div>
               <button
                 onClick={() => setDownloadModalOpen(false)}
@@ -916,6 +973,20 @@ export default function MapPage() {
               >
                 <X className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* Profile Redirection Banner */}
+            <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl px-3 py-2 text-xs">
+              <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                <Compass className="w-3.5 h-3.5 text-primary" /> Want to see all your saved offline regional packs?
+              </span>
+              <Link 
+                to="/profile?tab=maps" 
+                onClick={() => setDownloadModalOpen(false)}
+                className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+              >
+                View All in Profile <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
             {/* Area Selector */}
@@ -939,7 +1010,7 @@ export default function MapPage() {
             {/* Format Selector */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                Select Mapping Provider Format:
+                Select Mapping & Visualization Format:
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button
@@ -958,7 +1029,47 @@ export default function MapPage() {
                     {downloadFormat === "offline_html" && <CheckCircle2 className="w-4 h-4 text-primary" />}
                   </div>
                   <p className="text-[10px] text-muted-foreground font-normal mt-1 leading-tight">
-                    ⭐ Recommended: Complete standalone interactive map pack. Zero internet needed. Works on mobile & PC!
+                    ⭐ Recommended: Multi-layer Street (Voyager), Satellite & Topo. No OpenStreetMap tile rate limit errors!
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDownloadFormat("nano_satellite")}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    downloadFormat === "nano_satellite"
+                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-sm ring-1 ring-emerald-500"
+                      : "border-border bg-background text-foreground"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                      <Globe className="w-4 h-4" /> Nano Banana Satellite Visual Map
+                    </span>
+                    {downloadFormat === "nano_satellite" && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-normal mt-1 leading-tight">
+                    Visual interactive HTML map with high-res ESRI satellite imagery and 3D terrain relief.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDownloadFormat("organic_maps")}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    downloadFormat === "organic_maps"
+                      ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold shadow-sm ring-1 ring-teal-500"
+                      : "border-border bg-background text-foreground"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
+                      <Smartphone className="w-3.5 h-3.5" /> Organic Maps (Offline Vector App)
+                    </span>
+                    {downloadFormat === "organic_maps" && <CheckCircle2 className="w-4 h-4 text-teal-500" />}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-normal mt-1 leading-tight">
+                    100% Free Open-Source vector GPS for iOS/Android. Zero mobile data, zero tracking.
                   </p>
                 </button>
 
@@ -978,7 +1089,7 @@ export default function MapPage() {
                     {downloadFormat === "google" && <CheckCircle2 className="w-4 h-4 text-primary" />}
                   </div>
                   <p className="text-[10px] text-muted-foreground font-normal mt-1 leading-tight">
-                    Live navigation, real-time traffic & 100% offline area download.
+                    Live navigation, real-time traffic & 100% offline area download instructions.
                   </p>
                 </button>
 
@@ -1013,14 +1124,71 @@ export default function MapPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold flex items-center gap-1.5">
-                      <FileDown className="w-3.5 h-3.5" /> Nano Banana GIS GeoJSON
+                      <FileDown className="w-3.5 h-3.5" /> Raw GIS GeoJSON Vector (.geojson)
                     </span>
                     {downloadFormat === "geojson" && <CheckCircle2 className="w-4 h-4 text-primary" />}
                   </div>
                   <p className="text-[10px] text-muted-foreground font-normal mt-1 leading-tight">
-                    Full vector POI dataset for GIS devices, QGIS & Google Earth.
+                    Raw JSON vector dataset for QGIS, ArcGIS, Python & GIS hardware. (For visual map, choose options above).
                   </p>
                 </button>
+              </div>
+            </div>
+
+            {/* Direct External Offline Map Apps & Portals */}
+            <div className="p-3 rounded-2xl bg-muted/40 border border-border space-y-2">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <ExternalLink className="w-3 h-3 text-primary" /> Direct Redirection to Offline Map Apps & Web Portals:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href="https://organicmaps.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-teal-500/10 text-teal-700 dark:text-teal-300 hover:bg-teal-500/20 text-xs font-semibold flex items-center gap-1 transition-colors"
+                >
+                  Organic Maps (Offline Vector) ↗
+                </a>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((allIndianRegions[downloadArea]?.name || "India") + " Tourism")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20 text-xs font-semibold flex items-center gap-1 transition-colors"
+                >
+                  Google Maps Offline Areas ↗
+                </a>
+                <a
+                  href="https://maps.me/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/20 text-xs font-semibold flex items-center gap-1 transition-colors"
+                >
+                  MAPS.ME ↗
+                </a>
+                <a
+                  href="https://osmand.net/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-xs font-semibold flex items-center gap-1 transition-colors"
+                >
+                  OsmAnd Offline ↗
+                </a>
+                <a
+                  href={`https://www.openstreetmap.org/export#map=${allIndianRegions[downloadArea]?.zoom || 7}/${allIndianRegions[downloadArea]?.coords[0] || 20.59}/${allIndianRegions[downloadArea]?.coords[1] || 78.96}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 text-xs font-semibold flex items-center gap-1 transition-colors"
+                >
+                  OpenStreetMap Regional Export ↗
+                </a>
+                <a
+                  href="https://bhuvan.nrsc.gov.in/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20 text-xs font-semibold flex items-center gap-1 transition-colors"
+                >
+                  ISRO Bhuvan Portal ↗
+                </a>
               </div>
             </div>
 
@@ -1033,7 +1201,7 @@ export default function MapPage() {
               <div className="flex justify-between text-muted-foreground">
                 <span>Geospatial Provider:</span>
                 <strong className="text-primary flex items-center gap-1">
-                  Google Maps · Survey of India (SOI) · Nano Banana
+                  CARTO Voyager · ESRI Satellite · Organic Maps · SOI
                 </strong>
               </div>
               <div className="flex justify-between text-muted-foreground">
@@ -1059,7 +1227,11 @@ export default function MapPage() {
                 <Download className="w-4 h-4" />
                 <span>
                   {downloadFormat === "offline_html"
-                    ? "Download Standalone HTML Map"
+                    ? "Download Multi-Layer HTML Map"
+                    : downloadFormat === "nano_satellite"
+                    ? "Download Nano Satellite Visual Map"
+                    : downloadFormat === "organic_maps"
+                    ? "Open Organic Maps App"
                     : downloadFormat === "google"
                     ? "Open in Google Maps"
                     : downloadFormat === "soi"

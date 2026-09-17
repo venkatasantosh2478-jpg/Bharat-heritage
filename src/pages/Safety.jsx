@@ -7,6 +7,7 @@ import {
   UserCheck, AlertTriangle, ShieldCheck, Clock, RefreshCw, Camera,
   Users, User
 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 import { 
   getEmergencyCenters, 
   getSosRegistrations, 
@@ -87,20 +88,25 @@ function calculateDistanceKm(lat1, lon1, lat2, lon2) {
 }
 
 export default function Safety() {
+  const { user: authUser } = useAuth();
+  const currentUserEmail = (authUser?.email || "").toLowerCase().trim();
+  const currentUserId = authUser?.uid || authUser?.id || "";
+
   const [activeTab, setActiveTab] = useState("sos_response"); // "sos_response" | "registration" | "elder_care" | "centers_scams"
 
   // Registration Form State
   const [tripForm, setTripForm] = useState({
-    name: "",
-    phone: "",
+    name: authUser?.name || authUser?.fullName || authUser?.displayName || "",
+    phone: authUser?.phone || authUser?.phoneNumber || "",
     tripType: "Solo", // "Solo" | "Family" | "Group"
     destination: "Visakhapatnam & Araku Valley",
     state: "Andhra Pradesh",
     days: 3,
     travelDate: new Date().toISOString().split("T")[0],
+    travelDay: new Date().toLocaleDateString("en-US", { weekday: "long" }),
     purpose: "Heritage Tourism",
     emergencyContacts: "",
-    emergencyContactEmail: "", // New field
+    emergencyContactEmail: currentUserEmail || "", // New field
     emergencyContactPassword: "", // New field
     localContacts: "",
     ticketInfo: "",
@@ -142,9 +148,11 @@ export default function Safety() {
   const [elder, setElder] = useState({ 
     name: "", 
     phone: "", 
-    guardianPhone: "", 
+    guardianPhone: authUser?.phone || "", 
     frequencyHours: 4, 
     purpose: "Pilgrimage / Family Travel", 
+    travelDate: new Date().toISOString().split("T")[0],
+    travelDay: new Date().toLocaleDateString("en-US", { weekday: "long" }),
     itineraryInfo: "" 
   });
   const [monitoring, setMonitoring] = useState(false);
@@ -156,27 +164,54 @@ export default function Safety() {
   const oscillatorRef = useRef(null);
 
   useEffect(() => {
-    // Load existing registrations
-    const savedReg = localStorage.getItem("by-active-tourist-reg");
-    if (savedReg) {
-      try {
-        const parsed = JSON.parse(savedReg);
-        setRegistered(parsed);
-      } catch (e) {}
-    } else {
-      // Default initial mock active registration for preview
-      const all = getSosRegistrations();
-      if (all && all.length > 0) {
-        setRegistered(all[0]);
+    // Load existing user registration (scoped strictly to current user)
+    try {
+      let userReg = null;
+      if (currentUserEmail) {
+        const uSaved = localStorage.getItem(`by-user-active-reg-${currentUserEmail}`);
+        if (uSaved) userReg = JSON.parse(uSaved);
       }
+      if (!userReg) {
+        const savedReg = localStorage.getItem("by-active-tourist-reg");
+        if (savedReg) {
+          const parsed = JSON.parse(savedReg);
+          // Only use if it belongs to current user or if guest registered in this session
+          const isSample = parsed.id === "SOS-REG-101" || parsed.name === "Rahul & Ananya Sharma";
+          if (!isSample && (!currentUserEmail || !parsed.userEmail || parsed.userEmail.toLowerCase() === currentUserEmail)) {
+            userReg = parsed;
+          }
+        }
+      }
+      setRegistered(userReg);
+    } catch (e) {
+      setRegistered(null);
     }
 
-    const savedElder = localStorage.getItem("by-elder-record");
-    if (savedElder) {
-      try {
-        setElder(JSON.parse(savedElder));
-      } catch (e) {}
-    }
+    // Load elder record (scoped strictly to current user)
+    try {
+      let elderRec = null;
+      if (currentUserEmail) {
+        const uElder = localStorage.getItem(`by-user-active-elder-${currentUserEmail}`);
+        if (uElder) elderRec = JSON.parse(uElder);
+      }
+      if (!elderRec) {
+        const savedElder = localStorage.getItem("by-elder-record");
+        if (savedElder) {
+          const parsed = JSON.parse(savedElder);
+          const isSample = parsed.id === "ELD-201" || parsed.name === "Smt. Kamala Devi";
+          if (!isSample && (!currentUserEmail || !parsed.userEmail || parsed.userEmail.toLowerCase() === currentUserEmail)) {
+            elderRec = parsed;
+          }
+        }
+      }
+      if (elderRec) {
+        setElder(elderRec);
+        if (elderRec.monitoring && elderRec.deadline) {
+          setMonitoring(true);
+          setDeadline(elderRec.deadline);
+        }
+      }
+    } catch (e) {}
 
     const activeSosSaved = localStorage.getItem("by-active-sos");
     if (activeSosSaved) {
@@ -209,24 +244,23 @@ export default function Safety() {
       setScamsList(getScamsDirectory());
     }
     function handleSosRegsUpdate() {
-      const all = getSosRegistrations();
       if (registered) {
-        const updated = all.find(r => r.id === registered.id || r.phone === registered.phone);
+        const all = getSosRegistrations();
+        const updated = all.find(r => r.id === registered.id || (r.phone && r.phone === registered.phone));
         if (updated) setRegistered(updated);
       }
     }
 
     window.addEventListener("by-emergency-centers-updated", handleCentersUpdate);
-    window.addEventListener("by-scams-directory-updated", handleScamsUpdate);
+    window.addEventListener("by-scams-updated", handleScamsUpdate);
     window.addEventListener("by-sos-registrations-updated", handleSosRegsUpdate);
-
     return () => {
       window.removeEventListener("by-emergency-centers-updated", handleCentersUpdate);
-      window.removeEventListener("by-scams-directory-updated", handleScamsUpdate);
+      window.removeEventListener("by-scams-updated", handleScamsUpdate);
       window.removeEventListener("by-sos-registrations-updated", handleSosRegsUpdate);
       stopSirenAudio();
     };
-  }, []);
+  }, [currentUserEmail]);
 
   // Elder care countdown timer
   useEffect(() => {
@@ -400,6 +434,10 @@ export default function Safety() {
     const newRecord = {
       ...tripForm,
       id: `SOS-REG-${Date.now().toString().slice(-4)}`,
+      userId: currentUserId || `guest-${Date.now()}`,
+      userEmail: currentUserEmail || tripForm.emergencyContactEmail || "tourist",
+      userName: tripForm.name,
+      createdBy: currentUserEmail || currentUserId,
       lat: coords ? parseFloat(coords[0]) : 17.7089,
       lng: coords ? parseFloat(coords[1]) : 83.3039,
     };
@@ -408,6 +446,20 @@ export default function Safety() {
     const created = addSosRegistration(newRecord);
     setRegistered(created);
     localStorage.setItem("by-active-tourist-reg", JSON.stringify(created));
+    if (currentUserEmail) {
+      localStorage.setItem(`by-user-active-reg-${currentUserEmail}`, JSON.stringify(created));
+    }
+
+    // Also persist to by-safety-registrations for Admin & Profile
+    try {
+      let existingSafety = [];
+      const s = localStorage.getItem("by-safety-registrations");
+      if (s) existingSafety = JSON.parse(s);
+      const updatedSafety = [created, ...existingSafety.filter(x => x.id !== created.id && x.phone !== created.phone)];
+      localStorage.setItem("by-safety-registrations", JSON.stringify(updatedSafety));
+      window.dispatchEvent(new CustomEvent("by-safety-registrations-updated", { detail: updatedSafety }));
+      window.dispatchEvent(new CustomEvent("by-sos-registrations-updated"));
+    } catch (e) {}
 
     // Perform AI Safety Assessment
     try {
@@ -493,24 +545,92 @@ export default function Safety() {
       alert("Please fill Elder Name and Phone Number.");
       return;
     }
-    localStorage.setItem("by-elder-record", JSON.stringify(elder));
+    const elderId = elder.id || `ELD-${Date.now().toString().slice(-4)}`;
+    const deadlineTime = Date.now() + (Number(elder.frequencyHours) || 4) * 3600 * 1000;
+    
+    const elderRecord = {
+      ...elder,
+      id: elderId,
+      userId: currentUserId || `guest-${Date.now()}`,
+      userEmail: currentUserEmail || elder.guardianEmail || "tourist",
+      userName: elder.name,
+      createdBy: currentUserEmail || currentUserId,
+      type: "Elder Care",
+      destination: elder.purpose || "Pilgrimage Route",
+      state: elder.state || "Andhra Pradesh",
+      guardian: `${elder.guardianPhone || ""} (Guardian)`,
+      frequency: `Every ${elder.frequencyHours} hours`,
+      checkInTime: `Every ${elder.frequencyHours} Hours`,
+      lastUpdate: "Just now (Monitoring Started)",
+      registeredAt: new Date().toLocaleString(),
+      deadline: deadlineTime,
+      status: "Active Care Watch",
+      monitoring: true,
+      travelDate: elder.travelDate || new Date().toISOString().split("T")[0],
+      travelDay: elder.travelDay || new Date().toLocaleDateString("en-US", { weekday: "long" }),
+    };
+
+    setElder(elderRecord);
+    localStorage.setItem("by-elder-record", JSON.stringify(elderRecord));
+    if (currentUserEmail) {
+      localStorage.setItem(`by-user-active-elder-${currentUserEmail}`, JSON.stringify(elderRecord));
+    }
+
+    // Save to by-elder-registrations list (used by Admin & Profile)
+    try {
+      let existingElders = [];
+      const s = localStorage.getItem("by-elder-registrations");
+      if (s) existingElders = JSON.parse(s);
+      const updatedElders = [elderRecord, ...existingElders.filter(x => x.id !== elderRecord.id && x.phone !== elderRecord.phone)];
+      localStorage.setItem("by-elder-registrations", JSON.stringify(updatedElders));
+      window.dispatchEvent(new CustomEvent("by-elder-registrations-updated", { detail: updatedElders }));
+    } catch (e) {}
+
+    // Save to by-admin-elder-watchlist (used by Admin ElderCareWatchModule)
+    try {
+      let watchlist = [];
+      const savedW = localStorage.getItem("by-admin-elder-watchlist");
+      if (savedW) watchlist = JSON.parse(savedW);
+      const watchItem = {
+        id: elderRecord.id,
+        name: elderRecord.name,
+        age: elderRecord.age || 70,
+        phone: elderRecord.phone,
+        guardianName: "Family Guardian",
+        guardianPhone: elderRecord.guardianPhone || elderRecord.phone,
+        destination: elderRecord.destination,
+        hotel: elderRecord.hotel || "Registered Hotel",
+        frequencyHours: Number(elderRecord.frequencyHours) || 4,
+        deadline: deadlineTime,
+        travelDate: elderRecord.travelDate,
+        travelDay: elderRecord.travelDay,
+        status: "Active Watch",
+        lastVerified: "Registered via Safety Portal",
+        specialNotes: elderRecord.itineraryInfo || "Senior citizen traveling with special care",
+        verificationLogs: []
+      };
+      const updatedWatchlist = [watchItem, ...watchlist.filter(x => x.id !== watchItem.id && x.phone !== watchItem.phone)];
+      localStorage.setItem("by-admin-elder-watchlist", JSON.stringify(updatedWatchlist));
+    } catch (e) {}
     
     // Add to Admin SOS registrations
     addSosRegistration({
-      id: `ELD-${Date.now().toString().slice(-4)}`,
-      name: elder.name,
-      phone: elder.phone,
+      id: elderRecord.id,
+      name: elderRecord.name,
+      phone: elderRecord.phone,
       tripType: "Elder Care",
-      destination: elder.purpose || "Pilgrimage Route",
-      state: "Andhra Pradesh",
-      emergencyContacts: `${elder.guardianPhone} (Guardian)`,
-      checkInTime: `Every ${elder.frequencyHours} Hours`,
-      specialInstructions: elder.itineraryInfo || "Elderly traveler monitoring",
+      destination: elderRecord.destination,
+      state: elderRecord.state,
+      emergencyContacts: `${elderRecord.guardianPhone} (Guardian)`,
+      checkInTime: elderRecord.checkInTime,
+      specialInstructions: elderRecord.itineraryInfo || "Elderly traveler monitoring",
+      travelDate: elderRecord.travelDate,
+      travelDay: elderRecord.travelDay,
       status: "Active Care Watch"
     });
 
     setMonitoring(true);
-    setDeadline(Date.now() + elder.frequencyHours * 3600 * 1000);
+    setDeadline(deadlineTime);
     setForwarded(null);
   }
 
@@ -519,13 +639,52 @@ export default function Safety() {
     setDeadline(null);
     setRemaining(0);
     if (timerRef.current) clearInterval(timerRef.current);
+    const stopped = { ...elder, status: "Monitoring Paused", monitoring: false };
+    setElder(stopped);
+    localStorage.setItem("by-elder-record", JSON.stringify(stopped));
+    try {
+      const s = localStorage.getItem("by-elder-registrations");
+      if (s) {
+        const list = JSON.parse(s).map(e => (e.id === elder.id || e.phone === elder.phone) ? { ...e, status: "Monitoring Paused", monitoring: false } : e);
+        localStorage.setItem("by-elder-registrations", JSON.stringify(list));
+        window.dispatchEvent(new CustomEvent("by-elder-registrations-updated", { detail: list }));
+      }
+      const w = localStorage.getItem("by-admin-elder-watchlist");
+      if (w) {
+        const list = JSON.parse(w).map(e => (e.id === elder.id || e.phone === elder.phone) ? { ...e, status: "Watch Paused" } : e);
+        localStorage.setItem("by-admin-elder-watchlist", JSON.stringify(list));
+      }
+    } catch (e) {}
   }
 
   function elderCheckIn() {
     if (!monitoring) return;
-    setDeadline(Date.now() + elder.frequencyHours * 3600 * 1000);
-    setRemaining(elder.frequencyHours * 3600 * 1000);
+    const freq = Number(elder.frequencyHours) || 4;
+    const newDeadline = Date.now() + freq * 3600 * 1000;
+    setDeadline(newDeadline);
+    setRemaining(freq * 3600 * 1000);
     setForwarded(null);
+    const updated = { 
+      ...elder, 
+      lastUpdate: "Just now (Check-in verified)", 
+      deadline: newDeadline,
+      status: "Active Care Watch"
+    };
+    setElder(updated);
+    localStorage.setItem("by-elder-record", JSON.stringify(updated));
+    try {
+      const s = localStorage.getItem("by-elder-registrations");
+      if (s) {
+        const list = JSON.parse(s).map(e => (e.id === elder.id || e.phone === elder.phone) ? updated : e);
+        localStorage.setItem("by-elder-registrations", JSON.stringify(list));
+        window.dispatchEvent(new CustomEvent("by-elder-registrations-updated", { detail: list }));
+      }
+      const w = localStorage.getItem("by-admin-elder-watchlist");
+      if (w) {
+        const list = JSON.parse(w).map(e => (e.id === elder.id || e.phone === elder.phone) ? { ...e, deadline: newDeadline, lastVerified: "Just now (Check-in Verified)", status: "Active Watch" } : e);
+        localStorage.setItem("by-admin-elder-watchlist", JSON.stringify(list));
+      }
+    } catch (e) {}
   }
 
   function forwardElderAlert() {
@@ -1016,22 +1175,43 @@ export default function Safety() {
                     </div>
                   </div>
 
-                  {/* Travel Date & Days */}
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  {/* Travel Date & Day / Days */}
+                  <div className="grid sm:grid-cols-3 gap-3">
                     <div>
                       <label className="font-semibold text-foreground block mb-1">
-                        Travel Start Date:
+                        Travel Start Date *:
                       </label>
                       <input
                         type="date"
+                        required
                         value={tripForm.travelDate}
-                        onChange={(e) => setTripForm({ ...tripForm, travelDate: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const dayName = val ? new Date(val).toLocaleDateString("en-US", { weekday: "long" }) : "";
+                          setTripForm({ 
+                            ...tripForm, 
+                            travelDate: val, 
+                            travelDay: dayName || tripForm.travelDay 
+                          });
+                        }}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
                     <div>
                       <label className="font-semibold text-foreground block mb-1">
-                        Trip Duration (Days):
+                        Travel Day of Week:
+                      </label>
+                      <input
+                        type="text"
+                        value={tripForm.travelDay || ""}
+                        onChange={(e) => setTripForm({ ...tripForm, travelDay: e.target.value })}
+                        placeholder="e.g. Wednesday"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-foreground block mb-1">
+                        Duration (Days):
                       </label>
                       <input
                         type="number"
@@ -1039,7 +1219,7 @@ export default function Safety() {
                         max="30"
                         value={tripForm.days}
                         onChange={(e) => setTripForm({ ...tripForm, days: Number(e.target.value) })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-1 focus:ring-primary"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-1 focus:ring-primary text-center"
                       />
                     </div>
                   </div>
@@ -1426,6 +1606,33 @@ export default function Safety() {
                     <option value={8}>Every 8 Hours</option>
                     <option value={12}>Every 12 Hours</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Day & Date for Elder Registration */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-semibold text-foreground block mb-1">Travel Date *:</label>
+                  <input
+                    type="date"
+                    value={elder.travelDate || ""}
+                    onChange={(e) => {
+                      const d = e.target.value;
+                      const dayName = d ? new Date(d).toLocaleDateString("en-US", { weekday: "long" }) : "";
+                      setElder({ ...elder, travelDate: d, travelDay: dayName || elder.travelDay });
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-foreground block mb-1">Travel Day / Duration:</label>
+                  <input
+                    type="text"
+                    value={elder.travelDay || ""}
+                    onChange={(e) => setElder({ ...elder, travelDay: e.target.value })}
+                    placeholder="e.g. Wednesday (or 4 Days Pilgrimage)"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground outline-none"
+                  />
                 </div>
               </div>
 

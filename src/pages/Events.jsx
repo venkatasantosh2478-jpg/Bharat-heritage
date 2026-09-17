@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { 
   CalendarDays, ArrowRight, 
   MapPin, Search, X, Sparkles, ExternalLink, 
-  AlertTriangle, Users, BookOpen, Video, Send, Bot
+  AlertTriangle, Users, BookOpen, Video, Send, Bot,
+  Calendar as CalendarIcon, LayoutList, UserCheck, CheckCircle2
 } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { base44 } from "@/api/base44Client";
+import EventCalendarView from "@/components/EventCalendarView";
 
 // Festival details enriched with Scam Warnings, Crowd Density, Best Visiting Hours, and Media Links
 const enrichedEvents = [
@@ -205,7 +207,27 @@ export default function Events() {
   const [events, setEvents] = useState(enrichedEvents);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState("calendar"); // "calendar" | "list"
   
+  // RSVP state saved in localStorage
+  const [rsvps, setRsvps] = useState(() => {
+    try {
+      const saved = localStorage.getItem("by-event-rsvps");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const [rsvpCounts, setRsvpCounts] = useState(() => {
+    try {
+      const saved = localStorage.getItem("by-event-rsvp-counts");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
   // AI Planner Modal State
   const [aiModalEvent, setAiModalEvent] = useState(null);
   const [customQuestion, setCustomQuestion] = useState("");
@@ -213,6 +235,48 @@ export default function Events() {
   const [isAskingAi, setIsAskingAi] = useState(false);
 
   const navigate = useNavigate();
+
+  const getAttendeeCount = (ev) => {
+    if (!ev) return 0;
+    if (rsvpCounts[ev.id] !== undefined) {
+      return rsvpCounts[ev.id];
+    }
+    let base = 250;
+    if (ev.id === "kumbh") base = 8500;
+    else if (ev.id === "pushkar") base = 3400;
+    else if (ev.id === "mysore-dasara") base = 4200;
+    else if (ev.id === "puri-ratha-yatra") base = 6100;
+    else if (ev.id === "durga-puja") base = 5800;
+    else if (ev.id === "onam") base = 2900;
+    else if (ev.id === "vizag-utsav") base = 1850;
+    else {
+      const nameStr = String(ev.name || "event");
+      base = (nameStr.charCodeAt(0) * 17 + nameStr.length * 45) % 2500 + 400;
+    }
+    return base;
+  };
+
+  const toggleRsvp = (ev, e) => {
+    if (e) e.stopPropagation();
+    if (!ev || !ev.id) return;
+    const evId = ev.id;
+    const isCurrentlyRsvped = Boolean(rsvps[evId]);
+    const currentCount = getAttendeeCount(ev);
+
+    const newRsvps = { ...rsvps, [evId]: !isCurrentlyRsvped };
+    const newCounts = {
+      ...rsvpCounts,
+      [evId]: isCurrentlyRsvped ? Math.max(0, currentCount - 1) : currentCount + 1,
+    };
+
+    setRsvps(newRsvps);
+    setRsvpCounts(newCounts);
+
+    try {
+      localStorage.setItem("by-event-rsvps", JSON.stringify(newRsvps));
+      localStorage.setItem("by-event-rsvp-counts", JSON.stringify(newCounts));
+    } catch {}
+  };
 
   useEffect(() => {
     const loadEvents = () => {
@@ -229,8 +293,9 @@ export default function Events() {
                 name: e.name,
                 state: e.state || "India",
                 city: e.city || "",
+                date: e.date || "",
                 month: e.month || "Year-round",
-                category: e.category || "Sacred & Temple",
+                category: e.category || "Festivals",
                 image: e.image || "https://images.unsplash.com/photo-1548013146-72479768bada?w=500&auto=format&fit=crop&q=80",
                 timing: e.timing || "Check local schedule",
                 dress: e.dress || "Modest smart casuals",
@@ -280,13 +345,56 @@ export default function Events() {
 
   const categories = [
     { id: "all", label: "All Celebrations" },
-    { id: "Sacred & Temple", label: "Sacred & Temple Darshan" },
-    { id: "Royal Heritage", label: "Royal & Fort Traditions" },
-    { id: "Seasonal Harvest", label: "Seasonal & Coastal Utsav" },
+    { id: "Culture", label: "🎭 Culture" },
+    { id: "Food", label: "🍲 Food" },
+    { id: "Festivals", label: "🪔 Festivals" },
+    { id: "Local Crafts", label: "🎨 Local Crafts" },
+    { id: "Sacred & Temple", label: "Sacred & Temple" },
+    { id: "Royal Heritage", label: "Royal Heritage" },
+    { id: "Seasonal Harvest", label: "Seasonal Harvest" },
   ];
 
+  const matchesCategory = (ev, cat) => {
+    if (!cat || cat === "all") return true;
+
+    const rawCat = String(ev.category || "").toLowerCase();
+    const catLower = cat.toLowerCase();
+
+    if (rawCat === catLower) return true;
+    if (Array.isArray(ev.tags) && ev.tags.some(t => String(t).toLowerCase() === catLower)) return true;
+
+    const text = `${ev.name} ${ev.category} ${ev.history || ""} ${ev.description || ""}`.toLowerCase();
+
+    if (cat === "Culture") {
+      return (
+        rawCat.includes("culture") || rawCat.includes("heritage") || rawCat.includes("temple") ||
+        text.includes("culture") || text.includes("heritage") || text.includes("dance") || text.includes("tradition") || text.includes("temple") || text.includes("art") || text.includes("palace")
+      );
+    }
+    if (cat === "Food") {
+      return (
+        rawCat.includes("food") || rawCat.includes("harvest") ||
+        text.includes("food") || text.includes("feast") || text.includes("cuisine") || text.includes("snack") || text.includes("sadya") || text.includes("malpua") || text.includes("jalebi") || text.includes("banquet") || text.includes("tea")
+      );
+    }
+    if (cat === "Festivals") {
+      return (
+        rawCat.includes("festival") || rawCat.includes("temple") || rawCat.includes("heritage") || rawCat.includes("harvest") ||
+        text.includes("festival") || text.includes("mela") || text.includes("utsav") || text.includes("puja") || text.includes("yatra") || text.includes("dasara") || text.includes("fair") || text.includes("kumbh")
+      );
+    }
+    if (cat === "Local Crafts") {
+      return (
+        rawCat.includes("craft") || rawCat.includes("artisan") ||
+        text.includes("craft") || text.includes("artisan") || text.includes("bazaar") || text.includes("handloom") || text.includes("sculpt") || text.includes("brass") || text.includes("weave") || text.includes("pottery") || text.includes("camel")
+      );
+    }
+
+    return ev.category === cat;
+  };
+
   const filteredEvents = events.filter((e) => {
-    const matchCat = selectedCategory === "all" || e.category === selectedCategory;
+    const matchCat = matchesCategory(e, selectedCategory);
     const q = searchQuery.toLowerCase();
     const matchSearch = !q || e.name.toLowerCase().includes(q) || e.state.toLowerCase().includes(q) || (e.city && e.city.toLowerCase().includes(q));
     return matchCat && matchSearch;
@@ -342,49 +450,98 @@ export default function Events() {
           </div>
 
           {/* Search & Filter bar */}
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search festivals by name, city, or state..."
-                className="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary"
-              />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+          <div className="mt-8 space-y-4">
+            {/* Top Toolbar: Search + View Switcher */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+              <div className="relative flex-1 max-w-lg">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search festivals by name, city, or state..."
+                  className="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary shadow-xs"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* View Mode Toggle: Event Calendar vs Festival Cards */}
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <div className="flex items-center p-1 rounded-2xl bg-muted border border-border shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("calendar")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                      viewMode === "calendar"
+                        ? "bg-primary text-primary-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Interactive Indian Cultural Calendar"
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                    <span>Event Calendar</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("list")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                      viewMode === "list"
+                        ? "bg-primary text-primary-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Festival Cards & Travel Advisories"
+                  >
+                    <LayoutList className="w-4 h-4" />
+                    <span>Festival Cards</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Categories */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none text-xs">
+            {/* Structured Category Filter Row */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/60">
+              <span className="text-xs font-semibold text-muted-foreground mr-1 hidden sm:inline">Categories:</span>
               {categories.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => setSelectedCategory(c.id)}
-                  className={`px-3.5 py-2 rounded-full font-semibold whitespace-nowrap transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-full font-semibold text-xs whitespace-nowrap transition-all cursor-pointer ${
                     selectedCategory === c.id
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-muted text-muted-foreground hover:text-foreground border border-transparent hover:border-border"
                   }`}
                 >
                   {c.label}
                 </button>
               ))}
+
+              <span className="ml-auto text-xs text-muted-foreground font-medium hidden md:inline">
+                Showing <strong className="text-foreground">{filteredEvents.length}</strong> celebrations
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Events List */}
+      {/* Main Content Area: Calendar View OR Cards List */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
-        {filteredEvents.length === 0 ? (
+        {viewMode === "calendar" ? (
+          <EventCalendarView
+            events={searchQuery ? filteredEvents : events}
+            onSelectEvent={(ev) => {
+              setAiModalEvent(ev);
+              setCustomQuestion("");
+              setCustomAnswer("");
+            }}
+          />
+        ) : filteredEvents.length === 0 ? (
           <div className="text-center py-16 bg-card rounded-3xl border border-dashed border-border p-8">
             <CalendarDays className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
             <h3 className="text-lg font-semibold text-foreground">No festivals match your search</h3>
@@ -474,8 +631,15 @@ export default function Events() {
 
                   {/* External Links & Action Toolbar */}
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border">
-                    {/* Media & Research Links */}
+                    {/* Media & Research Links + Attendees */}
                     <div className="flex items-center gap-2 flex-wrap text-xs">
+                      {/* Attendees Count Badge */}
+                      <div className="px-3 py-1.5 rounded-full bg-primary/10 text-primary font-bold flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>{getAttendeeCount(e).toLocaleString()} Going</span>
+                        {rsvps[e.id] && <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">(You)</span>}
+                      </div>
+
                       <a
                         href={mapsUrl}
                         target="_blank"
@@ -505,8 +669,31 @@ export default function Events() {
                       </a>
                     </div>
 
-                    {/* AI Planner and Trip Planner Buttons */}
-                    <div className="flex items-center gap-2">
+                    {/* RSVP, AI Planner and Trip Planner Buttons */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* RSVP Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={(evt) => toggleRsvp(e, evt)}
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          rsvps[e.id]
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
+                            : "bg-muted hover:bg-muted/80 text-foreground border border-border"
+                        }`}
+                      >
+                        {rsvps[e.id] ? (
+                          <>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Attending ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="w-3.5 h-3.5 text-primary" />
+                            <span>RSVP</span>
+                          </>
+                        )}
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => {
@@ -516,7 +703,7 @@ export default function Events() {
                         }}
                         className="px-4 py-2 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold hover:bg-amber-500/25 transition-colors flex items-center gap-1.5"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" /> AI Festival Planner
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" /> AI Guide
                       </button>
 
                       <button

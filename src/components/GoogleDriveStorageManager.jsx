@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { 
   getDriveStorageQuota, uploadFileToDrive, backupUserDataToDrive, 
   getSavedDriveFiles, deleteSavedDriveFile 
-} from "@/lib/googleDriveStorage";
+} from "../lib/googleDriveStorage";
 
 export default function GoogleDriveStorageManager({ user, onDataBackup }) {
   const [quota, setQuota] = useState(null);

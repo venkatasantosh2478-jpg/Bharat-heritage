@@ -179,6 +179,34 @@ export default function Translator() {
         if (currentReqId !== latestRequestIdRef.current) return;
 
         if (data.translatedText) {
+          // If server returned echo or identical text, immediately attempt offline lexicon resolution
+          if (
+            (data.engine === "offline-echo" || data.translatedText.trim().toLowerCase() === queryText.trim().toLowerCase()) &&
+            sLang !== tLang
+          ) {
+            const offlineFallback = translateOfflineQuery(queryText, tLang, sLang);
+            if (offlineFallback && offlineFallback.translatedText.toLowerCase() !== queryText.toLowerCase()) {
+              setTranslatedResult(offlineFallback.translatedText);
+              setPronunciation(offlineFallback.pronunciation);
+              setCulturalTip(offlineFallback.culturalNote);
+              setEngineUsed(offlineFallback.engine);
+
+              setConversation((prev) => [
+                ...prev,
+                {
+                  sender: "user",
+                  from: sourceInfo.name,
+                  to: targetInfo.name,
+                  original: queryText,
+                  translated: offlineFallback.translatedText,
+                  pronunciation: offlineFallback.pronunciation,
+                  time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                }
+              ]);
+              return;
+            }
+          }
+
           setTranslatedResult(data.translatedText);
           setPronunciation(data.pronunciation || "");
           setCulturalTip(data.culturalNote || `Cultural note: Speak with warmth and join palms in greeting.`);
@@ -465,6 +493,14 @@ export default function Translator() {
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (inputText.trim()) {
+                      performTranslation(inputText, sourceLang, targetLang, useOfflineMode, selectedAiModel);
+                    }
+                  }
+                }}
                 placeholder={
                   sourceLang === "te"
                     ? "ఇక్కడ మాట్లాడండి లేదా టైప్ చేయండి (ఉదా: 'రైల్వే స్టేషన్ ఎక్కడ ఉంది?')"
@@ -472,9 +508,42 @@ export default function Translator() {
                     ? "यहाँ बोलें या टाइप करें (उदा: 'मंदिर कहाँ है?')"
                     : "Speak or type in English (e.g. 'How much does this cost?', 'Where is the temple?')"
                 }
-                rows={5}
+                rows={4}
                 className="w-full bg-transparent text-foreground placeholder:text-muted-foreground/60 text-base sm:text-lg font-medium outline-none resize-none"
               />
+
+              {/* Quick Travel Phrases & Words */}
+              <div className="pt-2">
+                <p className="text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-primary" /> Quick Tap & Translate:
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "Water",
+                    "Food",
+                    "Hotel room",
+                    "How much?",
+                    "Where is temple?",
+                    "Help!",
+                    "Railway Station",
+                    "Ticket",
+                    "Thank you",
+                    "Namaskaram"
+                  ].map((quick) => (
+                    <button
+                      key={quick}
+                      type="button"
+                      onClick={() => {
+                        setInputText(quick);
+                        performTranslation(quick, sourceLang, targetLang, useOfflineMode, selectedAiModel);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-muted/70 hover:bg-primary/10 hover:text-primary text-[11px] font-medium text-foreground transition-all cursor-pointer border border-border/50 hover:border-primary/30"
+                    >
+                      {quick}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {isListening && (
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-destructive/10 text-destructive text-xs font-semibold animate-pulse">

@@ -1,6 +1,6 @@
 import { auth, googleProvider, signInWithPopup } from '@/components/lib/firebase';
 import { GoogleAuthProvider } from 'firebase/auth';
-import firebaseConfig from '../../../firebase-applet-config.json';
+import firebaseConfig from '../../firebase-applet-config.json';
 
 // Configured Workspace OAuth scopes
 export const SCOPES = [
@@ -36,6 +36,13 @@ export async function ensureDriveAccessToken(interactive = false) {
     return null;
   }
 
+  // Detect if running inside an iframe where browser security blocks popups
+  const isIframe = typeof window !== "undefined" && window.self !== window.top;
+  if (isIframe) {
+    console.info("Running within AI Studio preview iframe: popups are blocked by browser security policy. Fallback to in-memory local Drive cache.");
+    return null;
+  }
+
   // 1. Try Firebase Auth popup credential
   try {
     isSigningIn = true;
@@ -62,11 +69,11 @@ export async function ensureDriveAccessToken(interactive = false) {
             client_id: oAuthClientId,
             scope: SCOPES.join(' '),
             callback: (response) => {
-              if (response.error) {
+              if (response?.error) {
                 console.info("GIS auth callback note:", response.error);
                 resolve(null);
               } else {
-                resolve(response.access_token);
+                resolve(response?.access_token || null);
               }
             },
             error_callback: (err) => {
@@ -74,7 +81,7 @@ export async function ensureDriveAccessToken(interactive = false) {
               resolve(null);
             },
           });
-          client.requestAccessToken();
+          client.requestAccessToken({ prompt: '' });
         } catch (initErr) {
           console.info("GIS init note:", initErr);
           resolve(null);

@@ -141,38 +141,102 @@ function RegistrationsModule() {
   const [search, setSearch] = useState("");
 
   // Load Safety trip registrations
-  const [safetyRegs, setSafetyRegs] = useState(() => {
+  const getInitialSafetyRegs = () => {
     try {
+      let list = [];
       const s = localStorage.getItem("by-safety-registrations");
-      if (s) return JSON.parse(s);
-      const single = localStorage.getItem("by-trip-reg");
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+      }
+      const sosList = localStorage.getItem("by-sos-registrations");
+      if (sosList) {
+        const parsedSos = JSON.parse(sosList);
+        if (Array.isArray(parsedSos)) {
+          parsedSos.forEach(sos => {
+            if (sos.tripType !== "Elder Care" && !list.some(x => x.id === sos.id || (x.phone && x.phone === sos.phone))) {
+              list.push(sos);
+            }
+          });
+        }
+      }
+      const single = localStorage.getItem("by-active-tourist-reg") || localStorage.getItem("by-trip-reg");
       if (single) {
         const parsed = JSON.parse(single);
-        if (parsed.name) return [{ id: "REG-01", type: "Safety Trip", date: "Today", status: "Verified Active", ...parsed }];
+        if (parsed.name && !list.some(x => x.id === parsed.id || (x.phone && x.phone === parsed.phone))) {
+          list.unshift({ id: parsed.id || "REG-01", type: "Safety Trip", date: parsed.travelDate || "Today", status: parsed.status || "Verified Active", ...parsed });
+        }
       }
+      if (list.length > 0) return list;
     } catch (e) {}
     return [
       { id: "REG-101", type: "Safety Trip", name: "Kiran & Priya", phone: "+91 98480 12345", destination: "Visakhapatnam & Araku Valley", hotel: "Novotel Varun Beach", purpose: "Heritage Tourism", dates: "12-16 Oct 2026", status: "Verified Active" },
       { id: "REG-102", type: "Safety Trip", name: "Deepak Verma", phone: "+91 94401 98765", destination: "Charminar & Golconda Circuit", hotel: "Taj Falaknuma Palace", purpose: "Cultural Exploration", dates: "18-21 Oct 2026", status: "Verified Active" },
     ];
-  });
+  };
 
   // Load Elder registrations
-  const [elderRegs, setElderRegs] = useState(() => {
+  const getInitialElderRegs = () => {
     try {
+      let list = [];
       const s = localStorage.getItem("by-elder-registrations");
-      if (s) return JSON.parse(s);
-      const single = localStorage.getItem("by-elder");
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+      }
+      const watchlist = localStorage.getItem("by-admin-elder-watchlist");
+      if (watchlist) {
+        const parsedW = JSON.parse(watchlist);
+        if (Array.isArray(parsedW)) {
+          parsedW.forEach(w => {
+            if (!list.some(x => x.id === w.id || (x.phone && x.phone === w.phone))) {
+              list.push(w);
+            }
+          });
+        }
+      }
+      const single = localStorage.getItem("by-elder-record") || localStorage.getItem("by-elder");
       if (single) {
         const parsed = JSON.parse(single);
-        if (parsed.name) return [{ id: "ELD-01", type: "Elder Care", ...parsed, status: "Active Care Watch" }];
+        if (parsed.name && !list.some(x => x.id === parsed.id || (x.phone && x.phone === parsed.phone))) {
+          list.unshift({ 
+            id: parsed.id || "ELD-01", 
+            type: "Elder Care", 
+            ...parsed, 
+            guardian: parsed.guardianPhone ? `${parsed.guardianPhone} (Guardian)` : parsed.guardian,
+            destination: parsed.purpose || parsed.destination || "Pilgrimage Route",
+            frequency: parsed.frequencyHours ? `Every ${parsed.frequencyHours} hours` : (parsed.frequency || "Every 4 hours"),
+            status: parsed.status || "Active Care Watch" 
+          });
+        }
       }
+      if (list.length > 0) return list;
     } catch (e) {}
     return [
       { id: "ELD-201", type: "Elder Care", name: "Smt. Kamala Devi", phone: "+91 94400 12345", destination: "Tirumala Venkateswara Darshan", frequency: "Every 4 hours", guardian: "Venkat Rao (+91 98480 99881)", status: "Active Care Watch", lat: 13.6833, lng: 79.3500, checkInTime: "10:30 AM", battery: "92%", lastUpdate: "14 mins ago" },
       { id: "ELD-202", type: "Elder Care", name: "Sri G. Narayana Swamy", phone: "+91 98110 55443", destination: "Varanasi Ghats Pilgrimage", frequency: "Every 6 hours", guardian: "Suresh (+91 98110 55444)", status: "Active Care Watch", lat: 25.3176, lng: 83.0062, checkInTime: "08:15 AM", battery: "78%", lastUpdate: "35 mins ago" },
     ];
-  });
+  };
+
+  const [safetyRegs, setSafetyRegs] = useState(getInitialSafetyRegs);
+  const [elderRegs, setElderRegs] = useState(getInitialElderRegs);
+
+  useEffect(() => {
+    const handleSync = () => {
+      setSafetyRegs(getInitialSafetyRegs());
+      setElderRegs(getInitialElderRegs());
+    };
+    window.addEventListener("by-elder-registrations-updated", handleSync);
+    window.addEventListener("by-safety-registrations-updated", handleSync);
+    window.addEventListener("by-sos-registrations-updated", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("by-elder-registrations-updated", handleSync);
+      window.removeEventListener("by-safety-registrations-updated", handleSync);
+      window.removeEventListener("by-sos-registrations-updated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
 
   // Load Guide applicant registrations
   const [guideRegs, setGuideRegs] = useState(() => {

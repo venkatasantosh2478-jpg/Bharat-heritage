@@ -81,43 +81,100 @@ const DEFAULT_ELDERS = [
 ];
 
 export default function ElderCareWatchModule() {
-  const [elders, setElders] = useState(() => {
+  const loadAllElders = () => {
     try {
+      let list = [];
       const saved = localStorage.getItem("by-admin-elder-watchlist");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) list = [...parsed];
       }
-      // Check if tourist registered single elder care record in Safety
+      if (list.length === 0) list = [...DEFAULT_ELDERS];
+
+      // Merge by-elder-registrations
+      const regs = localStorage.getItem("by-elder-registrations");
+      if (regs) {
+        const parsedRegs = JSON.parse(regs);
+        if (Array.isArray(parsedRegs)) {
+          parsedRegs.forEach(r => {
+            const existingIdx = list.findIndex(x => x.id === r.id || (x.phone && x.phone === r.phone));
+            const elderObj = {
+              id: r.id || `ELD-${Date.now().toString().slice(-4)}`,
+              name: r.name,
+              age: r.age || 70,
+              phone: r.phone,
+              guardianName: r.guardianName || "Family Contact",
+              guardianPhone: r.guardianPhone || r.phone,
+              destination: r.purpose || r.destination || "Active Heritage Tour",
+              hotel: r.hotel || "Tourist Accommodation",
+              frequencyHours: Number(r.frequencyHours) || 4,
+              deadline: r.deadline || (Date.now() + (Number(r.frequencyHours) || 4) * 3600 * 1000),
+              travelDate: r.travelDate,
+              travelDay: r.travelDay,
+              status: r.status || "Active Watch",
+              lastVerified: r.lastUpdate || "Registered via Safety Portal",
+              specialNotes: r.itineraryInfo || "Senior citizen traveling with special care",
+              verificationLogs: r.verificationLogs || []
+            };
+            if (existingIdx >= 0) {
+              list[existingIdx] = { ...list[existingIdx], ...elderObj };
+            } else {
+              list.unshift(elderObj);
+            }
+          });
+        }
+      }
+
+      // Merge by-elder-record
       const userElder = localStorage.getItem("by-elder-record");
       if (userElder) {
         const u = JSON.parse(userElder);
         if (u.name && u.phone) {
           const freq = Number(u.frequencyHours) || 4;
-          return [
-            {
-              id: "ELD-USER",
-              name: u.name,
-              age: u.age || 70,
-              phone: u.phone,
-              guardianName: "Family Contact",
-              guardianPhone: u.guardianPhone || u.phone,
-              destination: u.purpose || "Active Heritage Tour",
-              hotel: u.hotel || "Tourist Accommodation",
-              frequencyHours: freq,
-              deadline: Date.now() + freq * 3600 * 1000,
-              status: "Active Watch",
-              lastVerified: "Registered via Safety Portal",
-              specialNotes: u.itineraryInfo || "Senior citizen traveling with special care",
-              verificationLogs: []
-            },
-            ...DEFAULT_ELDERS
-          ];
+          const existingIdx = list.findIndex(x => x.id === u.id || (x.phone && x.phone === u.phone));
+          const elderObj = {
+            id: u.id || "ELD-USER",
+            name: u.name,
+            age: u.age || 70,
+            phone: u.phone,
+            guardianName: u.guardianName || "Family Contact",
+            guardianPhone: u.guardianPhone || u.phone,
+            destination: u.purpose || u.destination || "Active Heritage Tour",
+            hotel: u.hotel || "Tourist Accommodation",
+            frequencyHours: freq,
+            deadline: u.deadline || (Date.now() + freq * 3600 * 1000),
+            travelDate: u.travelDate,
+            travelDay: u.travelDay,
+            status: u.status || "Active Watch",
+            lastVerified: u.lastUpdate || "Registered via Safety Portal",
+            specialNotes: u.itineraryInfo || "Senior citizen traveling with special care",
+            verificationLogs: u.verificationLogs || []
+          };
+          if (existingIdx >= 0) {
+            list[existingIdx] = { ...list[existingIdx], ...elderObj };
+          } else {
+            list.unshift(elderObj);
+          }
         }
       }
+      return list;
     } catch (e) {}
     return DEFAULT_ELDERS;
-  });
+  };
+
+  const [elders, setElders] = useState(loadAllElders);
+
+  useEffect(() => {
+    const handleSync = () => {
+      setElders(loadAllElders());
+    };
+    window.addEventListener("by-elder-registrations-updated", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("by-elder-registrations-updated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
 
   // Current timestamp tick for live countdown rendering
   const [now, setNow] = useState(Date.now());

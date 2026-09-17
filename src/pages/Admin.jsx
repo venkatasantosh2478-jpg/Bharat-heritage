@@ -8,11 +8,11 @@ import {
 } from "lucide-react";
 import EntityEditor from "@/components/EntityEditor";
 import AdminDashboards from "@/components/AdminDashboards";
-import GoogleDriveStorageManager from "@/components/GoogleDriveStorageManager";
 import FeedbackManagementModule from "@/components/FeedbackManagementModule";
 import SiteConfigAndFooterEditor from "@/components/SiteConfigAndFooterEditor";
+import AdminEventManager from "@/components/AdminEventManager";
 import { useAuth, getSystemCredentials } from "@/components/lib/AuthContext";
-import { heritageSites, foods as staticFoods, products as staticProducts, events as staticEvents } from "@/lib/heritageData";
+import { heritageSites, foods as staticFoods, products as staticProducts } from "@/lib/heritageData";
 import { enrichedHeritageSites } from "@/lib/richHeritageData";
 import { governmentRecognizedHotels } from "@/lib/hotelDirectoryData";
 import { STATE_GALLERY_DATA } from "@/components/StateGallery";
@@ -47,7 +47,6 @@ const tabs = [
   { id: "dashboards", label: "Specialized Dashboards" },
   { id: "feedback", label: "Tourist Feedback & QA" },
   { id: "config", label: "Footer & WhatsApp Bot Config" },
-  { id: "storage", label: "Google 400 GB Storage" },
   { id: "places", label: "Heritage Places" },
   { id: "states", label: "State Portals" },
   { id: "foods", label: "Regional Foods" },
@@ -91,8 +90,21 @@ const productFields = [
 ];
 
 const eventFields = [
-  { key: "name", label: "Festival Name", type: "text" },
+  { key: "name", label: "Festival / Event Name", type: "text" },
+  { key: "date", label: "Calendar Event Date (YYYY-MM-DD)", type: "date" },
+  { 
+    key: "category", 
+    label: "Event Type / Tag", 
+    type: "select", 
+    options: [
+      { value: "Culture", label: "Culture (Dance, Heritage & Arts)" },
+      { value: "Food", label: "Food (Regional Sweets & Culinary Melas)" },
+      { value: "Festivals", label: "Festivals (Spiritual & Temple Utsavam)" },
+      { value: "Crafts", label: "Crafts (Artisan & Handloom Bazaars)" },
+    ]
+  },
   { key: "state", label: "State", type: "text" },
+  { key: "city", label: "City / Town", type: "text" },
   { key: "month", label: "Month / Season", type: "text" },
   { key: "image", label: "Image URL", type: "text" },
   { key: "timing", label: "Festival Timing", type: "text" },
@@ -417,15 +429,9 @@ export default function Admin() {
               />
             )}
 
-            {/* Events Tab */}
+            {/* Events & Cultural Calendar Tab */}
             {tab === "events" && (
-              <EntityEditor
-                entityName="events"
-                title="Cultural Festivals & Events"
-                description="Manage cultural events, seasonal festivals and dress codes."
-                fields={eventFields}
-                initialData={staticEvents}
-              />
+              <AdminEventManager eventFields={eventFields} />
             )}
 
             {/* Hotels Tab */}
@@ -548,12 +554,6 @@ export default function Admin() {
               </div>
             )}
 
-            {/* Google 400 GB Storage Tab */}
-            {tab === "storage" && (
-              <div className="space-y-4">
-                <GoogleDriveStorageManager user={user} />
-              </div>
-            )}
 
             {/* Tourist Feedback Tab */}
             {tab === "feedback" && (
