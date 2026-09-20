@@ -61,7 +61,7 @@ export default function Register() {
       
       toast({
         title: "Account Created Successfully!",
-        description: `Welcome to Bharat Yatra, ${fullName || email}!`,
+        description: `Welcome to Bharat Heritage, ${fullName || email}!`,
       });
 
       const target = safeReturnTo();
@@ -94,7 +94,7 @@ export default function Register() {
       const registeredUser = await loginWithEmailPassword(email, password);
       toast({
         title: "Account Created!",
-        description: `Welcome to Bharat Yatra, ${registeredUser.full_name || 'Traveler'}!`,
+        description: `Welcome to Bharat Heritage, ${registeredUser.full_name || 'Traveler'}!`,
       });
       
       const target = safeReturnTo();

@@ -1462,7 +1462,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-500" />
                 <h3 className="font-bold text-base text-foreground font-heading">
-                  Bharat Yatra Verified Payment Gateway
+                  Bharat Heritage Verified Payment Gateway
                 </h3>
               </div>
               <button

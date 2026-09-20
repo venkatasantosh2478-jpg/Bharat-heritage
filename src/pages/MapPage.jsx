@@ -184,7 +184,7 @@ export default function MapPage() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bharat Yatra - ${isSatelliteDefault ? "Nano Banana Satellite & Terrain Map" : "Offline Interactive GIS Heritage Map"} (${regionObj.name})</title>
+  <title>Bharat Heritage - ${isSatelliteDefault ? "Nano Banana Satellite & Terrain Map" : "Offline Interactive GIS Heritage Map"} (${regionObj.name})</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <style>
@@ -219,7 +219,7 @@ export default function MapPage() {
   <header>
     <div class="title-group">
       <span class="badge">${isSatelliteDefault ? "NANO SATELLITE & TERRAIN" : "OFFLINE INTERACTIVE MAP"}</span>
-      <h1>Bharat Yatra - ${regionObj.name}</h1>
+      <h1>Bharat Heritage - ${regionObj.name}</h1>
     </div>
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="Search ${sitesToExport.length} heritage sites, caves, forts..." onkeyup="filterSites()">
@@ -358,7 +358,7 @@ export default function MapPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `BharatYatra_${isSatelliteDefault ? "Nano_Satellite" : "Offline_Interactive"}_Map_${regionName}_${timestamp}.html`;
+      link.download = `BharatHeritage_${isSatelliteDefault ? "Nano_Satellite" : "Offline_Interactive"}_Map_${regionName}_${timestamp}.html`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -444,7 +444,7 @@ export default function MapPage() {
             `).join("")}
 
             <div style="margin-top: 30px; padding-top: 12px; border-top: 1px solid #cbd5e1; font-size: 12px; color: #64748b; text-align: center;">
-              Bharat Yatra Geospatial Portal • Survey of India & Nano Banana Integrated Cartography.
+              Bharat Heritage Geospatial Portal • Survey of India & Nano Banana Integrated Cartography.
             </div>
           </body>
           </html>
@@ -461,7 +461,7 @@ export default function MapPage() {
       const geojsonObj = {
         type: "FeatureCollection",
         metadata: {
-          title: `Bharat Yatra Offline GIS Map - ${regionObj.name}`,
+          title: `Bharat Heritage Offline GIS Map - ${regionObj.name}`,
           generatedAt: new Date().toISOString(),
           region: regionObj.state,
           siteCount: sitesToExport.length,
@@ -499,7 +499,7 @@ export default function MapPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `BharatYatra_GIS_Vector_Data_${regionName}_${timestamp}.geojson`;
+      link.download = `BharatHeritage_GIS_Vector_Data_${regionName}_${timestamp}.geojson`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

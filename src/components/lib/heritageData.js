@@ -1,4 +1,4 @@
-// Centralized content for the Bharat Yatra heritage app.
+// Centralized content for the Bharat Heritage platform.
 
 const IMG_BASE = "https://media.base44.com/images/public/6a9ae27c746fec94dc69b172";
 

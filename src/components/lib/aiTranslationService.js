@@ -1,4 +1,4 @@
-// AI Translation Service for Bharat Yatra
+// AI Translation Service for Bharat Heritage
 // Translates Heritage Site Descriptions, Historical Narratives, and Travel Journal Entries
 // into Indian Regional Languages via server-side Gemini AI & resilient Google translation fallback.
 

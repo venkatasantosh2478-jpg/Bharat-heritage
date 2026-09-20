@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 
 /**
- * Universal, clean, robust PDF document generator for Bharat Yatra.
+ * Universal, clean, robust PDF document generator for Bharat Heritage.
  * Features:
  * - Dynamic text wrapping and height calculation to prevent any text overlay.
  * - Safe margins and boundary enforcement (header, body, and footer).
@@ -25,7 +25,7 @@ function addHeader(doc, title, subtitle) {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("BHARAT YATRA", 14, 10);
+  doc.text("BHARAT HERITAGE", 14, 10);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
@@ -84,7 +84,7 @@ function checkPageBreak(doc, currentY, requiredSpace = 20) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(255, 255, 255);
-    doc.text("BHARAT YATRA · OFFICIAL LIVING HERITAGE & TOURIST SAFETY PORTAL", 14, 5.5);
+    doc.text("BHARAT HERITAGE · OFFICIAL LIVING HERITAGE & TOURIST SAFETY PORTAL", 14, 5.5);
 
     doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.4);
@@ -368,7 +368,7 @@ export function generateShopInvoicePDF(order) {
   const policies = [
     "• Dispatched via India Post Speed Post or Bluedart Heritage Express with tamper-proof packaging.",
     "• Every handicraft contains a GI (Geographical Indication) QR certificate directly supporting rural artisans.",
-    "• 7-day hassle-free damage replacement guarantee through Bharat Yatra Craft Grievance Cell.",
+    "• 7-day hassle-free damage replacement guarantee through Bharat Heritage Craft Grievance Cell.",
   ];
   policies.forEach((pol) => {
     doc.setFont("helvetica", "normal");

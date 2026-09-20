@@ -1,4 +1,4 @@
-// Offline Storage Caching Engine for Bharat Yatra
+// Offline Storage Caching Engine for Bharat Heritage
 // Ensures Saved Travel Journals and Itinerary Plans are reliably accessible 100% offline
 // with localStorage fallback and Service Worker synchronization.
 

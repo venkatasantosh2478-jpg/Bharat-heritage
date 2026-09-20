@@ -1,4 +1,4 @@
-// Bharat Yatra Admin Data Store: Emergency Centers, Sub-Employees, TODOs, Forms & State Volunteers
+// Bharat Heritage Admin Data Store: Emergency Centers, Sub-Employees, TODOs, Forms & State Volunteers
 
 export const initialEmergencyCenters = [
   {
@@ -720,30 +720,30 @@ export function saveScamsDirectory(scams) {
 // =========================================================================
 
 export const initialSosSettings = {
-  findMyDeviceEmail: "sos.safety@bharatyatra.gov.in",
+  findMyDeviceEmail: "sos.safety@bharatheritage.gov.in",
   findMyDevicePassword: "BY-SOS-SECURE-2026#PROTECT",
   whatsappGroups: {
     // District / City level
-    "Visakhapatnam": "https://chat.whatsapp.com/invite/BharatYatraVizagSafety",
-    "Araku Valley": "https://chat.whatsapp.com/invite/BharatYatraArakuSafety",
-    "Hyderabad": "https://chat.whatsapp.com/invite/BharatYatraHyderabadSafety",
-    "Tirupati": "https://chat.whatsapp.com/invite/BharatYatraTirupatiSafety",
-    "Agra": "https://chat.whatsapp.com/invite/BharatYatraAgraSafety",
-    "Varanasi": "https://chat.whatsapp.com/invite/BharatYatraVaranasiSafety",
-    "Jaipur": "https://chat.whatsapp.com/invite/BharatYatraJaipurSafety",
+    "Visakhapatnam": "https://chat.whatsapp.com/invite/BharatHeritageVizagSafety",
+    "Araku Valley": "https://chat.whatsapp.com/invite/BharatHeritageArakuSafety",
+    "Hyderabad": "https://chat.whatsapp.com/invite/BharatHeritageHyderabadSafety",
+    "Tirupati": "https://chat.whatsapp.com/invite/BharatHeritageTirupatiSafety",
+    "Agra": "https://chat.whatsapp.com/invite/BharatHeritageAgraSafety",
+    "Varanasi": "https://chat.whatsapp.com/invite/BharatHeritageVaranasiSafety",
+    "Jaipur": "https://chat.whatsapp.com/invite/BharatHeritageJaipurSafety",
     
     // State level fallbacks
-    "Andhra Pradesh": "https://chat.whatsapp.com/invite/BharatYatraAndhraSafety",
-    "Telangana": "https://chat.whatsapp.com/invite/BharatYatraTelanganaSafety",
-    "Uttar Pradesh": "https://chat.whatsapp.com/invite/BharatYatraUPSafety",
-    "Rajasthan": "https://chat.whatsapp.com/invite/BharatYatraRajasthanSafety",
-    "Delhi": "https://chat.whatsapp.com/invite/BharatYatraDelhiSafety",
-    "Tamil Nadu": "https://chat.whatsapp.com/invite/BharatYatraTamilNaduSafety",
-    "Karnataka": "https://chat.whatsapp.com/invite/BharatYatraKarnatakaSafety",
-    "Maharashtra": "https://chat.whatsapp.com/invite/BharatYatraMaharashtraSafety",
+    "Andhra Pradesh": "https://chat.whatsapp.com/invite/BharatHeritageAndhraSafety",
+    "Telangana": "https://chat.whatsapp.com/invite/BharatHeritageTelanganaSafety",
+    "Uttar Pradesh": "https://chat.whatsapp.com/invite/BharatHeritageUPSafety",
+    "Rajasthan": "https://chat.whatsapp.com/invite/BharatHeritageRajasthanSafety",
+    "Delhi": "https://chat.whatsapp.com/invite/BharatHeritageDelhiSafety",
+    "Tamil Nadu": "https://chat.whatsapp.com/invite/BharatHeritageTamilNaduSafety",
+    "Karnataka": "https://chat.whatsapp.com/invite/BharatHeritageKarnatakaSafety",
+    "Maharashtra": "https://chat.whatsapp.com/invite/BharatHeritageMaharashtraSafety",
     
     // Country level default
-    "All India": "https://chat.whatsapp.com/invite/BharatYatraNationalSOS"
+    "All India": "https://chat.whatsapp.com/invite/BharatHeritageNationalSOS"
   }
 };
 
@@ -788,7 +788,7 @@ export function getWhatsAppGroupLink(destination = "", state = "") {
   return { 
     level: "National", 
     name: "All India National Tourist Safety Community", 
-    link: groups["All India"] || "https://chat.whatsapp.com/invite/BharatYatraNationalSOS" 
+    link: groups["All India"] || "https://chat.whatsapp.com/invite/BharatHeritageNationalSOS" 
   };
 }
 

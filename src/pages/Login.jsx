@@ -99,7 +99,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <AuthLayout
           icon={LogIn}
-          title="Sign in to Bharat Yatra"
+          title="Sign in to Bharat Heritage"
           subtitle="Access your designated employee cockpit or traveler profile"
           footer={
             <>

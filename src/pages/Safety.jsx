@@ -405,7 +405,7 @@ export default function Safety() {
     }
 
     // Prepare WhatsApp alert message
-    const msg = `🚨 BHARAT YATRA EMERGENCY SOS 🚨%0AIncident ID: ${incident.id}%0ACategory: ${encodeURIComponent(category)}%0ATraveler: ${encodeURIComponent(incident.traveler)}%0APhone: ${encodeURIComponent(incident.phone)}%0ADescription: ${encodeURIComponent(incident.emergencyPrompt)}%0ALocation: ${coords ? `${coords[0]}, ${coords[1]}` : "Current Tourist Location"}%0AMap Pin: ${encodeURIComponent(mapLink)}%0APlease dispatch Tourist Police (1363) or Medical Responders (108) immediately!`;
+    const msg = `🚨 BHARAT HERITAGE EMERGENCY SOS 🚨%0AIncident ID: ${incident.id}%0ACategory: ${encodeURIComponent(category)}%0ATraveler: ${encodeURIComponent(incident.traveler)}%0APhone: ${encodeURIComponent(incident.phone)}%0ADescription: ${encodeURIComponent(incident.emergencyPrompt)}%0ALocation: ${coords ? `${coords[0]}, ${coords[1]}` : "Current Tourist Location"}%0AMap Pin: ${encodeURIComponent(mapLink)}%0APlease dispatch Tourist Police (1363) or Medical Responders (108) immediately!`;
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   }
 
@@ -693,7 +693,7 @@ export default function Safety() {
   }
 
   function forwardElderAlert() {
-    const msg = `🆘 BHARAT YATRA ELDER SAFETY ALERT: ${elder.name || "Elder Traveler"} missed their scheduled safety check-in! Please call them immediately at ${elder.phone}.`;
+    const msg = `🆘 BHARAT HERITAGE ELDER SAFETY ALERT: ${elder.name || "Elder Traveler"} missed their scheduled safety check-in! Please call them immediately at ${elder.phone}.`;
     window.open(`tel:${elder.guardianPhone || elder.phone}`, "_self");
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
     setForwarded(new Date().toLocaleTimeString());
@@ -712,7 +712,7 @@ export default function Safety() {
   function shareLocationWhatsApp() {
     if (!coords) return;
     const mapLink = `https://www.google.com/maps?q=${coords[0]},${coords[1]}`;
-    const msg = `📍 My Current Live GPS Location: ${coords[0]}, ${coords[1]}%0AGoogle Maps: ${encodeURIComponent(mapLink)}%0ASent via Bharat Yatra Tourist Safety Hub.`;
+    const msg = `📍 My Current Live GPS Location: ${coords[0]}, ${coords[1]}%0AGoogle Maps: ${encodeURIComponent(mapLink)}%0ASent via Bharat Heritage Tourist Safety Hub.`;
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   }
 

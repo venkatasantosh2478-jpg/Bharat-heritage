@@ -755,7 +755,7 @@ export default function Profile() {
                         <div className="flex items-center gap-1.5">
                           {elder.guardianPhone && (
                             <a
-                              href={`https://wa.me/${elder.guardianPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, confirming elder care safety check-in status for ${elder.name} on Bharat Yatra.`)}`}
+                              href={`https://wa.me/${elder.guardianPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, confirming elder care safety check-in status for ${elder.name} on Bharat Heritage.`)}`}
                               target="_blank"
                               rel="noreferrer"
                               className="px-3 py-2 rounded-full bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold flex items-center gap-1 transition-colors"

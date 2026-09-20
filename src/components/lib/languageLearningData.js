@@ -680,7 +680,7 @@ export function exportOfflineLanguagePackFile(langCode = "te") {
   const langObj = languageOptions.find(l => l.code === langCode) || languageOptions[0];
   
   const payload = {
-    package: `Bharat Yatra 100% Offline Edge Translation Engine - ${langObj.name}`,
+    package: `Bharat Heritage 100% Offline Edge Translation Engine - ${langObj.name}`,
     version: "4.2.0-standalone",
     generatedAt: new Date().toISOString(),
     language: langObj,
@@ -698,7 +698,7 @@ export function exportOfflineLanguagePackFile(langCode = "te") {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `bharat-yatra-offline-${langCode}-pack.json`;
+  a.download = `bharat-heritage-offline-${langCode}-pack.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -709,7 +709,7 @@ export function exportOfflineLanguagePackFile(langCode = "te") {
 // Download All-India Master Offline Pack
 export function exportAllLanguagePacksFile() {
   const payload = {
-    package: "Bharat Yatra All-India Master Offline Edge Translation & Lexicon Pack",
+    package: "Bharat Heritage All-India Master Offline Edge Translation & Lexicon Pack",
     version: "4.2.0-master",
     generatedAt: new Date().toISOString(),
     languages: languageOptions,
@@ -1038,7 +1038,7 @@ export function downloadLanguageBook(bookId) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>${book.title} - Bharat Yatra Official Guide</title>
+  <title>${book.title} - Bharat Heritage Official Guide</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -1169,7 +1169,7 @@ export function downloadLanguageBook(bookId) {
   </div>
 
   <div class="footer">
-    <p>Bharat Yatra Digital Heritage & Tourism Guidebook · Government of India Public Access Edition · Keep offline on phone for field navigation</p>
+    <p>Bharat Heritage Digital Heritage & Tourism Guidebook · Government of India Public Access Edition · Keep offline on phone for field navigation</p>
   </div>
 
   <script>
@@ -1205,7 +1205,7 @@ export function downloadStandaloneOfflineTranslatorApp() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bharat Yatra - 100% Offline Edge Cultural Translator</title>
+  <title>Bharat Heritage - 100% Offline Edge Cultural Translator</title>
   <style>
     :root {
       --primary: #0284c7;
@@ -1244,7 +1244,7 @@ export function downloadStandaloneOfflineTranslatorApp() {
   <div class="container">
     <div class="header">
       <div class="badge">⚡ 100% Offline Edge Mode · Zero Internet Required</div>
-      <h1>Bharat Yatra Edge Translator</h1>
+      <h1>Bharat Heritage Edge Translator</h1>
       <p class="sub">Instant zero-latency multilingual travel translator. Works in remote heritage zones, trains, flights, and valleys without any active network.</p>
     </div>
 

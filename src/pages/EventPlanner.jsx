@@ -357,7 +357,7 @@ export default function EventPlanner() {
       category: reviewForm.category || "Celebration Experience",
       notes: "Community traveler review",
       status: "Completed",
-      coordinator: "Bharat Yatra Concierge Desk",
+      coordinator: "Bharat Heritage Concierge Desk",
       createdAt: new Date().toISOString(),
       feedback: {
         rating: reviewForm.rating,
@@ -692,7 +692,7 @@ export default function EventPlanner() {
                       </div>
 
                       <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t border-border/50">
-                        <span>Coordinator: {ev.coordinator || "Bharat Yatra Desk"}</span>
+                        <span>Coordinator: {ev.coordinator || "Bharat Heritage Desk"}</span>
                         <span>{ev.feedback?.date || ev.date}</span>
                       </div>
                     </div>
@@ -933,7 +933,7 @@ export default function EventPlanner() {
               <div className="p-6 rounded-3xl bg-card border border-border space-y-4">
                 <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  What Makes Bharat Yatra Occasions Special?
+                  What Makes Bharat Heritage Occasions Special?
                 </h3>
                 <ul className="space-y-3 text-xs text-muted-foreground leading-relaxed">
                   <li className="flex items-start gap-2">
@@ -1124,7 +1124,7 @@ export default function EventPlanner() {
                   Share Your Event Experience
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Post your verified review to the Bharat Yatra community gallery
+                  Post your verified review to the Bharat Heritage community gallery
                 </p>
               </div>
               <button

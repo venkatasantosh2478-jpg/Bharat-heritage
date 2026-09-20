@@ -22,7 +22,7 @@ export default function AIAssistant() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Namaskaram & Namaste! 🙏 I am your Bharat Yatra AI Heritage Guide.\n\nAsk me anything in English, Telugu in English (Teluglish), authentic Telugu (తెలుగు), Hindi, or any Indian regional language!",
+      text: "Namaskaram & Namaste! 🙏 I am your Bharat Heritage AI Guide.\n\nAsk me anything in English, Telugu in English (Teluglish), authentic Telugu (తెలుగు), Hindi, or any Indian regional language!",
     },
   ]);
   const recRef = useRef(null);
@@ -68,7 +68,7 @@ export default function AIAssistant() {
       if (!answer) {
         try {
           const res = await base44.integrations?.Core?.InvokeLLM({
-            prompt: `You are the official Bharat Yatra AI guide. Answer warmly for a tourist. If user asked in Telugu in English (Teluglish), reply in natural Teluglish and Telugu: ${q}`,
+            prompt: `You are the official Bharat Heritage AI guide. Answer warmly for a tourist. If user asked in Telugu in English (Teluglish), reply in natural Teluglish and Telugu: ${q}`,
           });
           answer = typeof res === "string" ? res : res?.response || "";
         } catch {
@@ -78,7 +78,7 @@ export default function AIAssistant() {
 
       const cleanAnswer = String(
         answer ||
-          `Namaskaram! 🙏 Regarding "${q}": India has incredible heritage, sacred temples, living traditions, and world-class monuments. You can explore interactive 3D maps, cultural itineraries, and verified guides in Bharat Yatra!`
+          `Namaskaram! 🙏 Regarding "${q}": India has incredible heritage, sacred temples, living traditions, and world-class monuments. You can explore interactive 3D maps, cultural itineraries, and verified guides in Bharat Heritage!`
       )
         .replace(/\*\*(.*?)\*\*/g, "$1")
         .replace(/\*(.*?)\*/g, "$1")

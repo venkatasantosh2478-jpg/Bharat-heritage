@@ -105,7 +105,7 @@ export default function FeedbackModal({ isOpen, onClose, defaultCategory = "Gene
             </div>
             <h3 className="text-base font-bold text-foreground">Thank You For Your Feedback!</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Your review and suggestions have been recorded and forwarded directly to the Bharat Yatra Directorate & Admin Quality Operations team.
+              Your review and suggestions have been recorded and forwarded directly to the Bharat Heritage Directorate & Admin Quality Operations team.
             </p>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-bold">
               <ShieldCheck className="w-3.5 h-3.5" /> Logged to Admin Dashboard
@@ -116,7 +116,7 @@ export default function FeedbackModal({ isOpen, onClose, defaultCategory = "Gene
             {/* Star Rating Selection */}
             <div className="p-4 rounded-2xl bg-muted/40 border border-border text-center space-y-2">
               <span className="font-bold text-foreground text-xs block">
-                How was your experience with Bharat Yatra?
+                How was your experience with Bharat Heritage?
               </span>
               <div className="flex items-center justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (

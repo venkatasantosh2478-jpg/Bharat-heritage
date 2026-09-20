@@ -375,7 +375,7 @@ export const base44 = {
         }
 
         // AI Travel Assistant
-        return `Welcome to Bharat Yatra! Indian heritage spans over five millennia of living art, sacred monuments, and cultural traditions. Whether you seek ancient temples, royal forts, GI-tagged crafts, or regional gastronomy, I am here to guide your journey.`;
+        return `Welcome to Bharat Heritage! Indian heritage spans over five millennia of living art, sacred monuments, and cultural traditions. Whether you seek ancient temples, royal forts, GI-tagged crafts, or regional gastronomy, I am here to guide your journey.`;
       },
     },
   },

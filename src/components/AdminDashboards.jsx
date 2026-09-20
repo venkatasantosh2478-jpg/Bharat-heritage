@@ -4363,7 +4363,7 @@ function LeaderboardDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
           <h3 className="text-lg font-bold text-foreground flex items-center gap-2 font-heading">
-            <Award className="w-5 h-5 text-amber-500" /> Bharat Yatra Excellence Leaderboard
+            <Award className="w-5 h-5 text-amber-500" /> Bharat Heritage Excellence Leaderboard
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             Recognizing top-performing ASI licensed guides, state emergency volunteers, & artisan clusters

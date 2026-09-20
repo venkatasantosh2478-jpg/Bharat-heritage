@@ -1,4 +1,4 @@
-// Card Image Manager for Bharat Yatra
+// Card Image Manager for Bharat Heritage
 // Manages instant, persistent image replacements across Heritage Cards, Family Cards, Products, Foods, Events, and States
 import { pushSharedData } from "./serverSync";
 

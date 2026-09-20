@@ -261,7 +261,7 @@ export default function TravelJournal({ onAskAssistant }) {
       setShowModal(false);
       setGenTitle("");
       setGenNotes("");
-      setNotification("Created travel visual entry from Bharat Yatra heritage library!");
+      setNotification("Created travel visual entry from Bharat Heritage library!");
       setTimeout(() => setNotification(""), 4000);
     } finally {
       setIsGenerating(false);

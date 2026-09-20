@@ -108,7 +108,7 @@ export default function Layout() {
               ब
             </span>
             <span className="font-heading font-semibold tracking-wide text-sm sm:text-base">
-              BHARAT <span className="text-primary">YATRA</span>
+              BHARAT <span className="text-primary">HERITAGE</span>
             </span>
           </Link>
 
@@ -277,7 +277,7 @@ export default function Layout() {
                   ब
                 </span>
                 <span className="font-heading font-bold tracking-wide text-lg text-white">
-                  {siteConfig.siteName || "BHARAT YATRA"}
+                  {siteConfig.siteName || "BHARAT HERITAGE"}
                 </span>
               </div>
               <p className="text-sm text-slate-400 leading-relaxed">
@@ -311,7 +311,6 @@ export default function Layout() {
                   { label: "Cultural Planner", url: "/planner" },
                   { label: "Festivals & Events", url: "/events" },
                   { label: "Heritage Map", url: "/map" },
-                  { label: "SIH Project Dossier", url: "/sih-dossier" },
                 ]).map((lnk, idx) => (
                   <li key={idx}>
                     {lnk.url.startsWith("http") ? (
@@ -378,8 +377,8 @@ export default function Layout() {
                   </a>
                 </p>
                 <p>
-                  <a href={`mailto:${siteConfig.helpline?.email || "contact@bharatyatra.gov.in"}`} className="hover:text-primary break-all">
-                    {siteConfig.helpline?.email || "contact@bharatyatra.gov.in"}
+                  <a href={`mailto:${siteConfig.helpline?.email || "contact@bharatheritage.gov.in"}`} className="hover:text-primary break-all">
+                    {siteConfig.helpline?.email || "contact@bharatheritage.gov.in"}
                   </a>
                 </p>
                 {siteConfig.helpline?.address && (
@@ -393,7 +392,7 @@ export default function Layout() {
 
           {/* Bottom Bar */}
           <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 text-sm text-slate-500">
-            <p>{siteConfig.copyright || `© ${new Date().getFullYear()} Bharat Yatra Directorate.`}</p>
+            <p>{siteConfig.copyright || `© ${new Date().getFullYear()} Bharat Heritage Directorate.`}</p>
             <div className="flex items-center gap-5 flex-wrap">
               <button 
                 onClick={() => setFeedbackModalOpen(true)} 

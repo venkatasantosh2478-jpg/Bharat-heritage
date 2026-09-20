@@ -366,7 +366,7 @@ export default function SiteConfigAndFooterEditor() {
                 <label className="font-bold text-foreground block">Site Brand Name</label>
                 <input
                   type="text"
-                  value={config.siteName || "BHARAT YATRA"}
+                  value={config.siteName || "BHARAT HERITAGE"}
                   onChange={(e) => setConfig({ ...config, siteName: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-2 focus:ring-primary"
                 />

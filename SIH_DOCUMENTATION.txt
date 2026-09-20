@@ -562,10 +562,9 @@ across 12 specialized control rooms:
 
 
 ===================================================================================
-14. HOW EVALUATORS CAN TEST & DEMO THE LIVE APP
+14. HOW EVALUATORS CAN TEST & DEMO THE APPLICATION
 ===================================================================================
-it is deployed live url : https://bharat-heritage-17im.vercel.app/
-git hub link: https://github.com/venkatasantosh2478-jpg/Bharat-heritage
+
 If running the application locally:
 1. Open your terminal in the project folder.
 2. Install dependencies:   npm install

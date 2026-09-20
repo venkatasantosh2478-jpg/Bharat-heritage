@@ -257,7 +257,7 @@ async function startServer() {
       if (!ai) {
         return res.json({
           response:
-            "Namaskaram! 🙏 I am your Bharat Yatra Heritage Assistant. India is home to 42+ UNESCO World Heritage Sites, sacred temples, and rich traditions! Feel free to ask about any destination or craft in English, Telugu (తెలుగు), or Telugu in English (Teluglish).",
+            "Namaskaram! 🙏 I am your Bharat Heritage AI Assistant. India is home to 42+ UNESCO World Heritage Sites, sacred temples, and rich traditions! Feel free to ask about any destination or craft in English, Telugu (తెలుగు), or Telugu in English (Teluglish).",
         });
       }
 
@@ -309,7 +309,7 @@ async function startServer() {
           contents,
           config: {
             systemInstruction:
-              "You are the official Bharat Yatra Multilingual AI Heritage & Travel Guide. You explain everything warmly, accurately, and engagingly!\n\n" +
+              "You are the official Bharat Heritage Multilingual AI Heritage & Travel Guide. You explain everything warmly, accurately, and engagingly!\n\n" +
               "CRITICAL MULTILINGUAL & SCRIPT RULES:\n" +
               "1. TELUGU & TELUGLISH (Telugu written in English Alphabet):\n" +
               "   - If the user writes or asks in Telugu written in English script (e.g. 'Nenu Tirupati vellali em cheyali', 'Miru ela unnaru', 'Telugu lo cheppandi', 'Ekkada stay cheyali', 'Food options em unnayi?'), you MUST understand and reply fluently in natural, friendly Telugu written in English alphabet (Teluglish) AND include the Telugu script (తెలుగు) so it is effortless and pleasant to read!\n" +
@@ -367,7 +367,7 @@ async function startServer() {
     }
 
     try {
-      const promptText = `You are the lead cultural travel planning expert for Bharat Yatra.
+      const promptText = `You are the lead cultural travel planning expert for Bharat Heritage.
 Create an authentic ${days}-day cultural and heritage itinerary for a ${group} traveler visiting ${to}${
         from ? ` starting from ${from}` : ""
       }.
@@ -471,7 +471,7 @@ CRITICAL GEOGRAPHIC RULES:
         const response = await generateWithFallback(
           ai,
           {
-            contents: `You are an expert Indian multilingual translator, cultural linguist, and tourism assistant for Bharat Yatra.
+            contents: `You are an expert Indian multilingual translator, cultural linguist, and tourism assistant for Bharat Heritage.
 Translate the following input: "${cleanInput}"
 From: ${sourceLang} (${sourceCode})
 To: ${targetLang} (${targetCode})
@@ -777,7 +777,7 @@ Special Instructions:
 
       const ai = getAI();
       if (ai) {
-        const systemPrompt = `You are the Emergency Response AI for Bharat Yatra tourist safety network.
+        const systemPrompt = `You are the Emergency Response AI for Bharat Heritage tourist safety network.
 Analyze the user's emergency distress prompt and location. Return a JSON object with:
 - "emergencyCategory": (e.g. "Medical Emergency", "Tourist Police Assistance", "Stranded / Wilderness Rescue", "Accident / Collision", "Harassment / Safety Threat", "Cyber / Financial Fraud")
 - "urgencyLevel": "CRITICAL" or "HIGH" or "MODERATE"
@@ -873,7 +873,7 @@ Return ONLY clean JSON without markdown ticks.`;
 
       const config: any = {
         systemInstruction:
-          "You are the Bharat Yatra cultural intelligence assistant powered by Google Gemini. Provide rich, accurate, and culturally nuanced answers regarding Indian travel, monuments, languages, crafts, and food.",
+          "You are the Bharat Heritage cultural intelligence assistant powered by Google Gemini. Provide rich, accurate, and culturally nuanced answers regarding Indian travel, monuments, languages, crafts, and food.",
       };
 
       if (response_json_schema) {
@@ -959,7 +959,7 @@ Return ONLY clean JSON without markdown ticks.`;
           contents: `Write an evocative, authentic 2-sentence cultural travel journal caption for "${title}" (${category} from ${state}, India). Highlight its historic craftsmanship, architectural style, or artisan legacy. Avoid raw markdown stars or asterisks.`,
           config: {
             systemInstruction:
-              "You are the chief archivist for Bharat Yatra's living cultural journal. Write poetic, factual, and inspiring descriptions.",
+              "You are the chief archivist for Bharat Heritage's living cultural journal. Write poetic, factual, and inspiring descriptions.",
           },
         });
         captionText = (captionRes.text || "")
@@ -1073,7 +1073,7 @@ Return ONLY clean JSON without markdown ticks.`;
   app.get("/api/apps/:appId/mcp/consent-info", (_req: Request, res: Response) => {
     res.json({
       authenticated: true,
-      app_name: "Bharat Yatra",
+      app_name: "Bharat Heritage",
       scopes: ["read", "write"],
       login_path: "/login",
     });
@@ -1130,7 +1130,7 @@ Return ONLY clean JSON without markdown ticks.`;
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Bharat Yatra server running at http://0.0.0.0:${PORT}`);
+    console.log(`Bharat Heritage server running at http://0.0.0.0:${PORT}`);
   });
 
   return app;

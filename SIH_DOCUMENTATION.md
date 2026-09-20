@@ -1,11 +1,11 @@
-# BHARAT HERITAGE (भारत हेरिटेज) / BHARAT YATRA
+# BHARAT HERITAGE (भारत हेरिटेज)
 ## Smart India Hackathon (SIH) — Official Technical & Innovation Dossier
 **National Integrated Rural Heritage Revival, Sugamya Bharat Accessibility & Community-Centric Tourism Ecosystem**
 
 ---
 
 ### Project Metadata
-* **Project Name:** Bharat Heritage (Integrated with Bharat Yatra Engine)
+* **Project Name:** Bharat Heritage
 * **Target Category:** Heritage, Culture, Rural Empowerment & Accessible Tourism
 * **Nodal Ministry Alignment:** Ministry of Tourism & Culture, Government of India / Ministry of Social Justice and Empowerment (Accessible India Campaign - *Sugamya Bharat Abhiyan*)
 * **Initiative Alignment:** *Dekho Apna Desh*, *Atmanirbhar Bharat*, *One District One Product (ODOP)*

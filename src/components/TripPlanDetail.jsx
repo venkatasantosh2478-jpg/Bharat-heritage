@@ -47,7 +47,7 @@ export default function TripPlanDetail({
     }
     return {
       icon: Bike,
-      mode: "Bharat Yatra Transport",
+      mode: "Bharat Heritage Transport",
       lines: [
         `Private cab: ${origin} → ${dest} · pickup 7:00 AM`,
         `Return transfer on Day ${days} · ${dest} → ${origin}`,

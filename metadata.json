@@ -1,5 +1,5 @@
 {
-  "name": "Bharat Yatra",
+  "name": "Bharat Heritage",
   "description": "Discover India's living heritage with AI-powered trips, local crafts, food, and stories across every Indian state.",
   "requestFramePermissions": ["geolocation", "microphone"],
   "majorCapabilities": [

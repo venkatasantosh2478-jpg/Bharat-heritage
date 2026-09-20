@@ -160,8 +160,8 @@ function getSimulated400GBQuota() {
   };
 }
 
-// Find or create "Bharat Yatra Cloud Storage" root folder in Google Drive
-export async function getOrCreateDriveFolder(folderName = "Bharat Yatra Cloud Storage") {
+// Find or create "Bharat Heritage Cloud Storage" root folder in Google Drive
+export async function getOrCreateDriveFolder(folderName = "Bharat Heritage Cloud Storage") {
   const token = cachedAccessToken;
   if (!token) return { id: "mock_by_folder_id", name: folderName };
 
@@ -189,7 +189,7 @@ export async function getOrCreateDriveFolder(folderName = "Bharat Yatra Cloud St
       body: JSON.stringify({
         name: folderName,
         mimeType: "application/vnd.google-apps.folder",
-        description: "Bharat Yatra App cloud backups, high-resolution heritage media, itineraries, and receipts",
+        description: "Bharat Heritage App cloud backups, high-resolution heritage media, itineraries, and receipts",
       }),
     });
 
@@ -204,7 +204,7 @@ export async function getOrCreateDriveFolder(folderName = "Bharat Yatra Cloud St
 }
 
 // Upload file directly to user's Google Drive
-export async function uploadFileToDrive(file, folderName = "Bharat Yatra Cloud Storage") {
+export async function uploadFileToDrive(file, folderName = "Bharat Heritage Cloud Storage") {
   const token = cachedAccessToken;
   
   if (!token) {
@@ -275,11 +275,11 @@ export async function uploadFileToDrive(file, folderName = "Bharat Yatra Cloud S
 
 // Backup entire user application state (Trips, Bookings, Orders, Saved Spots) to Google Drive
 export async function backupUserDataToDrive(payload) {
-  const fileName = `BharatYatra_Backup_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-4)}.json`;
+  const fileName = `BharatHeritage_Backup_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-4)}.json`;
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const file = new File([blob], fileName, { type: "application/json" });
 
-  const result = await uploadFileToDrive(file, "Bharat Yatra Backups");
+  const result = await uploadFileToDrive(file, "Bharat Heritage Backups");
   return {
     success: true,
     fileName,
@@ -290,7 +290,7 @@ export async function backupUserDataToDrive(payload) {
   };
 }
 
-// Helper: List files stored in user's Bharat Yatra Drive folder
+// Helper: List files stored in user's Bharat Heritage Drive folder
 export function getSavedDriveFiles() {
   try {
     const raw = localStorage.getItem("by_google_drive_files");

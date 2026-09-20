@@ -2,7 +2,7 @@ import { pushSharedData } from "@/lib/serverSync";
 
 // Default Site & Footer Configuration
 export const DEFAULT_SITE_CONFIG = {
-  siteName: "BHARAT YATRA",
+  siteName: "BHARAT HERITAGE",
   tagline: "India's Cultural Tourism & Heritage Platform",
   brandDescription: "National Cultural Tourism Directorate & Digital Heritage Information System. Connecting travellers with authenticated heritage, artisans, guides, and emergency infrastructure.",
   
@@ -20,7 +20,7 @@ export const DEFAULT_SITE_CONFIG = {
     phone: "1800-11-1363",
     label: "Toll-Free Tourist Helpline (24x7)",
     emergencyPhone: "112 (National Emergency)",
-    email: "contact@bharatyatra.gov.in",
+    email: "contact@bharatheritage.gov.in",
     address: "Transport & Tourism Bhawan, 1 Parliament Street, New Delhi 110001",
   },
 
@@ -44,7 +44,7 @@ export const DEFAULT_SITE_CONFIG = {
   supportLinks: [
     { label: "Tourist Helpline: 1800-11-1363", url: "tel:1800111363" },
     { label: "Police & Medical: 112", url: "tel:112" },
-    { label: "contact@bharatyatra.gov.in", url: "mailto:contact@bharatyatra.gov.in" },
+    { label: "contact@bharatheritage.gov.in", url: "mailto:contact@bharatheritage.gov.in" },
     { label: "Elder Care & Family Watch", url: "/safety" },
   ],
 
@@ -56,7 +56,7 @@ export const DEFAULT_SITE_CONFIG = {
     facebook: "https://facebook.com",
   },
 
-  copyright: `© ${new Date().getFullYear()} Bharat Yatra Directorate. Ministry of Tourism & Culture, Government of India.`,
+  copyright: `© ${new Date().getFullYear()} Bharat Heritage Directorate. Ministry of Tourism & Culture, Government of India.`,
   
   // Media Assets
   heroVideoUrl: "https://media.base44.com/videos/public/6a9bae9fd15b41c75cea5237/4135fd9b0_vidssavecomIncredibleIndia4K-BeyondtheStereotypes_TheRealIndiaRevealed720P.mp4",

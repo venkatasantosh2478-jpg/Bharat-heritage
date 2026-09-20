@@ -184,7 +184,7 @@ export default function GoogleDriveStorageManager({ user, onDataBackup }) {
 
             <div className="bg-muted/40 p-3 rounded-xl border border-border/50">
               <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Drive Folder</div>
-              <div className="text-base font-bold text-foreground mt-0.5 truncate">Bharat Yatra Storage</div>
+              <div className="text-base font-bold text-foreground mt-0.5 truncate">Bharat Heritage Storage</div>
               <div className="text-[10px] text-primary font-medium flex items-center gap-1">
                 <Folder className="w-2.5 h-2.5" /> Auto-Synchronized
               </div>
