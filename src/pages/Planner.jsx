@@ -622,7 +622,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
       )}
 
       {/* Main Form & Inventory Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-12 gap-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Form & Conditions (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-5">
@@ -1136,43 +1136,45 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                               setPlan({ ...plan, breakdown: { hotelCost, tCost, localTransitCost, guideCost, foodCost, total } });
                             }
                           }}
-                          className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3 ${
+                          className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                             isSel
                               ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
                               : "border-border bg-background hover:bg-muted/40"
                           }`}
                         >
-                          <img
-                            src={guide.avatar}
-                            alt={guide.name}
-                            className="w-11 h-11 rounded-full object-cover shrink-0 border-2 border-primary/40"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-foreground truncate">{guide.name}</span>
-                              <span className="text-[9px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-muted-foreground shrink-0">
-                                {guide.badge}
-                              </span>
-                              {isCityMatch && (
-                                <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
-                                  {guide.city}
+                          <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <img
+                              src={guide.avatar}
+                              alt={guide.name}
+                              className="w-11 h-11 rounded-full object-cover shrink-0 border-2 border-primary/40"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center flex-wrap gap-1.5">
+                                <span className="text-xs font-bold text-foreground truncate">{guide.name}</span>
+                                <span className="text-[9px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-muted-foreground shrink-0">
+                                  {guide.badge}
                                 </span>
-                              )}
-                            </div>
-                            <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                              {guide.specialty}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
-                              <span className="text-amber-500 font-bold flex items-center gap-0.5">
-                                <Star className="w-3 h-3 fill-current" /> {guide.rating}
-                              </span>
-                              <span>·</span>
-                              <span>{guide.experience}</span>
-                              <span>·</span>
-                              <span className="truncate">{guide.languages.join(", ")}</span>
+                                {isCityMatch && (
+                                  <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
+                                    {guide.city}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                                {guide.specialty}
+                              </p>
+                              <div className="flex items-center flex-wrap gap-2 mt-1 text-[10px] text-muted-foreground">
+                                <span className="text-amber-500 font-bold flex items-center gap-0.5">
+                                  <Star className="w-3 h-3 fill-current" /> {guide.rating}
+                                </span>
+                                <span>·</span>
+                                <span>{guide.experience}</span>
+                                <span>·</span>
+                                <span className="truncate">{guide.languages.join(", ")}</span>
+                              </div>
                             </div>
                           </div>
-                          <div className="text-right shrink-0">
+                          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-border/50 shrink-0">
                             <span className="text-xs font-bold text-primary block">₹{guide.ratePerDay}/d</span>
                             <span className={`text-[10px] font-semibold ${isSel ? "text-primary" : "text-muted-foreground"}`}>
                               {isSel ? "Selected ✓" : "Select"}
@@ -1249,7 +1251,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                     {/* Hotel Details */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                           <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-primary">
                               {h.classification}
@@ -1258,9 +1260,9 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                               {h.name}
                             </h4>
                           </div>
-                          <div className="text-right shrink-0">
+                          <div className="text-left sm:text-right shrink-0 mt-1 sm:mt-0">
                             <span className="text-sm sm:text-base font-bold text-foreground">₹{h.price.toLocaleString("en-IN")}</span>
-                            <span className="text-[10px] text-muted-foreground block">/night</span>
+                            <span className="text-[10px] text-muted-foreground inline sm:block"> /night</span>
                           </div>
                         </div>
 
@@ -1274,20 +1276,20 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                         </p>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 mt-2 border-t border-border text-xs">
-                        <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 mt-2 border-t border-border text-xs gap-2">
+                        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
                           <span className="flex items-center gap-1 font-bold text-amber-500">
                             <Star className="w-3.5 h-3.5 fill-current" /> {h.rating}
                           </span>
                           <span className="text-muted-foreground">({h.reviewsCount || 850}+ reviews)</span>
                           {h.phone && (
-                            <span className="hidden sm:flex items-center gap-1 text-muted-foreground">
+                            <span className="flex items-center gap-1 text-muted-foreground">
                               <Phone className="w-3 h-3 text-emerald-500" /> {h.phone}
                             </span>
                           )}
                         </div>
 
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full self-start sm:self-auto ${
                           isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                         }`}>
                           {isSelected ? "Selected Hotel ✓" : "Select"}
@@ -1464,7 +1466,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
             </div>
 
             {/* Payment Options Selector: UPI | Card | COD */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {[
                 { id: "upi", label: "UPI Apps", icon: QrCode, desc: "GPay, PhonePe, Paytm" },
                 { id: "card", label: "Debit/Credit Card", icon: CreditCard, desc: "Visa, RuPay, Master" },
@@ -1495,7 +1497,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
             {paymentGateway === "upi" && (
               <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border border-border text-xs">
                 <span className="font-semibold text-muted-foreground block">Select Preferred UPI App:</span>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { id: "gpay", name: "Google Pay" },
                     { id: "phonepe", name: "PhonePe" },

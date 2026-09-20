@@ -705,7 +705,7 @@ export default function EventPlanner() {
 
         {/* TAB 2: BOOK A SURPRISE EVENT (User enters custom category) */}
         {activeTab === "form" && (
-          <div className="grid lg:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 space-y-6">
               {submittedId && (
                 <div className="p-6 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-4">
