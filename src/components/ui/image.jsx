@@ -119,11 +119,12 @@ const Image = React.forwardRef(
     const parsedSource = src && src !== FALLBACK_IMAGE_URL ? parseWixMediaUrl(src) : null
     const initialMode = parsedSource ? IMAGE_LOAD_MODE.OPTIMIZED : IMAGE_LOAD_MODE.ORIGINAL
     const [loadState, setLoadState] = React.useState({ src, mode: initialMode })
-    const mode = loadState.src === src ? loadState.mode : initialMode
 
     React.useEffect(() => {
       setLoadState({ src, mode: initialMode })
-    }, [src, initialMode])
+    }, [src])
+
+    const mode = loadState.src === src ? loadState.mode : initialMode
 
     const handleError = (event) => {
       if (mode === IMAGE_LOAD_MODE.FALLBACK) return

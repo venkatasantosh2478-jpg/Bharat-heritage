@@ -157,7 +157,7 @@ export function getAllCustomCardImages() {
   try {
     const raw = localStorage.getItem(CUSTOM_IMAGES_KEY);
     const stored = raw ? JSON.parse(raw) : {};
-    return { ...stored, ...memoryCustomImages };
+    return { ...memoryCustomImages, ...stored };
   } catch {
     return { ...memoryCustomImages };
   }
