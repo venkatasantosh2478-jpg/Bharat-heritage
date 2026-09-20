@@ -246,7 +246,7 @@ export function getLocalizedPlace(place, lang = "en") {
 
   const key = place.id || place.name?.toLowerCase().replace(/\s+/g, "-");
   const match = translations.places[key] || Object.values(translations.places).find((p) => p[lang]?.name === place.name);
-  const localized = match?.[lang];
+  const localized = match?.[lang] || match?.hi || match?.te;
 
   if (!localized) return place;
   return {
@@ -263,7 +263,7 @@ export function getLocalizedFood(food, lang = "en") {
   if (lang === "en") return food;
 
   const match = translations.foods[food.name];
-  const localized = match?.[lang];
+  const localized = match?.[lang] || match?.hi || match?.te;
 
   if (!localized) return food;
   return {
@@ -279,7 +279,7 @@ export function getLocalizedProduct(product, lang = "en") {
   if (lang === "en") return product;
 
   const match = translations.products[product.name] || translations.products[product.title];
-  const localized = match?.[lang];
+  const localized = match?.[lang] || match?.hi || match?.te;
 
   if (!localized) return product;
   return {

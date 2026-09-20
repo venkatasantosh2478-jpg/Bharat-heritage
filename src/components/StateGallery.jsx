@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { 
   MapPin, Eye, X, ArrowRight, Sparkles, 
   Calendar, Award, Compass, Search, Camera,
-  LayoutGrid, Rows
+  LayoutGrid, Rows, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import ThreeDTiltCard from "@/components/ui/ThreeDTiltCard";
@@ -166,7 +166,15 @@ export default function StateGallery({ limit }) {
   const [activeRegion, setActiveRegion] = useState("All Regions");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [viewMode, setViewMode] = useState("grid"); // "grid" | "carousel"
+  const [viewMode, setViewMode] = useState("carousel"); // "grid" | "carousel" (Default horizontal)
+  const carouselRef = useRef(null);
+
+  const scrollCarousel = (direction) => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === "left" ? -360 : 360;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -422,92 +430,113 @@ export default function StateGallery({ limit }) {
           ))}
         </div>
       ) : (
-        <div className="flex gap-6 overflow-x-auto pb-6 snap-x scrollbar-none -mx-1 px-1">
-          {displayItems.map((item) => (
-            <div key={item.id} className="min-w-[290px] max-w-[290px] sm:min-w-[340px] sm:max-w-[340px] snap-start shrink-0">
-              <ThreeDTiltCard
-                key={item.id}
-                maxTilt={10}
-                scale={1.03}
-                glare={true}
-                onClick={() => setSelectedImage(item)}
-                className="group h-full rounded-3xl overflow-hidden bg-card border border-border shadow-xs hover:shadow-2xl hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between cursor-pointer animate-in fade-in zoom-in duration-300"
-              >
-                <div>
-                  {/* Image & Badges */}
-                  <div className="relative h-56 overflow-hidden rounded-t-3xl bg-slate-900">
-                    <Image
-                      src={getCustomCardImage(item, item.image)}
-                      alt={item.state}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      fittingType="fill"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="relative group/carousel">
+          {/* Scroll Left Button */}
+          <button
+            onClick={() => scrollCarousel("left")}
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/80 hover:bg-amber-500 hover:text-stone-950 text-white border border-white/20 shadow-xl flex items-center justify-center transition-all opacity-80 hover:opacity-100 backdrop-blur-md"
+            title="Scroll Left"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
-                    {/* Badges */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5" style={{ transform: "translateZ(25px)" }}>
-                      <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-amber-300 text-[10px] font-bold border border-amber-500/30">
-                        {item.state}
-                      </span>
-                      {item.unesco && (
-                        <span className="px-2 py-1 rounded-full bg-amber-500 text-stone-950 text-[10px] font-extrabold flex items-center gap-1 shadow-md">
-                          <Award className="w-3 h-3" /> UNESCO
+          {/* Carousel Strip */}
+          <div ref={carouselRef} className="flex gap-6 overflow-x-auto pb-6 snap-x scrollbar-none -mx-1 px-3 scroll-smooth">
+            {displayItems.map((item) => (
+              <div key={item.id} className="min-w-[290px] max-w-[290px] sm:min-w-[340px] sm:max-w-[340px] snap-start shrink-0">
+                <ThreeDTiltCard
+                  key={item.id}
+                  maxTilt={10}
+                  scale={1.03}
+                  glare={true}
+                  onClick={() => setSelectedImage(item)}
+                  className="group h-full rounded-3xl overflow-hidden bg-card border border-border shadow-xs hover:shadow-2xl hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between cursor-pointer animate-in fade-in zoom-in duration-300"
+                >
+                  <div>
+                    {/* Image & Badges */}
+                    <div className="relative h-56 overflow-hidden rounded-t-3xl bg-slate-900">
+                      <Image
+                        src={getCustomCardImage(item, item.image)}
+                        alt={item.state}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        fittingType="fill"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                      {/* Badges */}
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5" style={{ transform: "translateZ(25px)" }}>
+                        <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-amber-300 text-[10px] font-bold border border-amber-500/30">
+                          {item.state}
                         </span>
-                      )}
-                    </div>
+                        {item.unesco && (
+                          <span className="px-2 py-1 rounded-full bg-amber-500 text-stone-950 text-[10px] font-extrabold flex items-center gap-1 shadow-md">
+                            <Award className="w-3 h-3" /> UNESCO
+                          </span>
+                        )}
+                      </div>
 
-                    {/* Actions overlay icon */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10" style={{ transform: "translateZ(30px)" }}>
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setReplacingStateItem(item);
-                          }}
-                          className="w-8 h-8 rounded-full bg-black/70 hover:bg-amber-500 hover:text-stone-950 backdrop-blur-md text-stone-200 grid place-items-center shadow-md transition-all border border-white/20"
-                          title="Admin Control: Replace / Change State Image"
-                        >
-                          <Camera className="w-4 h-4" />
-                        </button>
-                      )}
-                      <div className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-stone-200 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity border border-white/20">
-                        <Eye className="w-4 h-4" />
+                      {/* Actions overlay icon */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10" style={{ transform: "translateZ(30px)" }}>
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReplacingStateItem(item);
+                            }}
+                            className="w-8 h-8 rounded-full bg-black/70 hover:bg-amber-500 hover:text-stone-950 backdrop-blur-md text-stone-200 grid place-items-center shadow-md transition-all border border-white/20"
+                            title="Admin Control: Replace / Change State Image"
+                          >
+                            <Camera className="w-4 h-4" />
+                          </button>
+                        )}
+                        <div className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-stone-200 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity border border-white/20">
+                          <Eye className="w-4 h-4" />
+                        </div>
+                      </div>
+
+                      {/* Landmark overlay tag */}
+                      <div className="absolute bottom-3 left-3 right-3 text-white" style={{ transform: "translateZ(20px)" }}>
+                        <p className="flex items-center gap-1 text-[11px] font-medium text-amber-300 drop-shadow-sm">
+                          <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
+                          {item.landmark}
+                        </p>
+                        <h3 className="text-base font-bold font-heading line-clamp-1 drop-shadow-md mt-0.5">
+                          {item.title}
+                        </h3>
                       </div>
                     </div>
 
-                    {/* Landmark overlay tag */}
-                    <div className="absolute bottom-3 left-3 right-3 text-white" style={{ transform: "translateZ(20px)" }}>
-                      <p className="flex items-center gap-1 text-[11px] font-medium text-amber-300 drop-shadow-sm">
-                        <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
-                        {item.landmark}
+                    {/* Caption & Content */}
+                    <div className="p-5">
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                        {item.caption}
                       </p>
-                      <h3 className="text-base font-bold font-heading line-clamp-1 drop-shadow-md mt-0.5">
-                        {item.title}
-                      </h3>
+
+                      <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-amber-500" />
+                          {item.bestTime}
+                        </span>
+                        <span className="font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                          Inspect Caption <ArrowRight className="w-3 h-3" />
+                        </span>
+                      </div>
                     </div>
                   </div>
+                </ThreeDTiltCard>
+              </div>
+            ))}
+          </div>
 
-                  {/* Caption & Content */}
-                  <div className="p-5">
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                      {item.caption}
-                    </p>
-
-                    <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-amber-500" />
-                        {item.bestTime}
-                      </span>
-                      <span className="font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                        Inspect Caption <ArrowRight className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </ThreeDTiltCard>
-            </div>
-          ))}
+          {/* Scroll Right Button */}
+          <button
+            onClick={() => scrollCarousel("right")}
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/80 hover:bg-amber-500 hover:text-stone-950 text-white border border-white/20 shadow-xl flex items-center justify-center transition-all opacity-80 hover:opacity-100 backdrop-blur-md"
+            title="Scroll Right"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       )}
 
