@@ -4,7 +4,8 @@ import {
   Mic, MapPin, Star, Bus, Car, Train, Plane, Bot, CreditCard, 
   Wallet, Download, CheckCircle, Phone, ShieldCheck, 
   Compass, Gift, CheckCircle2, Calendar, Accessibility, 
-  X, QrCode, Award, Sparkles, Volume2
+  X, QrCode, Award, Sparkles, Volume2, Languages, Eye,
+  Filter, UserCheck, BedDouble, BookOpen
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { getHotelsForCity, governmentRecognizedHotels } from "@/lib/hotelDirectoryData";
@@ -27,6 +28,10 @@ export const licensedHeritageGuides = [
     ratePerDay: 1400,
     specialty: "Buddhist heritage, Araku tribal history & Coastal flora",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    circuits: ["Thotlakonda Monastic Complex", "Bavikonda Relic Stupas", "Simhachalam Temple", "Borra Caves & Araku Coffee Plantations"],
+    accreditation: "Ministry of Tourism Certified · Grade-A Regional Level Guide (South Zone)",
+    phone: "+91 98480 84901",
+    bio: "Passionate historian specializing in Eastern Ghats Buddhist excavations and ancient Kalinga maritime history. Licensed by the Archaeological Survey of India with over a decade of guiding university scholars and cultural travelers.",
   },
   {
     id: "g-2",
@@ -40,6 +45,10 @@ export const licensedHeritageGuides = [
     ratePerDay: 1600,
     specialty: "Qutb Shahi architecture, Golconda acoustics & Nizami culinary lore",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    circuits: ["Golconda Fort Acoustic Enclaves", "Qutb Shahi Tombs Conservation Project", "Charminar & Laad Bazaar Heritage Walk", "Chowmahalla Palace"],
+    accreditation: "Ministry of Tourism Certified · Senior Regional Guide",
+    phone: "+91 98490 21902",
+    bio: "Descendant of Deccani calligraphers, Farooq brings Golconda's 16th-century acoustic whispers and Nizami culinary history to life. Regularly featured in heritage documentaries.",
   },
   {
     id: "g-3",
@@ -53,6 +62,10 @@ export const licensedHeritageGuides = [
     ratePerDay: 1500,
     specialty: "Mughal marble inlay craftsmanship & Taj Mahal sunset angles",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
+    circuits: ["Taj Mahal Sunrise & Sunset Geometry", "Agra Fort Mughal Palaces", "Fatehpur Sikri Imperial Complex", "Pietra Dura Artisan Workshops"],
+    accreditation: "ASI Northern Circle Certified · Ministry of Tourism Grade-A",
+    phone: "+91 98370 10203",
+    bio: "Agra native with architectural conservation training. Specializes in Mughal floral inlay (Parchin Kari) and secret acoustics within Fatehpur Sikri's Diwan-i-Khas.",
   },
   {
     id: "g-4",
@@ -66,6 +79,10 @@ export const licensedHeritageGuides = [
     ratePerDay: 1350,
     specialty: "Old Delhi Chandni Chowk walks & Mughal architectural conservation",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
+    circuits: ["Red Fort & Meena Bazaar", "Humayun's Tomb & Sunder Nursery", "Qutub Minar Complex & Iron Pillar", "Old Delhi Haveli Culinary Walk"],
+    accreditation: "ASI Delhi Circle Certified · National Level Guide (Govt. of India)",
+    phone: "+91 98110 38804",
+    bio: "MPhil in Medieval Indian History from Delhi University. Conducts sensory walking tours through Shahjahanabad and Mughal garden architectures.",
   },
   {
     id: "g-5",
@@ -79,6 +96,10 @@ export const licensedHeritageGuides = [
     ratePerDay: 1450,
     specialty: "Dravidian temple architecture, Chola inscriptions & Tirumala traditions",
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+    circuits: ["Tirumala Srivari Temple Protocols", "Sri Govindaraja Swamy Temple", "Chandragiri Vijayanagara Fort", "Kapila Theertham Waterfalls"],
+    accreditation: "ASI Certified · TTD Accredited Temple Scholar",
+    phone: "+91 98480 41205",
+    bio: "Epigraphy expert specializing in Pallava, Chola, and Vijayanagara stone inscriptions. Assisting pilgrims and heritage enthusiasts with seamless temple darshan lore and architecture.",
   },
   {
     id: "g-6",
@@ -92,6 +113,10 @@ export const licensedHeritageGuides = [
     ratePerDay: 1550,
     specialty: "Rajput fort defense mechanisms & block printing artisan tours",
     avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80",
+    circuits: ["Amber Fort Underground Tunnels & Jaigarh Cannon", "Jantar Mantar Astronomical Instruments", "City Palace Royal Collections", "Bagru Natural Dye Block Printing"],
+    accreditation: "Rajasthan Tourism Certified · ASI Western Circle",
+    phone: "+91 98290 50706",
+    bio: "Born in the Walled Pink City, Vikram decodes Jantar Mantar's celestial sundials and secret defensive tunnels connecting Amber to Jaigarh Fort.",
   },
   {
     id: "g-7",
@@ -105,6 +130,10 @@ export const licensedHeritageGuides = [
     ratePerDay: 1600,
     specialty: "Ganga Aarti philosophy, Kashi Vishwanath corridors & Kabir mutt",
     avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80",
+    circuits: ["Dashashwamedh & Manikarnika Ghat Dawn Boat Walk", "Kashi Vishwanath Corridor & Annapurna", "Sarnath Deer Park & Dhamek Stupa", "Kabir Chaura & Classical Music Gurukuls"],
+    accreditation: "ASI Certified · Kashi Heritage Society Scholar",
+    phone: "+91 98390 78107",
+    bio: "Vedic scholar and boatman family scion with encyclopedic knowledge of all 84 Ganga ghats, sacred cremation philosophy, and ancient Sarnath Buddhist excavations.",
   },
 ];
 
@@ -218,6 +247,12 @@ export default function Planner() {
   const [loading, setLoading] = useState(false);
   const [aiNote, setAiNote] = useState("");
   const [showDetail, setShowDetail] = useState(false);
+
+  // Guide and Hotel View Controls (Web Layout & Mobile UX)
+  const [rightColTab, setRightColTab] = useState("hotels"); // 'hotels' | 'guides'
+  const [guideCityFilter, setGuideCityFilter] = useState("all");
+  const [viewingGuideBio, setViewingGuideBio] = useState(null);
+  const [showAllGuides, setShowAllGuides] = useState(false);
 
   // Payment Modal & State
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -597,17 +632,17 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0">
                 <button
                   type="button"
                   onClick={() => generateTripVoucherPDF(confirmedBooking)}
-                  className="px-5 py-3 rounded-full bg-primary text-primary-foreground font-bold text-xs sm:text-sm shadow-md hover:opacity-90 flex items-center gap-2 transition-all"
+                  className="px-5 py-3 rounded-full bg-primary text-primary-foreground font-bold text-xs sm:text-sm shadow-md hover:opacity-90 flex items-center justify-center gap-2 transition-all"
                 >
                   <Download className="w-4 h-4" /> Download PDF Itinerary & Voucher
                 </button>
                 <Link
                   to="/profile?tab=trips"
-                  className="px-4 py-3 rounded-full bg-card border border-border text-foreground font-bold text-xs hover:bg-muted transition-colors"
+                  className="px-4 py-3 rounded-full bg-card border border-border text-foreground font-bold text-xs hover:bg-muted transition-colors text-center"
                 >
                   View in My Profile
                 </Link>
@@ -624,12 +659,56 @@ Return ${days} days with short title and descriptive heritage sights strictly in
         </div>
       )}
 
+      {/* Mobile Quick-Jump Stepper Bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:hidden">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+          <a
+            href="#step-route"
+            className="px-3 py-1.5 rounded-full text-xs font-semibold bg-muted text-foreground flex items-center gap-1.5 shrink-0 hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            <Compass className="w-3.5 h-3.5 text-primary" /> 1. Route
+          </a>
+          <a
+            href="#step-preferences"
+            className="px-3 py-1.5 rounded-full text-xs font-semibold bg-muted text-foreground flex items-center gap-1.5 shrink-0 hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            <Accessibility className="w-3.5 h-3.5 text-primary" /> 2. Comfort
+          </a>
+          <a
+            href="#step-transit"
+            className="px-3 py-1.5 rounded-full text-xs font-semibold bg-muted text-foreground flex items-center gap-1.5 shrink-0 hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            <Train className="w-3.5 h-3.5 text-primary" /> 3. Transit
+          </a>
+          <a
+            href="#step-guide"
+            className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/30 flex items-center gap-1.5 shrink-0"
+          >
+            <Award className="w-3.5 h-3.5 text-primary" /> 4. ASI Guides
+          </a>
+          <a
+            href="#step-hotels"
+            className="px-3 py-1.5 rounded-full text-xs font-semibold bg-muted text-foreground flex items-center gap-1.5 shrink-0 hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            <BedDouble className="w-3.5 h-3.5 text-primary" /> 5. Hotels
+          </a>
+          {plan && (
+            <a
+              href="#step-itinerary"
+              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 flex items-center gap-1.5 shrink-0"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> 6. Itinerary
+            </a>
+          )}
+        </div>
+      </div>
+
       {/* Main Form & Inventory Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Form & Conditions (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Step 1: Route & Dates */}
-          <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-5">
+          <div id="step-route" className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-card border border-border shadow-sm space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h2 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
                 <Compass className="w-4.5 h-4.5 text-primary" /> Step 1: Route & Dates
@@ -758,7 +837,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
           </div>
 
           {/* Step 2: Traveler Preferences & Comfort */}
-          <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-5">
+          <div id="step-preferences" className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-card border border-border shadow-sm space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h2 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
                 <Accessibility className="w-4.5 h-4.5 text-primary" /> Step 2: Preferences & Comfort
@@ -856,13 +935,13 @@ Return ${days} days with short title and descriptive heritage sights strictly in
             </div>
           </div>
 
-          {/* Step 3: Transit & Certified Guide */}
-          <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-5">
+          {/* Step 3: Transit & Local Conveyance */}
+          <div id="step-transit" className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-card border border-border shadow-sm space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h2 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
-                <Train className="w-4.5 h-4.5 text-primary" /> Step 3: Transit & Heritage Guide
+                <Train className="w-4.5 h-4.5 text-primary" /> Step 3: Transit & Local Conveyance
               </h2>
-              <span className="text-xs text-muted-foreground font-medium">Verified Services</span>
+              <span className="text-xs text-muted-foreground font-medium">Intercity & Local</span>
             </div>
 
             {/* Target Budget */}
@@ -901,7 +980,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className={`p-2 rounded-xl ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+                        <span className={`p-2 rounded-xl shrink-0 ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
                           <Icon className="w-4 h-4" />
                         </span>
                         <div>
@@ -919,8 +998,8 @@ Return ${days} days with short title and descriptive heritage sights strictly in
             </div>
 
             {/* AVAILABLE TRANSPORT FACILITIES CARD */}
-            <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-muted/40 border border-border space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                   <Train className="w-3.5 h-3.5" /> Available Transport Facilities for {to}
                 </h3>
@@ -938,13 +1017,13 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                       onClick={() => setSelectedFacility(tr)}
                       className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
                         selectedFacility?.id === tr.id
-                          ? "border-primary bg-primary/10 shadow-xs"
+                          ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
                           : "border-border bg-card hover:bg-muted/60"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center flex-wrap gap-1.5">
                             <span className="font-bold text-foreground">{tr.name}</span>
                             <span className="px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 font-mono font-bold text-[10px]">
                               #{tr.code}
@@ -977,13 +1056,13 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                       onClick={() => setSelectedFacility(fl)}
                       className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
                         selectedFacility?.id === fl.id
-                          ? "border-primary bg-primary/10 shadow-xs"
+                          ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
                           : "border-border bg-card hover:bg-muted/60"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center flex-wrap gap-1.5">
                             <span className="font-bold text-foreground">{fl.airline}</span>
                             <span className="px-1.5 py-0.5 rounded-md bg-sky-500/15 text-sky-600 font-mono font-bold text-[10px]">
                               Flight {fl.code}
@@ -1013,13 +1092,13 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                       onClick={() => setSelectedFacility(b)}
                       className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
                         selectedFacility?.id === b.id
-                          ? "border-primary bg-primary/10 shadow-xs"
+                          ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
                           : "border-border bg-card hover:bg-muted/60"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center flex-wrap gap-1.5">
                             <span className="font-bold text-foreground">{b.operator}</span>
                             <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 font-mono font-bold text-[10px]">
                               {b.code}
@@ -1043,11 +1122,11 @@ Return ${days} days with short title and descriptive heritage sights strictly in
 
             {/* Mode of Transport During Trip (Sightseeing & Excursions) */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
                 <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Mode of Transport During Trip (Local Sightseeing)
                 </label>
-                <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full w-fit">
                   {selectedLocalTransit?.tag}
                 </span>
               </div>
@@ -1097,231 +1176,592 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                 })}
               </div>
             </div>
+          </div>
 
-            {/* Licensed Guide Checkbox & Guide Selection Card */}
-            <div className="space-y-3">
-              <label className="flex items-center gap-3 p-3.5 rounded-2xl bg-muted/50 border border-border cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={withGuide}
-                  onChange={(e) => {
-                    setWithGuide(e.target.checked);
-                    if (plan) {
-                      const hotel = selectedHotel || matchingHotels[0] || governmentRecognizedHotels[0];
-                      const hotelCost = (hotel?.price || 3500) * days;
-                      const tCost = calculatedTransportCost;
-                      const localTransitCost = (selectedLocalTransit?.dailyRate || 1800) * days;
-                      const guideCost = e.target.checked ? (selectedGuide?.ratePerDay || 1400) * days : 0;
-                      const foodCost = 800 * days;
-                      const total = hotelCost + tCost + localTransitCost + guideCost + foodCost;
-                      setPlan({ ...plan, breakdown: { hotelCost, tCost, localTransitCost, guideCost, foodCost, total } });
-                    }
-                  }}
-                  className="w-4 h-4 accent-primary rounded"
-                />
-                <div className="text-xs flex-1">
-                  <span className="font-bold text-foreground flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-primary" /> Include Government Licensed Heritage Guide
-                  </span>
-                  <p className="text-muted-foreground mt-0.5">Certified ASI badge guide with historical narratives, temple access & crowd assistance.</p>
+          {/* Step 4: Government Licensed ASI Heritage Guides */}
+          <div id="step-guide" className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-card border border-border shadow-sm space-y-4 sm:space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border">
+              <div>
+                <h2 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
+                  <Award className="w-4.5 h-4.5 text-primary" /> Step 4: ASI Certified Heritage Guides
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Archaeological Survey of India scholars with monument lore & priority entry
+                </p>
+              </div>
+              <span className="text-[10px] sm:text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1 self-start sm:self-auto">
+                <ShieldCheck className="w-3.5 h-3.5" /> 100% ASI Licensed
+              </span>
+            </div>
+
+            {/* Guide Inclusion Switcher */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setWithGuide(true);
+                  if (plan) {
+                    const hotel = selectedHotel || matchingHotels[0] || governmentRecognizedHotels[0];
+                    const hotelCost = (hotel?.price || 3500) * days;
+                    const tCost = calculatedTransportCost;
+                    const localTransitCost = (selectedLocalTransit?.dailyRate || 1800) * days;
+                    const guideCost = (selectedGuide?.ratePerDay || 1400) * days;
+                    const foodCost = 800 * days;
+                    const total = hotelCost + tCost + localTransitCost + guideCost + foodCost;
+                    setPlan({ ...plan, breakdown: { hotelCost, tCost, localTransitCost, guideCost, foodCost, total } });
+                  }
+                }}
+                className={`p-3.5 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                  withGuide
+                    ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
+                    : "border-border bg-card hover:bg-muted/40"
+                }`}
+              >
+                <div className={`p-2 rounded-xl shrink-0 ${withGuide ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+                  <UserCheck className="w-4 h-4" />
                 </div>
-              </label>
-
-              {/* Guide Selection Picker */}
-              {withGuide && (
-                <div className="p-4 rounded-2xl bg-card border border-primary/30 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-primary" /> Choose Your ASI Certified Guide
+                <div>
+                  <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    With ASI Heritage Guide
+                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600">
+                      Recommended
                     </span>
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      Verified Identity
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Daily scholar accompaniment with verified background check.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setWithGuide(false);
+                  if (plan) {
+                    const hotel = selectedHotel || matchingHotels[0] || governmentRecognizedHotels[0];
+                    const hotelCost = (hotel?.price || 3500) * days;
+                    const tCost = calculatedTransportCost;
+                    const localTransitCost = (selectedLocalTransit?.dailyRate || 1800) * days;
+                    const guideCost = 0;
+                    const foodCost = 800 * days;
+                    const total = hotelCost + tCost + localTransitCost + guideCost + foodCost;
+                    setPlan({ ...plan, breakdown: { hotelCost, tCost, localTransitCost, guideCost, foodCost, total } });
+                  }
+                }}
+                className={`p-3.5 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                  !withGuide
+                    ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
+                    : "border-border bg-card hover:bg-muted/40"
+                }`}
+              >
+                <div className={`p-2 rounded-xl shrink-0 ${!withGuide ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+                  <Compass className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground">Self-Guided Exploration</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Navigate monuments independently. ₹0 guide tariff.
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* Selected / Matched Guide Card */}
+            {withGuide ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-primary flex items-center gap-1.5 uppercase tracking-wider">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      {selectedGuide?.city?.toLowerCase() === to.toLowerCase() ? `Matched Guide for ${to}` : "Assigned Heritage Guide"}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold bg-background px-2 py-0.5 rounded-full text-foreground border border-border">
+                      {selectedGuide?.badge || "ASI-LICENSED"}
                     </span>
                   </div>
 
-                  {/* Guides Carousel/List */}
-                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                    {licensedHeritageGuides.map((guide) => {
-                      const isSel = selectedGuide?.id === guide.id;
-                      const isCityMatch = guide.city.toLowerCase().includes(to.toLowerCase()) || to.toLowerCase().includes(guide.city.toLowerCase());
-                      return (
-                        <div
-                          key={guide.id}
-                          onClick={() => {
-                            setSelectedGuide(guide);
-                            if (plan) {
-                              const hotel = selectedHotel || matchingHotels[0] || governmentRecognizedHotels[0];
-                              const hotelCost = (hotel?.price || 3500) * days;
-                              const tCost = calculatedTransportCost;
-                              const localTransitCost = (selectedLocalTransit?.dailyRate || 1800) * days;
-                              const guideCost = guide.ratePerDay * days;
-                              const foodCost = 800 * days;
-                              const total = hotelCost + tCost + localTransitCost + guideCost + foodCost;
-                              setPlan({ ...plan, breakdown: { hotelCost, tCost, localTransitCost, guideCost, foodCost, total } });
-                            }
-                          }}
-                          className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                            isSel
-                              ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
-                              : "border-border bg-background hover:bg-muted/40"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3 w-full sm:w-auto">
-                            <img
-                              src={guide.avatar}
-                              alt={guide.name}
-                              className="w-11 h-11 rounded-full object-cover shrink-0 border-2 border-primary/40"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center flex-wrap gap-1.5">
-                                <span className="text-xs font-bold text-foreground truncate">{guide.name}</span>
-                                <span className="text-[9px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-muted-foreground shrink-0">
-                                  {guide.badge}
-                                </span>
-                                {isCityMatch && (
-                                  <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
-                                    {guide.city}
-                                  </span>
-                                )}
+                  {/* Guide Info Layout (Cleanly responsive for mobile & web) */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
+                    <img
+                      src={selectedGuide?.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"}
+                      alt={selectedGuide?.name}
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover shrink-0 border-2 border-primary/40 shadow-xs"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center flex-wrap gap-2">
+                        <h4 className="text-sm sm:text-base font-bold text-foreground font-heading">
+                          {selectedGuide?.name}
+                        </h4>
+                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                          {selectedGuide?.city}
+                        </span>
+                        <span className="text-[10px] font-semibold text-muted-foreground">
+                          {selectedGuide?.experience}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground mt-1">
+                        <span className="text-amber-500 font-bold flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 fill-current" /> {selectedGuide?.rating}
+                        </span>
+                        <span>·</span>
+                        <span>{selectedGuide?.toursCount}+ Tours Completed</span>
+                      </div>
+
+                      {/* Full Specialty Narrative (No truncation) */}
+                      <p className="text-xs text-foreground/90 mt-1.5 leading-relaxed">
+                        {selectedGuide?.specialty}
+                      </p>
+
+                      {/* Spoken Languages */}
+                      <div className="flex items-center flex-wrap gap-1.5 mt-2">
+                        <Languages className="w-3.5 h-3.5 text-primary shrink-0" />
+                        {(selectedGuide?.languages || []).map(lang => (
+                          <span key={lang} className="text-[10px] font-medium bg-background border border-border px-2 py-0.5 rounded-md text-foreground">
+                            {lang}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tariff & Action Footer */}
+                  <div className="pt-3 border-t border-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-base font-bold text-primary font-heading">
+                          ₹{selectedGuide?.ratePerDay}/day
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          (₹{(selectedGuide?.ratePerDay || 1400) * days} for {days} days)
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-emerald-600 font-medium block">
+                        Direct monument escort · No hidden charges
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setViewingGuideBio(selectedGuide)}
+                        className="px-3 py-1.5 rounded-xl bg-background border border-border text-foreground hover:bg-muted text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-primary" /> Credentials & Bio
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowAllGuides(!showAllGuides)}
+                        className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-1"
+                      >
+                        {showAllGuides ? "Close List" : `Switch Guide (${licensedHeritageGuides.length})`}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Inline Full Guides Browser if user expands */}
+                {showAllGuides && (
+                  <div className="p-4 rounded-2xl bg-card border border-border space-y-3 animate-in fade-in">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-foreground">
+                        Browse All Licensed Guides Across India
+                      </span>
+                      {/* City Filter Pills */}
+                      <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
+                        {["all", "Visakhapatnam", "Hyderabad", "Agra", "Delhi", "Tirupati", "Jaipur", "Varanasi"].map(c => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setGuideCityFilter(c)}
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 transition-colors ${
+                              guideCityFilter === c
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {c === "all" ? "All Cities" : c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
+                      {licensedHeritageGuides
+                        .filter(g => guideCityFilter === "all" || g.city.toLowerCase() === guideCityFilter.toLowerCase())
+                        .map(g => {
+                          const isSel = selectedGuide?.id === g.id;
+                          return (
+                            <div
+                              key={g.id}
+                              className={`p-3 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                                isSel
+                                  ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
+                                  : "border-border bg-background hover:bg-muted/40"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3 min-w-0">
+                                <img
+                                  src={g.avatar}
+                                  alt={g.name}
+                                  className="w-12 h-12 rounded-xl object-cover shrink-0 border border-border"
+                                />
+                                <div className="min-w-0">
+                                  <div className="flex items-center flex-wrap gap-1.5">
+                                    <span className="text-xs font-bold text-foreground">{g.name}</span>
+                                    <span className="text-[10px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                                      {g.badge}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                                      {g.city}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                                    {g.specialty}
+                                  </p>
+                                  <div className="flex items-center flex-wrap gap-2 text-[10px] text-muted-foreground mt-1">
+                                    <span className="text-amber-500 font-bold flex items-center gap-0.5">
+                                      <Star className="w-3 h-3 fill-current" /> {g.rating}
+                                    </span>
+                                    <span>·</span>
+                                    <span>{g.experience}</span>
+                                    <span>·</span>
+                                    <span>{g.languages.join(", ")}</span>
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                                {guide.specialty}
-                              </p>
-                              <div className="flex items-center flex-wrap gap-2 mt-1 text-[10px] text-muted-foreground">
-                                <span className="text-amber-500 font-bold flex items-center gap-0.5">
-                                  <Star className="w-3 h-3 fill-current" /> {guide.rating}
-                                </span>
-                                <span>·</span>
-                                <span>{guide.experience}</span>
-                                <span>·</span>
-                                <span className="truncate">{guide.languages.join(", ")}</span>
+
+                              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-border shrink-0">
+                                <span className="text-xs font-bold text-primary">₹{g.ratePerDay}/d</span>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setViewingGuideBio(g)}
+                                    className="px-2 py-1 rounded-lg bg-muted text-[10px] font-bold text-foreground hover:bg-muted/80"
+                                  >
+                                    Bio
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedGuide(g);
+                                      if (plan) {
+                                        const hotel = selectedHotel || matchingHotels[0] || governmentRecognizedHotels[0];
+                                        const hotelCost = (hotel?.price || 3500) * days;
+                                        const tCost = calculatedTransportCost;
+                                        const localTransitCost = (selectedLocalTransit?.dailyRate || 1800) * days;
+                                        const guideCost = g.ratePerDay * days;
+                                        const foodCost = 800 * days;
+                                        const total = hotelCost + tCost + localTransitCost + guideCost + foodCost;
+                                        setPlan({ ...plan, breakdown: { hotelCost, tCost, localTransitCost, guideCost, foodCost, total } });
+                                      }
+                                    }}
+                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                                      isSel
+                                        ? "bg-primary text-primary-foreground shadow-xs"
+                                        : "bg-muted text-muted-foreground hover:text-foreground"
+                                    }`}
+                                  >
+                                    {isSel ? "Selected ✓" : "Select"}
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-border/50 shrink-0">
-                            <span className="text-xs font-bold text-primary block">₹{guide.ratePerDay}/d</span>
-                            <span className={`text-[10px] font-semibold ${isSel ? "text-primary" : "text-muted-foreground"}`}>
-                              {isSel ? "Selected ✓" : "Select"}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                    </div>
                   </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center justify-between text-xs">
+                <div>
+                  <p className="font-semibold text-foreground">Self-Guided Mode Active</p>
+                  <p className="text-muted-foreground text-[11px] mt-0.5">
+                    No guide charges will be added. You can add an ASI certified scholar anytime.
+                  </p>
                 </div>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setWithGuide(true)}
+                  className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 hover:opacity-90 transition-opacity"
+                >
+                  + Add Guide
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Core Action Trigger outside cards */}
           <button
             onClick={generate}
             disabled={loading || !to}
-            className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold text-sm shadow-md hover:scale-[1.01] hover:opacity-95 disabled:opacity-50 active:scale-[0.99] transition-all flex items-center justify-center gap-2 font-heading"
+            className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold text-sm sm:text-base shadow-md hover:scale-[1.01] hover:opacity-95 disabled:opacity-50 active:scale-[0.99] transition-all flex items-center justify-center gap-2 font-heading"
           >
             <Bot className="w-4 h-4 shrink-0" />
             {loading ? "Generating Itinerary for " + to + "..." : `Generate ${days}-Day Itinerary for ${to}`}
           </button>
         </div>
 
-        {/* Right Column: Real Hotels Inventory & Booking Gateways (7 cols) */}
+        {/* Right Column: Real Hotels Inventory & ASI Heritage Guides Showcase (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Step 2: Real Hotel Selection for Destination */}
-          <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-border">
-              <div>
-                <h3 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
-                  <ShieldCheck className="w-4 h-4 text-primary" /> Step 2: Verified Hotels in {to}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Government-recognized properties with lift, senior accessibility & pure veg options
-                </p>
+          {/* Step 5: Verified Hotels & ASI Guides Showcase */}
+          <div id="step-hotels" className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-card border border-border shadow-sm space-y-4">
+            {/* Tab Switcher: Hotels vs Guides Showcase */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border">
+              <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-muted/80 w-fit">
+                <button
+                  type="button"
+                  onClick={() => setRightColTab("hotels")}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    rightColTab === "hotels"
+                      ? "bg-card text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <BedDouble className="w-3.5 h-3.5 text-primary" />
+                  Verified Hotels ({matchingHotels.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightColTab("guides")}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    rightColTab === "guides"
+                      ? "bg-card text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Award className="w-3.5 h-3.5 text-primary" />
+                  ASI Certified Guides ({licensedHeritageGuides.length})
+                </button>
               </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary self-start sm:self-auto">
-                {matchingHotels.length} Properties
+              <span className="text-[11px] font-semibold text-muted-foreground self-start sm:self-auto">
+                {rightColTab === "hotels" ? "Govt-Recognized Stays" : "Police & ASI Verified"}
               </span>
             </div>
 
-            {/* Hotel Cards List */}
-            <div className="space-y-3.5 max-h-[440px] overflow-y-auto pr-1">
-              {(matchingHotels || []).map(h => {
-                const isSelected = selectedHotel?.name === h.name;
-                return (
-                  <div
-                    key={h.id || h.name}
-                    onClick={() => {
-                      setSelectedHotel(h);
-                      if (plan) {
-                        setPlan(calculateBreakdown(h, plan.itinerary));
-                      }
-                    }}
-                    className={`group p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden flex flex-col sm:flex-row gap-4 ${
-                      isSelected 
-                        ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/30" 
-                        : "border-border bg-background hover:border-border hover:shadow-xs"
-                    }`}
-                  >
-                    {/* Hotel Image */}
-                    <div className="w-full sm:w-36 h-28 rounded-xl overflow-hidden shrink-0 bg-muted">
-                      <img 
-                        src={h.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&auto=format&fit=crop&q=80"} 
-                        alt={h.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-
-                    {/* Hotel Details */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-between">
-                      <div>
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                          <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-primary">
-                              {h.classification}
-                            </span>
-                            <h4 className="font-bold text-sm sm:text-base text-foreground mt-1 group-hover:text-primary transition-colors">
-                              {h.name}
-                            </h4>
-                          </div>
-                          <div className="text-left sm:text-right shrink-0 mt-1 sm:mt-0">
-                            <span className="text-sm sm:text-base font-bold text-foreground">₹{h.price.toLocaleString("en-IN")}</span>
-                            <span className="text-[10px] text-muted-foreground inline sm:block"> /night</span>
-                          </div>
-                        </div>
-
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                          <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                          <span className="truncate">{h.location}</span>
-                        </p>
-
-                        <p className="text-xs text-muted-foreground/90 mt-1.5 line-clamp-2">
-                          {h.primaryFacilities || h.description}
-                        </p>
+            {/* TAB 1: HOTELS */}
+            {rightColTab === "hotels" && (
+              <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
+                {(matchingHotels || []).map(h => {
+                  const isSelected = selectedHotel?.name === h.name;
+                  return (
+                    <div
+                      key={h.id || h.name}
+                      onClick={() => {
+                        setSelectedHotel(h);
+                        if (plan) {
+                          setPlan(calculateBreakdown(h, plan.itinerary));
+                        }
+                      }}
+                      className={`group p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden flex flex-col sm:flex-row gap-3 sm:gap-4 ${
+                        isSelected 
+                          ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/30" 
+                          : "border-border bg-background hover:border-border hover:shadow-xs"
+                      }`}
+                    >
+                      {/* Hotel Image */}
+                      <div className="w-full sm:w-40 h-36 sm:h-32 rounded-xl overflow-hidden shrink-0 bg-muted">
+                        <img 
+                          src={h.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&auto=format&fit=crop&q=80"} 
+                          alt={h.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 mt-2 border-t border-border text-xs gap-2">
-                        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
-                          <span className="flex items-center gap-1 font-bold text-amber-500">
-                            <Star className="w-3.5 h-3.5 fill-current" /> {h.rating}
+                      {/* Hotel Details */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-2">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-primary">
+                                {h.classification}
+                              </span>
+                              <h4 className="font-bold text-sm sm:text-base text-foreground mt-1 group-hover:text-primary transition-colors">
+                                {h.name}
+                              </h4>
+                            </div>
+                            <div className="text-left sm:text-right shrink-0 mt-0.5 sm:mt-0">
+                              <span className="text-sm sm:text-base font-bold text-foreground">₹{h.price.toLocaleString("en-IN")}</span>
+                              <span className="text-[10px] text-muted-foreground inline sm:block"> /night</span>
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                            <span className="truncate">{h.location}</span>
+                          </p>
+
+                          <p className="text-xs text-muted-foreground/90 mt-1 line-clamp-2">
+                            {h.primaryFacilities || h.description}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 mt-2 border-t border-border text-xs gap-2">
+                          <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+                            <span className="flex items-center gap-1 font-bold text-amber-500">
+                              <Star className="w-3.5 h-3.5 fill-current" /> {h.rating}
+                            </span>
+                            <span className="text-muted-foreground">({h.reviewsCount || 850}+ reviews)</span>
+                            {h.phone && (
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Phone className="w-3 h-3 text-emerald-500" /> {h.phone}
+                              </span>
+                            )}
+                          </div>
+
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full self-start sm:self-auto ${
+                            isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                          }`}>
+                            {isSelected ? "Selected Hotel ✓" : "Select"}
                           </span>
-                          <span className="text-muted-foreground">({h.reviewsCount || 850}+ reviews)</span>
-                          {h.phone && (
-                            <span className="flex items-center gap-1 text-muted-foreground">
-                              <Phone className="w-3 h-3 text-emerald-500" /> {h.phone}
-                            </span>
-                          )}
                         </div>
-
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full self-start sm:self-auto ${
-                          isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                        }`}>
-                          {isSelected ? "Selected Hotel ✓" : "Select"}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* TAB 2: ASI CERTIFIED GUIDES (EXPANSIVE WEB LAYOUT) */}
+            {rightColTab === "guides" && (
+              <div className="space-y-4">
+                {/* City Filter Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                  <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mr-1 shrink-0">
+                    <Filter className="w-3 h-3" /> Filter:
+                  </span>
+                  {["all", "Visakhapatnam", "Hyderabad", "Agra", "Delhi", "Tirupati", "Jaipur", "Varanasi"].map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => setGuideCityFilter(city)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition-colors ${
+                        guideCityFilter === city
+                          ? "bg-primary text-primary-foreground shadow-xs"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {city === "all" ? "All India" : city}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 2-Column Responsive Web Grid for Guides */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[520px] overflow-y-auto pr-1">
+                  {licensedHeritageGuides
+                    .filter(g => guideCityFilter === "all" || g.city.toLowerCase() === guideCityFilter.toLowerCase())
+                    .map((guide) => {
+                      const isSelected = selectedGuide?.id === guide.id && withGuide;
+                      const isCityMatch = guide.city.toLowerCase().includes(to.toLowerCase()) || to.toLowerCase().includes(guide.city.toLowerCase());
+                      return (
+                        <div
+                          key={guide.id}
+                          className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
+                            isSelected
+                              ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/30"
+                              : "border-border bg-background hover:border-primary/40 hover:shadow-xs"
+                          }`}
+                        >
+                          {/* Guide Card Header */}
+                          <div className="space-y-2.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-center gap-2.5">
+                                <img
+                                  src={guide.avatar}
+                                  alt={guide.name}
+                                  className="w-13 h-13 rounded-2xl object-cover border-2 border-primary/30 shrink-0"
+                                />
+                                <div>
+                                  <h4 className="font-bold text-sm text-foreground font-heading">
+                                    {guide.name}
+                                  </h4>
+                                  <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
+                                    <span className="text-[10px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                                      {guide.badge}
+                                    </span>
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                      isCityMatch ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                                    }`}>
+                                      {guide.city}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="text-right shrink-0">
+                                <span className="text-sm font-bold text-primary font-heading">₹{guide.ratePerDay}</span>
+                                <span className="text-[10px] text-muted-foreground block">/day</span>
+                              </div>
+                            </div>
+
+                            {/* Ratings & Experience */}
+                            <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground">
+                              <span className="text-amber-500 font-bold flex items-center gap-1">
+                                <Star className="w-3.5 h-3.5 fill-current" /> {guide.rating}
+                              </span>
+                              <span>·</span>
+                              <span>{guide.toursCount} Tours</span>
+                              <span>·</span>
+                              <span>{guide.experience}</span>
+                            </div>
+
+                            {/* Specialty Narrative */}
+                            <p className="text-xs text-foreground/90 leading-relaxed">
+                              {guide.specialty}
+                            </p>
+
+                            {/* Languages */}
+                            <div className="flex items-center flex-wrap gap-1 pt-1">
+                              {guide.languages.map(l => (
+                                <span key={l} className="text-[9px] font-semibold bg-muted/70 text-muted-foreground px-1.5 py-0.5 rounded">
+                                  {l}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Guide Card Footer Action Buttons */}
+                          <div className="pt-2.5 border-t border-border flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setViewingGuideBio(guide)}
+                              className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1"
+                            >
+                              <Eye className="w-3 h-3" /> View Bio & Circuits
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setWithGuide(true);
+                                setSelectedGuide(guide);
+                                if (plan) {
+                                  const hotel = selectedHotel || matchingHotels[0] || governmentRecognizedHotels[0];
+                                  const hotelCost = (hotel?.price || 3500) * days;
+                                  const tCost = calculatedTransportCost;
+                                  const localTransitCost = (selectedLocalTransit?.dailyRate || 1800) * days;
+                                  const guideCost = guide.ratePerDay * days;
+                                  const foodCost = 800 * days;
+                                  const total = hotelCost + tCost + localTransitCost + guideCost + foodCost;
+                                  setPlan({ ...plan, breakdown: { hotelCost, tCost, localTransitCost, guideCost, foodCost, total } });
+                                }
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                                isSelected
+                                  ? "bg-emerald-600 text-white shadow-xs"
+                                  : "bg-primary text-primary-foreground hover:opacity-90"
+                              }`}
+                            >
+                              {isSelected ? "Selected Guide ✓" : "Select Guide"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Budget Breakdown Summary */}
@@ -1619,6 +2059,152 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                 </>
               )}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ASI Certified Guide Credentials & Bio Modal */}
+      {viewingGuideBio && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 overflow-y-auto animate-in fade-in">
+          <div className="max-w-lg w-full bg-card border border-border rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+            {/* Header with Close */}
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <img
+                  src={viewingGuideBio.avatar}
+                  alt={viewingGuideBio.name}
+                  className="w-14 h-14 rounded-2xl object-cover border-2 border-primary/40 shadow-xs shrink-0"
+                />
+                <div>
+                  <div className="flex items-center flex-wrap gap-1.5">
+                    <h3 className="text-base sm:text-lg font-bold text-foreground font-heading">
+                      {viewingGuideBio.name}
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold bg-muted px-2 py-0.5 rounded text-foreground border border-border">
+                      {viewingGuideBio.badge}
+                    </span>
+                  </div>
+                  <p className="text-xs text-primary font-semibold mt-0.5">
+                    {viewingGuideBio.accreditation || "Archaeological Survey of India Certified Guide"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {viewingGuideBio.city} · {viewingGuideBio.experience} Experience
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingGuideBio(null)}
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-muted/40 border border-border text-center">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold block">Rating</span>
+                <span className="text-sm font-bold text-amber-500 flex items-center justify-center gap-1 mt-0.5">
+                  <Star className="w-3.5 h-3.5 fill-current" /> {viewingGuideBio.rating}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold block">Completed</span>
+                <span className="text-sm font-bold text-foreground block mt-0.5">{viewingGuideBio.toursCount}+ Tours</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold block">Tariff</span>
+                <span className="text-sm font-bold text-primary block mt-0.5">₹{viewingGuideBio.ratePerDay}/d</span>
+              </div>
+            </div>
+
+            {/* Comprehensive Bio */}
+            <div className="space-y-1.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-primary" /> Scholar Profile & Research Focus
+              </h4>
+              <p className="text-xs text-foreground/90 leading-relaxed bg-muted/20 p-3 rounded-xl border border-border/50">
+                {viewingGuideBio.bio || viewingGuideBio.specialty}
+              </p>
+            </div>
+
+            {/* Circuits Handled */}
+            {viewingGuideBio.circuits && viewingGuideBio.circuits.length > 0 && (
+              <div className="space-y-1.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-primary" /> Key Circuits & Monuments Guided
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {viewingGuideBio.circuits.map(circuit => (
+                    <span key={circuit} className="text-xs font-medium bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-lg">
+                      {circuit}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Languages & Direct Assistance */}
+            <div className="space-y-1.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                <Languages className="w-3.5 h-3.5 text-primary" /> Spoken Fluency
+              </h4>
+              <div className="flex items-center flex-wrap gap-1.5">
+                {(viewingGuideBio.languages || []).map(l => (
+                  <span key={l} className="text-xs font-medium bg-background border border-border px-2.5 py-1 rounded-md text-foreground">
+                    {l}
+                  </span>
+                ))}
+                {viewingGuideBio.phone && (
+                  <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1 ml-auto">
+                    <Phone className="w-3.5 h-3.5" /> Direct Support Available
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-3 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-left w-full sm:w-auto">
+                <span className="text-xs text-muted-foreground block">Total for {days}-Day Trip:</span>
+                <span className="text-base font-bold text-primary font-heading">
+                  ₹{(viewingGuideBio.ratePerDay * days).toLocaleString("en-IN")}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setViewingGuideBio(null)}
+                  className="px-4 py-2 rounded-full border border-border text-foreground text-xs font-semibold hover:bg-muted transition-colors flex-1 sm:flex-none"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWithGuide(true);
+                    setSelectedGuide(viewingGuideBio);
+                    if (plan) {
+                      const hotel = selectedHotel || matchingHotels[0] || governmentRecognizedHotels[0];
+                      const hotelCost = (hotel?.price || 3500) * days;
+                      const tCost = calculatedTransportCost;
+                      const localTransitCost = (selectedLocalTransit?.dailyRate || 1800) * days;
+                      const guideCost = viewingGuideBio.ratePerDay * days;
+                      const foodCost = 800 * days;
+                      const total = hotelCost + tCost + localTransitCost + guideCost + foodCost;
+                      setPlan({ ...plan, breakdown: { hotelCost, tCost, localTransitCost, guideCost, foodCost, total } });
+                    }
+                    setViewingGuideBio(null);
+                  }}
+                  className="px-5 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:opacity-95 transition-opacity flex-1 sm:flex-none shadow-xs flex items-center justify-center gap-1.5"
+                >
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  {selectedGuide?.id === viewingGuideBio.id && withGuide ? "Current Guide ✓" : "Select as Trip Guide"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
