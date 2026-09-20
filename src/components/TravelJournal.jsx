@@ -216,6 +216,8 @@ export default function TravelJournal({ onAskAssistant }) {
       });
 
       if (!res.ok) throw new Error("Generation failed");
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) throw new Error("Invalid format");
       const data = await res.json();
 
       const newEntry = {

@@ -311,6 +311,7 @@ export default function Layout() {
                   { label: "Cultural Planner", url: "/planner" },
                   { label: "Festivals & Events", url: "/events" },
                   { label: "Heritage Map", url: "/map" },
+                  { label: "SIH Project Dossier", url: "/sih-dossier" },
                 ]).map((lnk, idx) => (
                   <li key={idx}>
                     {lnk.url.startsWith("http") ? (

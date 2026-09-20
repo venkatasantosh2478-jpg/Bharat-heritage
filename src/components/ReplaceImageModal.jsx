@@ -11,26 +11,26 @@ const CURATED_PRESETS = [
   {
     category: "Festivals & Melas",
     items: [
-      { name: "Maha Kumbh Mela Prayagraj", url: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&auto=format&fit=crop&q=80" },
-      { name: "Pushkar Camel Fair", url: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&auto=format&fit=crop&q=80" },
-      { name: "Mysore Dasara Palace", url: "https://images.unsplash.com/photo-1600100397608-f010f443b749?w=800&auto=format&fit=crop&q=80" },
-      { name: "Puri Jagannath Ratha Yatra", url: "https://images.unsplash.com/photo-1620619767323-b95a89183081?w=800&auto=format&fit=crop&q=80" },
-      { name: "Kolkata Durga Puja", url: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&auto=format&fit=crop&q=80" },
-      { name: "Kerala Snake Boat Race", url: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&auto=format&fit=crop&q=80" },
-      { name: "Diwali Deepotsav Lamps", url: "https://images.unsplash.com/photo-1514222134-b57cbb8ce073?w=800&auto=format&fit=crop&q=80" },
+      { name: "Maha Kumbh Mela Prayagraj", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzw2zbt3J00qp4yifFFAaiYUWrewNG6Ta0OM0aA4dSEw&s=10" },
+      { name: "Pushkar Camel Fair", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOfgWr5in1ycgpkIQ7taIjeWlH3904KjpcKMngVyvpxg&s=10" },
+      { name: "Mysore Dasara Palace", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQu78AIWNbFWosbRLrWdlqRUjp1L7KCcMHOYnucu6f1cg&s=10" },
+      { name: "Puri Jagannath Ratha Yatra", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuEgXvXhknrl6-xebSmAHhYJmBHEvtlrZhGIxpo_9Apg&s=10" },
+      { name: "Kolkata Durga Puja", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTf30aJQKe1bDWnsfZj3sErPpkXECL1LkhrRM1EvJpVg&s=10" },
+      { name: "Kerala Snake Boat Race", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo_da5ZDIHjj2LrdnbPjz4Kf3AdrWsJ2FC_sPAjG-3iQ&s=10" },
+      { name: "Diwali Deepotsav Lamps", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSuK1JYlb6O14MYMqBTK1DUh4mHCIwToPuHXSiiU3A_Q&s=10" },
     ]
   },
   {
     category: "Heritage & Temples",
     items: [
-      { name: "Taj Mahal, Agra", url: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&auto=format&fit=crop&q=80" },
-      { name: "Varanasi Ganga Ghats", url: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&auto=format&fit=crop&q=80" },
-      { name: "Hampi Stone Chariot", url: "https://images.unsplash.com/photo-1600100397608-f010f443b749?w=800&auto=format&fit=crop&q=80" },
-      { name: "Meenakshi Temple, Madurai", url: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&auto=format&fit=crop&q=80" },
-      { name: "Konark Sun Temple", url: "https://images.unsplash.com/photo-1620619767323-b95a89183081?w=800&auto=format&fit=crop&q=80" },
-      { name: "Khajuraho Sculptures", url: "https://images.unsplash.com/photo-1608889825103-eb5ed706fc64?w=800&auto=format&fit=crop&q=80" },
-      { name: "Golden Temple, Amritsar", url: "https://images.unsplash.com/photo-1514222134-b57cbb8ce073?w=800&auto=format&fit=crop&q=80" },
-      { name: "Amer Fort, Jaipur", url: "https://images.unsplash.com/photo-1599661046289-e31897846e41?w=800&auto=format&fit=crop&q=80" },
+      { name: "Taj Mahal, Agra", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7FEgcfZ-YLWcHhxGaHkB3i3ImGoi0w7xoieKb0JyuLQ&s=10" },
+      { name: "Varanasi Ganga Ghats", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHlukSqX20JiEEr5TSMt-cqndhiYFA3hg_N68hgLScsw&s=10" },
+      { name: "Hampi Stone Chariot", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkidUiVDgV3z6Xq-iAEb9w77otHZPrrsV9VwsveK4vKw&s=10" },
+      { name: "Meenakshi Temple, Madurai", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRR3aoU0GAkkf795tRQxexeVI6TUAD3n7I29P0Be-2HEg&s" },
+      { name: "Konark Sun Temple", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwUV68n8FZH_3DKMikB--RoEtDgdE3v_AH8nyk-y769w&s=10" },
+      { name: "Khajuraho Sculptures", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4Y3gvG8T1ASwHWJ4na8ChCkxURaN12QWxaebmmvHrLA&s=10" },
+      { name: "Golden Temple, Amritsar", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTt7Mu_5tVGZcVw86SpGf8Q8fueWisd75z3dAjcPYc_JQ&s=10" },
+      { name: "Amer Fort, Jaipur", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9mhkqfgyp2Cg9kRvKl3XthUFOtetMzkYWehVFm4mofw&s" },
     ]
   },
   {
@@ -56,10 +56,10 @@ const CURATED_PRESETS = [
   {
     category: "Landscapes & Nature",
     items: [
-      { name: "Kerala Backwaters & Houseboat", url: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&auto=format&fit=crop&q=80" },
-      { name: "Himalayas & Ladakh Pass", url: "https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=800&auto=format&fit=crop&q=80" },
-      { name: "Munnar Tea Gardens", url: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=800&auto=format&fit=crop&q=80" },
-      { name: "Thar Desert Dunes", url: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&auto=format&fit=crop&q=80" },
+      { name: "Kerala Backwaters & Houseboat", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_ZucDg3QqylOc-VnIZhISkdO5VCXWfBVRfTTCXb8jow&s=10" },
+      { name: "Himalayas & Ladakh Pass", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5X53Myn11mZLH6o5J8ScNHanejgat8yBQK0iMI6DG1g&s=10" },
+      { name: "Munnar Tea Gardens", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0iwPmYHSqfhj_CJVmRma9BJFnlh21KG3QLA_EfAzlSA&s=10" },
+      { name: "Thar Desert Dunes", url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkhqFv3aPluVqfd2bWNZcyN5NEylDQ5aBRl9TMUylafg&s" },
     ]
   }
 ];

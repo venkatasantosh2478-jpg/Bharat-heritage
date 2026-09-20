@@ -53,9 +53,12 @@ export default function AIAssistant() {
           }),
         });
         if (response.ok) {
-          const data = await response.json();
-          if (data && data.response) {
-            answer = data.response;
+          const contentType = response.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            const data = await response.json();
+            if (data && data.response) {
+              answer = data.response;
+            }
           }
         }
       } catch {

@@ -28,7 +28,7 @@ const defaultSampleEvents = [
       rating: 5,
       comment: "Unforgettable experience! The Vedic priests and the shehnai welcome brought tears of joy to our parents.",
       date: "2026-09-08",
-      image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&auto=format&fit=crop&q=80",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJakFz56CebtZK_G8bIEN1gdLUDohwsroPgq7hTyry8g&s=10",
     },
   },
   {
@@ -48,7 +48,7 @@ const defaultSampleEvents = [
       rating: 5,
       comment: "The decorated wooden bajra boat with marigold garlands and live sitar melody at sunset was pure magic.",
       date: "2026-09-06",
-      image: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&auto=format&fit=crop&q=80",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1_JHRY-5mQsHpZb70WllSlGJmCgQ2H1MBrj8oOgki9g&s=10",
     },
   },
   {
@@ -68,7 +68,7 @@ const defaultSampleEvents = [
       rating: 5,
       comment: "Very smooth darshan arrangements without any rushing. The coordinator stayed with us throughout.",
       date: "2026-08-22",
-      image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&auto=format&fit=crop&q=80",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXyEDAX8ty4FygC2yeFxLT9KUba4j6jekEeuaph3BBgQ&s=10",
     },
   },
   {
@@ -88,7 +88,7 @@ const defaultSampleEvents = [
       rating: 5,
       comment: "She said YES! The beach gazebo setup with sea breeze and live violin was straight out of a fairy tale.",
       date: "2026-09-02",
-      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdjHRpoQGS5iOH3e5jM2Oh7luLWIHokccyAQpO0cIURQ&s=10",
     },
   },
   {
@@ -108,7 +108,7 @@ const defaultSampleEvents = [
       rating: 5,
       comment: "Grandfather was so touched by the royal Nizami banquet and ghazal recital. Unrivaled hospitality.",
       date: "2026-07-18",
-      image: "https://images.unsplash.com/photo-1572455044327-7348c1be7267?w=800&auto=format&fit=crop&q=80",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF9WqP3YLNq9nIzNMIL6GvAuCVLDiP70llerLrDwUpPw&s=10",
     },
   }
 ];

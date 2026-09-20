@@ -414,7 +414,10 @@ export default function Planner() {
           }),
         });
         if (fetchRes.ok) {
-          res = await fetchRes.json();
+          const contentType = fetchRes.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            res = await fetchRes.json();
+          }
         }
       } catch {}
 
@@ -625,12 +628,13 @@ Return ${days} days with short title and descriptive heritage sights strictly in
       <section className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Form & Conditions (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
+          {/* Step 1: Route & Dates */}
           <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h2 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
-                <Compass className="w-4 h-4 text-primary" /> Step 1: Destination & Dates
+                <Compass className="w-4.5 h-4.5 text-primary" /> Step 1: Route & Dates
               </h2>
-              <span className="text-xs text-muted-foreground font-medium">Auto Route & Stays</span>
+              <span className="text-xs text-muted-foreground font-medium">Destination & Timing</span>
             </div>
 
             {/* Voice-to-Text Dream Trip Input */}
@@ -751,6 +755,68 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                 />
               </div>
             </div>
+          </div>
+
+          {/* Step 2: Traveler Preferences & Comfort */}
+          <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h2 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
+                <Accessibility className="w-4.5 h-4.5 text-primary" /> Step 2: Preferences & Comfort
+              </h2>
+              <span className="text-xs text-muted-foreground font-medium">Diet & Assistance</span>
+            </div>
+
+            {/* Group Type */}
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                Traveling Group Type
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {["Solo Traveler", "Couple", "Family with Seniors", "Friends Group"].map(g => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGroup(g)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      group === g 
+                        ? "bg-primary text-primary-foreground shadow-xs" 
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Food Preference */}
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                Cuisine & Dietary Preference
+              </label>
+              <div className="space-y-2">
+                {foodPreferences.map(f => {
+                  const isSelected = food === f.label;
+                  return (
+                    <div
+                      key={f.label}
+                      onClick={() => setFood(f.label)}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer ${
+                        isSelected 
+                          ? "border-primary bg-primary/10 shadow-xs" 
+                          : "border-border bg-background hover:bg-muted/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-foreground">{f.label}</p>
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{f.desc}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Special User Conditions & Preferences Text Box */}
             <div>
@@ -787,6 +853,16 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Step 3: Transit & Certified Guide */}
+          <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h2 className="font-bold text-base text-foreground flex items-center gap-2 font-heading">
+                <Train className="w-4.5 h-4.5 text-primary" /> Step 3: Transit & Heritage Guide
+              </h2>
+              <span className="text-xs text-muted-foreground font-medium">Verified Services</span>
             </div>
 
             {/* Target Budget */}
@@ -842,7 +918,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
               </div>
             </div>
 
-            {/* AVAILABLE TRANSPORT FACILITIES CARD (Real Trains with code like Vande Bharat 20833, Flights like 6E 543) */}
+            {/* AVAILABLE TRANSPORT FACILITIES CARD */}
             <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
@@ -963,58 +1039,6 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Food Preference */}
-            <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Cuisine & Dietary Preference
-              </label>
-              <div className="space-y-2">
-                {foodPreferences.map(f => {
-                  const isSelected = food === f.label;
-                  return (
-                    <div
-                      key={f.label}
-                      onClick={() => setFood(f.label)}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer ${
-                        isSelected 
-                          ? "border-primary bg-primary/10 shadow-xs" 
-                          : "border-border bg-background hover:bg-muted/40"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-foreground">{f.label}</p>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-primary" />}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{f.desc}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Group Type */}
-            <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Traveling Group Type
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {["Solo Traveler", "Couple", "Family with Seniors", "Friends Group"].map(g => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => setGroup(g)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                      group === g 
-                        ? "bg-primary text-primary-foreground shadow-xs" 
-                        : "bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {g}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Mode of Transport During Trip (Sightseeing & Excursions) */}
@@ -1187,19 +1211,17 @@ Return ${days} days with short title and descriptive heritage sights strictly in
                 </div>
               )}
             </div>
-
-            {/* Action Buttons */}
-            <div className="pt-2">
-              <button
-                onClick={generate}
-                disabled={loading || !to}
-                className="w-full py-3.5 rounded-full bg-primary text-primary-foreground font-bold text-sm shadow-md hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-              >
-                <Bot className="w-4 h-4" />
-                {loading ? "Generating Itinerary for " + to + "..." : `Generate ${days}-Day Itinerary for ${to}`}
-              </button>
-            </div>
           </div>
+
+          {/* Core Action Trigger outside cards */}
+          <button
+            onClick={generate}
+            disabled={loading || !to}
+            className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold text-sm shadow-md hover:scale-[1.01] hover:opacity-95 disabled:opacity-50 active:scale-[0.99] transition-all flex items-center justify-center gap-2 font-heading"
+          >
+            <Bot className="w-4 h-4 shrink-0" />
+            {loading ? "Generating Itinerary for " + to + "..." : `Generate ${days}-Day Itinerary for ${to}`}
+          </button>
         </div>
 
         {/* Right Column: Real Hotels Inventory & Booking Gateways (7 cols) */}
@@ -1435,7 +1457,7 @@ Return ${days} days with short title and descriptive heritage sights strictly in
       {/* PAYMENT GATEWAYS DEMO MODAL */}
       {paymentModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-500" />

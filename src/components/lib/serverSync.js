@@ -45,6 +45,8 @@ export async function fetchSharedStore() {
   try {
     const res = await fetch("/api/shared-store");
     if (!res.ok) return;
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) return;
     const json = await res.json();
     if (!json || !json.store) return;
 

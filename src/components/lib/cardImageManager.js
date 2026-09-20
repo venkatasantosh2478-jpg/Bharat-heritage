@@ -96,6 +96,12 @@ export function normalizeImageUrl(input) {
     }
   }
 
+  // 3b. Direct Wikimedia Special:FilePath URLs - append width for fast mobile loading
+  if (url.includes("Special:FilePath/") && !url.includes("width=")) {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}width=1200`;
+  }
+
   // 4. Google Drive share links
   if (url.includes("drive.google.com/file/d/")) {
     const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
@@ -157,6 +163,29 @@ export function getAllCustomCardImages() {
   try {
     const raw = localStorage.getItem(CUSTOM_IMAGES_KEY);
     const stored = raw ? JSON.parse(raw) : {};
+    
+    // Auto-clean old gstatic / unsplash / thgim URLs for the items we want to reset
+    let changed = false;
+    const cleanKeys = [
+      "borra-caves", "thotlakonda-buddhist-complex", "simhachalam-temple", "golconda-fort", "charminar",
+      "ramappa-temple", "tirumala-venkateswara", "lepakshi-veerabhadra", "kailasagiri", "ins-kursura",
+      "araku-valley", "amaravati-mahachaitya", "undavalli-caves", "thousand-pillar-temple", "varanasi-ghats",
+      "hawa-mahal", "meenakshi-temple", "kerala-backwaters", "red-fort", "konark-sun-temple", "golden-temple-amritsar",
+      "kumbh", "pushkar", "mysore-dasara", "puri-ratha-yatra", "onam", "durga-puja", "vizag-utsav"
+    ];
+    for (const key of Object.keys(stored)) {
+      const val = stored[key];
+      const isHeritageOrEventKey = cleanKeys.includes(key) || cleanKeys.some(k => key.includes(k));
+      // If it's one of these keys and is not a Special:FilePath link, remove it to fall back to the new default links!
+      if (isHeritageOrEventKey && val && !val.includes("Special:FilePath")) {
+        delete stored[key];
+        changed = true;
+      }
+    }
+    if (changed) {
+      localStorage.setItem(CUSTOM_IMAGES_KEY, JSON.stringify(stored));
+    }
+
     return { ...memoryCustomImages, ...stored };
   } catch {
     return { ...memoryCustomImages };

@@ -7,12 +7,22 @@ import { GoogleGenAI, Type } from "@google/genai";
 const PORT = 3000;
 
 // Persistent shared store on disk for cross-user synchronization
-const SHARED_STORE_PATH = path.join(process.cwd(), "shared_data_store.json");
+function getSharedStorePath(): string {
+  const localPath = path.join(process.cwd(), "shared_data_store.json");
+  try {
+    if (fs.existsSync(localPath)) return localPath;
+    fs.accessSync(process.cwd(), fs.constants.W_OK);
+    return localPath;
+  } catch {
+    return path.join("/tmp", "shared_data_store.json");
+  }
+}
 
 function readSharedStore(): Record<string, any> {
   try {
-    if (fs.existsSync(SHARED_STORE_PATH)) {
-      const content = fs.readFileSync(SHARED_STORE_PATH, "utf-8");
+    const storePath = getSharedStorePath();
+    if (fs.existsSync(storePath)) {
+      const content = fs.readFileSync(storePath, "utf-8");
       return JSON.parse(content) || {};
     }
   } catch (err) {
@@ -23,7 +33,8 @@ function readSharedStore(): Record<string, any> {
 
 function writeSharedStore(data: Record<string, any>): boolean {
   try {
-    fs.writeFileSync(SHARED_STORE_PATH, JSON.stringify(data, null, 2), "utf-8");
+    const storePath = getSharedStorePath();
+    fs.writeFileSync(storePath, JSON.stringify(data, null, 2), "utf-8");
     return true;
   } catch (err) {
     console.warn("Error writing shared data store:", err);
@@ -1097,9 +1108,15 @@ Return ONLY clean JSON without markdown ticks.`;
   });
 
   // Vite middleware in dev; static serving in production
-  if (process.env.NODE_ENV !== "production") {
+  const isCjsBundle = typeof __filename !== "undefined" && __filename.endsWith(".cjs");
+  const isProduction = process.env.NODE_ENV === "production" || isCjsBundle;
+
+  if (!isProduction) {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { 
+        middlewareMode: true,
+        hmr: false
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);
@@ -1115,6 +1132,8 @@ Return ONLY clean JSON without markdown ticks.`;
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Bharat Yatra server running at http://0.0.0.0:${PORT}`);
   });
+
+  return app;
 }
 
 startServer();

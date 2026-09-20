@@ -11,11 +11,13 @@ const COLORS = {
 export default function BudgetDashboard({ plan, budget, days }) {
   if (!plan) return null;
 
-  const { hotelCost, tCost, guideCost, foodCost, total } = plan.breakdown;
+  const { hotelCost, tCost, localTransitCost = 0, guideCost, foodCost, total } = plan.breakdown;
+
+  const transportTotal = tCost + localTransitCost;
 
   const chartData = [
     { name: "Hotel", value: hotelCost },
-    { name: "Transport", value: tCost },
+    { name: "Transport", value: transportTotal },
     { name: "Food", value: foodCost },
     ...(guideCost > 0 ? [{ name: "Guide", value: guideCost }] : []),
   ];
@@ -26,7 +28,7 @@ export default function BudgetDashboard({ plan, budget, days }) {
   const stats = [
     { label: "Total Budget", value: budget, icon: Wallet, color: "text-primary", bg: "bg-primary/10" },
     { label: "Hotel", value: hotelCost, icon: BedDouble, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Transport", value: tCost, icon: Bus, color: "text-teal", bg: "bg-teal/10" },
+    { label: "Transport", value: transportTotal, icon: Bus, color: "text-teal", bg: "bg-teal/10" },
     { label: "Food", value: foodCost, icon: UtensilsCrossed, color: "text-foreground", bg: "bg-muted" },
     ...(guideCost > 0 ? [{ label: "Guide", value: guideCost, icon: Users, color: "text-primary", bg: "bg-primary/10" }] : []),
   ];

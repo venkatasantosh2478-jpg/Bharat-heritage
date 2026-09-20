@@ -35,6 +35,7 @@ import SurprisePlanner from '@/pages/SurprisePlanner';
 import Translator from '@/pages/Translator';
 import Profile from '@/pages/Profile';
 import Admin from '@/pages/Admin';
+import SIHDocumentation from '@/pages/SIHDocumentation';
 
 const MainAppRoutes = () => {
   return (
@@ -59,6 +60,7 @@ const MainAppRoutes = () => {
         <Route path="/surprise-planner" element={<SurprisePlanner />} />
         <Route path="/translate" element={<Translator />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/sih-dossier" element={<SIHDocumentation />} />
         <Route
           path="/admin"
           element={

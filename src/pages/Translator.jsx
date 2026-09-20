@@ -174,6 +174,10 @@ export default function Translator() {
       });
 
       if (response.ok) {
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+          throw new Error("Invalid API response format");
+        }
         const data = await response.json();
         // Ignore response if user has typed a newer phrase in the meantime
         if (currentReqId !== latestRequestIdRef.current) return;

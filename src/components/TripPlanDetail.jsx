@@ -91,38 +91,38 @@ export default function TripPlanDetail({
   }
 
   return (
-    <div className="rounded-2xl bg-card ring-1 ring-border p-5 space-y-5">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="rounded-2xl bg-card ring-1 ring-border p-4 sm:p-5 space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-4">
         <div className="flex items-center gap-2 text-emerald-600">
-          <CheckCircle2 className="w-5 h-5" />
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
           <span className="text-sm font-semibold">Booking confirmed · {payment}</span>
         </div>
         <button
           onClick={downloadPDF}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity w-full sm:w-auto justify-center"
         >
           <Download className="w-4 h-4" /> Download PDF Voucher
         </button>
       </div>
 
       {/* Overview */}
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl bg-muted">
         <RouteIcon className="w-5 h-5 text-primary shrink-0" />
-        <p className="text-sm text-foreground">
+        <p className="text-xs sm:text-sm text-foreground">
           <span className="font-semibold">{origin}</span> → <span className="font-semibold">{dest}</span>
           <span className="text-muted-foreground"> · {days} days · {group} · {food}</span>
         </p>
       </div>
 
       {/* How to reach & Local Sightseeing Mode */}
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Block icon={reach.icon} title="Intercity Travel">
-          <p className="text-sm font-semibold text-foreground">{transport || reach.mode}</p>
+          <p className="text-xs sm:text-sm font-semibold text-foreground">{transport || reach.mode}</p>
           <ul className="mt-1.5 space-y-1">
             {reach.lines.map((l, i) => (
               <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-                {l}
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                <span className="flex-1">{l}</span>
               </li>
             ))}
           </ul>
@@ -133,7 +133,7 @@ export default function TripPlanDetail({
         </Block>
 
         <Block icon={Car} title="Sightseeing Transit">
-          <p className="text-sm font-semibold text-foreground">{localTransit || "Dedicated Sightseeing Cab"}</p>
+          <p className="text-xs sm:text-sm font-semibold text-foreground">{localTransit || "Dedicated Sightseeing Cab"}</p>
           <p className="text-xs text-muted-foreground mt-1">
             Active daily transit for temple routes, monuments, artisan clusters & local markets.
           </p>
@@ -146,15 +146,15 @@ export default function TripPlanDetail({
       {/* Heritage Guide Assigned */}
       {withGuide && guide && (
         <Block icon={Award} title="ASI Licensed Heritage Guide Assigned">
-          <div className="flex items-center gap-3">
-            <img src={guide.avatar} alt={guide.name} className="w-12 h-12 rounded-full object-cover border border-primary/40" />
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-bold text-foreground">{guide.name}</p>
-                <span className="text-[10px] font-mono font-bold bg-muted px-2 py-0.5 rounded text-primary">Badge #{guide.badge}</span>
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+            <img src={guide.avatar} alt={guide.name} className="w-14 h-14 rounded-full object-cover border-2 border-primary/40 shrink-0 shadow-xs" />
+            <div className="space-y-1">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <p className="text-xs sm:text-sm font-bold text-foreground">{guide.name}</p>
+                <span className="inline-block text-[10px] font-mono font-bold bg-primary/10 px-2.5 py-0.5 rounded-full text-primary w-fit mx-auto sm:mx-0">Badge #{guide.badge}</span>
               </div>
-              <p className="text-xs text-muted-foreground">{guide.specialty}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Spoken: {guide.languages?.join(", ")} · {guide.experience}</p>
+              <p className="text-xs font-semibold text-muted-foreground">{guide.specialty}</p>
+              <p className="text-[11px] text-muted-foreground">Spoken: {guide.languages?.join(", ")} · {guide.experience}</p>
             </div>
           </div>
         </Block>
@@ -163,7 +163,7 @@ export default function TripPlanDetail({
       {/* Stay */}
       {hotel && (
         <Block icon={BedDouble} title="Where to stay">
-          <p className="text-sm font-semibold text-foreground">{hotel.name}</p>
+          <p className="text-xs sm:text-sm font-semibold text-foreground">{hotel.name}</p>
           <p className="text-xs text-muted-foreground">{hotel.city || hotel.location} · {hotel.amenities || hotel.facilities} · ₹{hotel.price}/night</p>
           <a href={mapsLink(`${hotel.name} ${hotel.city || hotel.location}`)} target="_blank" rel="noreferrer"
             className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
@@ -177,8 +177,8 @@ export default function TripPlanDetail({
         <ul className="space-y-1">
           {eating.map((e, i) => (
             <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
-              <span className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-              {e}
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+              <span className="flex-1">{e}</span>
             </li>
           ))}
         </ul>
@@ -186,15 +186,15 @@ export default function TripPlanDetail({
 
       {/* Itinerary */}
       <Block icon={MapPin} title="Day-by-day plan">
-        <ol className="space-y-3">
+        <ol className="space-y-4">
           {itinerary.map((d) => (
-            <li key={d.day} className="flex gap-3">
+            <li key={d.day} className="flex gap-3.5 items-start">
               <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-bold shrink-0">
                 {d.day}
               </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground">{d.title}</p>
-                <p className="text-xs text-muted-foreground">{d.desc}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-semibold text-foreground leading-tight">{d.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{d.desc}</p>
                 <a href={d.link} target="_blank" rel="noreferrer"
                   className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
                   <Navigation className="w-3 h-3" /> Maps
@@ -206,13 +206,13 @@ export default function TripPlanDetail({
       </Block>
 
       {/* Cost */}
-      <div className="pt-4 border-t border-border space-y-1.5 text-sm">
+      <div className="pt-4 border-t border-border space-y-1.5 text-xs sm:text-sm">
         <Row label="Hotel Accommodation" v={plan.breakdown.hotelCost} />
         <Row label="Intercity Travel" v={plan.breakdown.tCost} />
         {plan.breakdown.localTransitCost > 0 && <Row label="Sightseeing Transit" v={plan.breakdown.localTransitCost} />}
         <Row label="Food & Dining" v={plan.breakdown.foodCost} />
         {plan.breakdown.guideCost > 0 && <Row label="Licensed Heritage Guide" v={plan.breakdown.guideCost} />}
-        <div className="flex justify-between pt-2 border-t border-border font-bold text-foreground">
+        <div className="flex justify-between pt-2 border-t border-border font-bold text-foreground text-sm sm:text-base">
           <span>Total Package</span>
           <span>₹{plan.breakdown.total.toLocaleString("en-IN")}</span>
         </div>

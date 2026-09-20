@@ -472,8 +472,13 @@ export default function Safety() {
           travelerName: tripForm.name,
         }),
       });
-      const data = await res.json();
-      setAiAnalysisResult(data);
+      const contentType = res.headers.get("content-type") || "";
+      if (res.ok && contentType.includes("application/json")) {
+        const data = await res.json();
+        setAiAnalysisResult(data);
+      } else {
+        throw new Error("Offline fallback");
+      }
     } catch (err) {
       console.warn("AI Analysis Fallback:", err);
       setAiAnalysisResult({
