@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, X, Loader2, Upload, Search, RotateCcw, CheckCircl
 import { base44 } from "@/api/base44Client";
 import { saveCardImageReplacement, getCustomCardImage, applyCustomImagesToList } from "@/components/lib/cardImageManager";
 import ReplaceImageModal from "@/components/ReplaceImageModal";
+import { pushSharedData } from "@/lib/serverSync";
 
 export default function EntityEditor({ entityName, fields, title, defaultData, initialData }) {
   const actualDefaultData = defaultData || initialData || [];
@@ -110,26 +111,36 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
   const syncSecondaryKeys = (updatedList) => {
     setTimeout(() => {
       try {
+        pushSharedData(storageKey, updatedList);
         if (entityName === "products") {
           localStorage.setItem("by-artisan-products", JSON.stringify(updatedList));
           localStorage.setItem("by-admin-entity-products", JSON.stringify(updatedList));
+          pushSharedData("by-artisan-products", updatedList);
+          pushSharedData("by-admin-entity-products", updatedList);
           window.dispatchEvent(new CustomEvent("by-products-updated", { detail: updatedList }));
         } else if (entityName === "hotels") {
           localStorage.setItem("by-hotels-directory", JSON.stringify(updatedList));
           localStorage.setItem("by-admin-entity-hotels", JSON.stringify(updatedList));
+          pushSharedData("by-hotels-directory", updatedList);
+          pushSharedData("by-admin-entity-hotels", updatedList);
           window.dispatchEvent(new CustomEvent("by-hotels-updated", { detail: updatedList }));
         } else if (entityName === "places") {
           localStorage.setItem("by-admin-entity-places", JSON.stringify(updatedList));
+          pushSharedData("by-admin-entity-places", updatedList);
           window.dispatchEvent(new CustomEvent("by-places-updated", { detail: updatedList }));
         } else if (entityName === "foods") {
           localStorage.setItem("by-admin-entity-foods", JSON.stringify(updatedList));
+          pushSharedData("by-admin-entity-foods", updatedList);
           window.dispatchEvent(new CustomEvent("by-foods-updated", { detail: updatedList }));
         } else if (entityName === "events") {
           localStorage.setItem("by-admin-entity-events", JSON.stringify(updatedList));
+          pushSharedData("by-admin-entity-events", updatedList);
           window.dispatchEvent(new CustomEvent("by-events-updated", { detail: updatedList }));
         } else if (entityName === "states") {
           localStorage.setItem("by-states-directory", JSON.stringify(updatedList));
           localStorage.setItem("by-admin-entity-states", JSON.stringify(updatedList));
+          pushSharedData("by-states-directory", updatedList);
+          pushSharedData("by-admin-entity-states", updatedList);
           window.dispatchEvent(new CustomEvent("by-states-updated", { detail: updatedList }));
         }
       } catch (e) {

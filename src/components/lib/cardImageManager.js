@@ -1,5 +1,6 @@
 // Card Image Manager for Bharat Yatra
 // Manages instant, persistent image replacements across Heritage Cards, Family Cards, Products, Foods, Events, and States
+import { pushSharedData } from "./serverSync";
 
 const CUSTOM_IMAGES_KEY = "by_custom_card_images_v1";
 
@@ -334,6 +335,7 @@ export function saveCardImageReplacement({ id, name, type = "place", newImageUrl
     }
 
     safeSetStorage(CUSTOM_IMAGES_KEY, JSON.stringify(customMap));
+    pushSharedData(CUSTOM_IMAGES_KEY, customMap);
 
     // 2. Synchronize with specific collections in localStorage
     const collectionsToUpdate = [
@@ -409,6 +411,7 @@ function updateCollection(storageKey, id, name, newImageUrl) {
 
     if (modified) {
       safeSetStorage(storageKey, JSON.stringify(updated));
+      pushSharedData(storageKey, updated);
     }
   } catch {}
 }

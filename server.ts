@@ -1,9 +1,35 @@
 import express, { Request, Response } from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 
 const PORT = 3000;
+
+// Persistent shared store on disk for cross-user synchronization
+const SHARED_STORE_PATH = path.join(process.cwd(), "shared_data_store.json");
+
+function readSharedStore(): Record<string, any> {
+  try {
+    if (fs.existsSync(SHARED_STORE_PATH)) {
+      const content = fs.readFileSync(SHARED_STORE_PATH, "utf-8");
+      return JSON.parse(content) || {};
+    }
+  } catch (err) {
+    console.warn("Error reading shared data store:", err);
+  }
+  return {};
+}
+
+function writeSharedStore(data: Record<string, any>): boolean {
+  try {
+    fs.writeFileSync(SHARED_STORE_PATH, JSON.stringify(data, null, 2), "utf-8");
+    return true;
+  } catch (err) {
+    console.warn("Error writing shared data store:", err);
+    return false;
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -140,6 +166,43 @@ async function startServer() {
       hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
       model: "gemini-3.8-flash",
     });
+  });
+
+  // Shared persistent store API endpoints for multi-user synchronization
+  app.get("/api/shared-store", (_req: Request, res: Response) => {
+    const store = readSharedStore();
+    res.json({ success: true, store, timestamp: new Date().toISOString() });
+  });
+
+  app.get("/api/shared-store/:key", (req: Request, res: Response) => {
+    const { key } = req.params;
+    const store = readSharedStore();
+    res.json({ success: true, key, data: store[key] ?? null });
+  });
+
+  app.post("/api/shared-store/batch/update", (req: Request, res: Response) => {
+    const { items } = req.body;
+    if (!items || typeof items !== "object") {
+      return res.status(400).json({ error: "Items map object required" });
+    }
+
+    const store = readSharedStore();
+    Object.assign(store, items);
+    writeSharedStore(store);
+
+    res.json({ success: true, keysUpdated: Object.keys(items), timestamp: new Date().toISOString() });
+  });
+
+  app.post("/api/shared-store/:key", (req: Request, res: Response) => {
+    const { key } = req.params;
+    const { data } = req.body;
+    if (!key) return res.status(400).json({ error: "Key is required" });
+
+    const store = readSharedStore();
+    store[key] = data;
+    writeSharedStore(store);
+
+    res.json({ success: true, key, timestamp: new Date().toISOString() });
   });
 
   // Server-side role verification endpoint

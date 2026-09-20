@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -10,6 +11,7 @@ import { ThemeProvider } from '@/lib/theme';
 import { I18nProvider } from '@/lib/i18n';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { initSharedServerSync } from '@/lib/serverSync';
 // Auth pages
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -72,6 +74,10 @@ const MainAppRoutes = () => {
 };
 
 function App() {
+  useEffect(() => {
+    initSharedServerSync(6000);
+  }, []);
+
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>

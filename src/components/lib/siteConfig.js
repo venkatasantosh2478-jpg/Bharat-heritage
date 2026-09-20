@@ -1,3 +1,5 @@
+import { pushSharedData } from "@/lib/serverSync";
+
 // Default Site & Footer Configuration
 export const DEFAULT_SITE_CONFIG = {
   siteName: "BHARAT YATRA",
@@ -81,6 +83,7 @@ export function saveSiteConfig(newConfig) {
   try {
     const merged = { ...DEFAULT_SITE_CONFIG, ...newConfig };
     localStorage.setItem("by-site-config", JSON.stringify(merged));
+    pushSharedData("by-site-config", merged);
     window.dispatchEvent(new CustomEvent("by-site-config-updated", { detail: merged }));
     return true;
   } catch (err) {

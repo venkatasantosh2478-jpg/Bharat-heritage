@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Users, UserCheck, Shield, Award, Calendar, Search, Filter, 
-  Edit, ArrowUpRight, Phone, Mail, MapPin, CheckCircle2, 
-  Clock, Wallet, Briefcase, Plus, UserPlus, Sparkles, ChevronDown, ChevronUp,
-  KeyRound, ShieldAlert, Hotel, Gift, ShoppingCart, Landmark, Eye
+  Users, Shield, Calendar, Search, Filter, 
+  Edit, Phone, Mail, MapPin, CheckCircle2, 
+  Briefcase, UserPlus, Sparkles, ChevronDown, ChevronUp
 } from "lucide-react";
 import { useAuth, getSystemCredentials } from "@/components/lib/AuthContext";
 
