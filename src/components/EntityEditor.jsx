@@ -253,7 +253,7 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement("canvas");
-          const maxDim = 1000;
+          const maxDim = 640;
           let { width, height } = img;
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -268,7 +268,7 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
           canvas.height = height;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL("image/webp", 0.82);
+          const dataUrl = canvas.toDataURL("image/webp", 0.5);
           setEditing((prev) => ({ ...prev, [key]: dataUrl }));
           setUploadingKey("");
         };

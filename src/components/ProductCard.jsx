@@ -26,16 +26,27 @@ export default function ProductCard({ product: rawProduct, onSelect }) {
   useEffect(() => {
     const handleImageChange = (e) => {
       const detail = e.detail;
-      if (
-        (detail?.id && detail.id === rawProduct?.id) ||
-        (detail?.name && rawProduct?.name && detail.name.toLowerCase() === rawProduct.name.toLowerCase())
+      const updated = getCustomCardImage(rawProduct, product.image);
+      if (updated && updated !== cardImage) {
+        setCardImage(updated);
+      } else if (
+        detail &&
+        ((detail.id && (detail.id === rawProduct?.id || String(detail.id) === String(rawProduct?.id))) ||
+        (detail.name && rawProduct?.name && (
+          detail.name.toLowerCase().includes(rawProduct.name.toLowerCase()) ||
+          rawProduct.name.toLowerCase().includes(detail.name.toLowerCase())
+        )))
       ) {
         setCardImage(detail.newImageUrl);
       }
     };
     window.addEventListener("by-card-image-changed", handleImageChange);
-    return () => window.removeEventListener("by-card-image-changed", handleImageChange);
-  }, [rawProduct]);
+    window.addEventListener("by-products-updated", handleImageChange);
+    return () => {
+      window.removeEventListener("by-card-image-changed", handleImageChange);
+      window.removeEventListener("by-products-updated", handleImageChange);
+    };
+  }, [rawProduct, product.image, cardImage]);
 
   const name = product.name || product.title || "Handcrafted Heritage Artifact";
   const origin = product.origin || product.craft_origin || "Handicraft Cooperative";

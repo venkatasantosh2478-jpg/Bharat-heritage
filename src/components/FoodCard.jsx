@@ -24,16 +24,27 @@ export default function FoodCard({ food: rawFood }) {
   useEffect(() => {
     const handleImageChange = (e) => {
       const detail = e.detail;
-      if (
-        (detail?.id && detail.id === rawFood?.id) ||
-        (detail?.name && rawFood?.name && detail.name.toLowerCase() === rawFood.name.toLowerCase())
+      const updated = getCustomCardImage(rawFood, food.image);
+      if (updated && updated !== cardImage) {
+        setCardImage(updated);
+      } else if (
+        detail &&
+        ((detail.id && (detail.id === rawFood?.id || String(detail.id) === String(rawFood?.id))) ||
+        (detail.name && rawFood?.name && (
+          detail.name.toLowerCase().includes(rawFood.name.toLowerCase()) ||
+          rawFood.name.toLowerCase().includes(detail.name.toLowerCase())
+        )))
       ) {
         setCardImage(detail.newImageUrl);
       }
     };
     window.addEventListener("by-card-image-changed", handleImageChange);
-    return () => window.removeEventListener("by-card-image-changed", handleImageChange);
-  }, [rawFood]);
+    window.addEventListener("by-foods-updated", handleImageChange);
+    return () => {
+      window.removeEventListener("by-card-image-changed", handleImageChange);
+      window.removeEventListener("by-foods-updated", handleImageChange);
+    };
+  }, [rawFood, food.image, cardImage]);
 
   return (
     <>

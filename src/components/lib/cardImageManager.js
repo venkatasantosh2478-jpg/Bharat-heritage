@@ -258,7 +258,7 @@ export function applyCustomImagesToList(list) {
   });
 }
 
-export function saveCardImageReplacement({ id, name, type = "place", newImageUrl }) {
+export function saveCardImageReplacement({ id, name, type = "place", newImageUrl, item }) {
   if (!newImageUrl) return false;
 
   const normalizedUrl = normalizeImageUrl(newImageUrl);
@@ -268,106 +268,97 @@ export function saveCardImageReplacement({ id, name, type = "place", newImageUrl
     // 1. Save to custom images lookup in memory & local storage
     const customMap = getAllCustomCardImages();
     
-    if (id) {
-      customMap[id] = normalizedUrl;
-      customMap[String(id)] = normalizedUrl;
-      memoryCustomImages[id] = normalizedUrl;
-      memoryCustomImages[String(id)] = normalizedUrl;
+    const candidateKeys = new Set();
+
+    if (id !== undefined && id !== null) {
+      candidateKeys.add(String(id));
       const idNorm = normalizeKey(id);
-      if (idNorm) {
-        customMap[idNorm] = normalizedUrl;
-        memoryCustomImages[idNorm] = normalizedUrl;
-      }
+      if (idNorm) candidateKeys.add(idNorm);
     }
 
     if (name) {
-      customMap[name] = normalizedUrl;
-      memoryCustomImages[name] = normalizedUrl;
-      const nameKey = normalizeKey(name);
-      if (nameKey) {
-        customMap[nameKey] = normalizedUrl;
-        memoryCustomImages[nameKey] = normalizedUrl;
-      }
-
-      // Special semantic aliases for popular spots like Varanasi Ghats
-      if (nameKey.includes("varanasi")) {
-        const varanasiAliases = [
-          "varanasi-ghats",
-          "varanasi-ghats-sacred-ganga-aarti",
-          "varanasi-subah-e-banaras-ghats",
-          "varanasi-evening-ganga-aarti",
-          "varanasi-ghats-pilgrimage",
-          "varanasi"
-        ];
-        varanasiAliases.forEach(alias => {
-          customMap[alias] = normalizedUrl;
-          memoryCustomImages[alias] = normalizedUrl;
-        });
-      }
-      if (nameKey.includes("taj-mahal") || nameKey.includes("agra")) {
-        customMap["taj-mahal"] = normalizedUrl;
-        customMap["taj-mahal-agra"] = normalizedUrl;
-        memoryCustomImages["taj-mahal"] = normalizedUrl;
-        memoryCustomImages["taj-mahal-agra"] = normalizedUrl;
-      }
-      if (nameKey.includes("hampi")) {
-        customMap["hampi"] = normalizedUrl;
-        customMap["hampi-monuments"] = normalizedUrl;
-        memoryCustomImages["hampi"] = normalizedUrl;
-        memoryCustomImages["hampi-monuments"] = normalizedUrl;
-      }
-      if (nameKey.includes("meenakshi")) {
-        customMap["meenakshi-temple"] = normalizedUrl;
-        customMap["meenakshi-amman"] = normalizedUrl;
-        memoryCustomImages["meenakshi-temple"] = normalizedUrl;
-        memoryCustomImages["meenakshi-amman"] = normalizedUrl;
-      }
+      candidateKeys.add(String(name));
+      const nameNorm = normalizeKey(name);
+      if (nameNorm) candidateKeys.add(nameNorm);
     }
 
-    if (id && String(id).includes("varanasi")) {
-      customMap["varanasi-ghats"] = normalizedUrl;
-      customMap["varanasi-ghats-sacred-ganga-aarti"] = normalizedUrl;
-      customMap["varanasi-subah-e-banaras-ghats"] = normalizedUrl;
-      memoryCustomImages["varanasi-ghats"] = normalizedUrl;
-      memoryCustomImages["varanasi-ghats-sacred-ganga-aarti"] = normalizedUrl;
-      memoryCustomImages["varanasi-subah-e-banaras-ghats"] = normalizedUrl;
+    if (item && typeof item === "object") {
+      const itemPropValues = [
+        item.id,
+        item.name,
+        item.title,
+        item.landmark,
+        item.state,
+        item.destination,
+        item.city,
+      ].filter(Boolean);
+
+      itemPropValues.forEach((val) => {
+        candidateKeys.add(String(val));
+        const norm = normalizeKey(val);
+        if (norm) candidateKeys.add(norm);
+      });
+    }
+
+    // Save under all keys in customMap and in-memory cache
+    candidateKeys.forEach((key) => {
+      customMap[key] = normalizedUrl;
+      memoryCustomImages[key] = normalizedUrl;
+    });
+
+    // Special semantic aliases for popular spots like Varanasi Ghats, Taj Mahal, etc.
+    const allKeyString = Array.from(candidateKeys).join(" ").toLowerCase();
+    if (allKeyString.includes("varanasi")) {
+      ["varanasi-ghats", "varanasi-ghats-sacred-ganga-aarti", "varanasi-subah-e-banaras-ghats", "varanasi-evening-ganga-aarti", "varanasi-ghats-pilgrimage", "varanasi"].forEach(alias => {
+        customMap[alias] = normalizedUrl;
+        memoryCustomImages[alias] = normalizedUrl;
+      });
+    }
+    if (allKeyString.includes("taj-mahal") || allKeyString.includes("taj mahal") || allKeyString.includes("agra")) {
+      ["taj-mahal", "taj-mahal-agra", "taj mahal"].forEach(alias => {
+        customMap[alias] = normalizedUrl;
+        memoryCustomImages[alias] = normalizedUrl;
+      });
+    }
+    if (allKeyString.includes("hampi")) {
+      ["hampi", "hampi-monuments"].forEach(alias => {
+        customMap[alias] = normalizedUrl;
+        memoryCustomImages[alias] = normalizedUrl;
+      });
+    }
+    if (allKeyString.includes("meenakshi")) {
+      ["meenakshi-temple", "meenakshi-amman"].forEach(alias => {
+        customMap[alias] = normalizedUrl;
+        memoryCustomImages[alias] = normalizedUrl;
+      });
     }
 
     safeSetStorage(CUSTOM_IMAGES_KEY, JSON.stringify(customMap));
 
-    // 2. Synchronize with specific collections in localStorage (only if not an oversized data URI)
-    if (!normalizedUrl.startsWith("data:") || normalizedUrl.length < 40000) {
-      const collectionsToUpdate = [
-        "by-admin-entity-places",
-        "by-artisan-products",
-        "by-admin-entity-products",
-        "by-admin-entity-foods",
-        "by-admin-entity-events",
-        "by-states-directory",
-        "by-admin-entity-states",
-        "by-hotels-directory",
-        "by-admin-entity-hotels",
-      ];
+    // 2. Synchronize with specific collections in localStorage
+    const collectionsToUpdate = [
+      "by-admin-entity-places",
+      "by-artisan-products",
+      "by-admin-entity-products",
+      "by-admin-entity-foods",
+      "by-admin-entity-events",
+      "by-states-directory",
+      "by-admin-entity-states",
+      "by-hotels-directory",
+      "by-admin-entity-hotels",
+    ];
 
-      collectionsToUpdate.forEach((key) => {
-        updateCollection(key, id, name, normalizedUrl);
-      });
-    }
+    collectionsToUpdate.forEach((key) => {
+      updateCollection(key, id, name || (item?.name || item?.title || item?.landmark || item?.state), normalizedUrl);
+    });
 
     // 3. Dispatch specific collection update events
-    if (type === "place" || type === "places") {
-      window.dispatchEvent(new CustomEvent("by-places-updated"));
-    } else if (type === "product" || type === "products") {
-      window.dispatchEvent(new CustomEvent("by-products-updated"));
-    } else if (type === "food" || type === "foods") {
-      window.dispatchEvent(new CustomEvent("by-foods-updated"));
-    } else if (type === "event" || type === "events") {
-      window.dispatchEvent(new CustomEvent("by-events-updated"));
-    } else if (type === "state" || type === "states") {
-      window.dispatchEvent(new CustomEvent("by-states-updated"));
-    } else if (type === "hotel" || type === "hotels") {
-      window.dispatchEvent(new CustomEvent("by-hotels-updated"));
-    }
+    window.dispatchEvent(new CustomEvent("by-places-updated"));
+    window.dispatchEvent(new CustomEvent("by-products-updated"));
+    window.dispatchEvent(new CustomEvent("by-foods-updated"));
+    window.dispatchEvent(new CustomEvent("by-events-updated"));
+    window.dispatchEvent(new CustomEvent("by-states-updated"));
+    window.dispatchEvent(new CustomEvent("by-hotels-updated"));
 
     // 4. Global card image changed event with rich details
     window.dispatchEvent(
@@ -378,7 +369,7 @@ export function saveCardImageReplacement({ id, name, type = "place", newImageUrl
 
     return true;
   } catch (err) {
-    // Fail gracefully with in-memory fallback
+    console.warn("saveCardImageReplacement warning:", err);
     window.dispatchEvent(
       new CustomEvent("by-card-image-changed", {
         detail: { id, name, type, newImageUrl: normalizedUrl, timestamp: Date.now() },

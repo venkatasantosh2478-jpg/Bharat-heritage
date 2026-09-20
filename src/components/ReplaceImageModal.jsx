@@ -109,7 +109,7 @@ export default function ReplaceImageModal({
       const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const maxDim = 720;
+        const maxDim = 640;
         let { width, height } = img;
 
         if (width > maxDim || height > maxDim) {
@@ -127,7 +127,7 @@ export default function ReplaceImageModal({
         const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL("image/webp", 0.65);
+          const compressedDataUrl = canvas.toDataURL("image/webp", 0.5);
           setPreviewUrl(compressedDataUrl);
           setIsProcessing(false);
           toast.success("Image optimized and loaded for preview!");
@@ -190,13 +190,15 @@ export default function ReplaceImageModal({
 
     const success = saveCardImageReplacement({
       id: item.id,
-      name: item.name || item.title,
+      name: item.name || item.title || item.landmark || item.state || item.destination,
       type,
       newImageUrl: normalized,
+      item,
     });
 
     if (success) {
-      toast.success(`Card photo for "${item.name || item.title}" updated successfully!`);
+      const displayName = item.name || item.title || item.landmark || item.state || "Card";
+      toast.success(`Card photo for "${displayName}" updated successfully!`);
       if (onSuccess) onSuccess(normalized);
       onClose();
     } else {
