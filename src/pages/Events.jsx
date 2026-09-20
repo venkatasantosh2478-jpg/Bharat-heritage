@@ -4,14 +4,21 @@ import {
   CalendarDays, ArrowRight, 
   MapPin, Search, X, Sparkles, ExternalLink, 
   AlertTriangle, Users, BookOpen, Video, Send, Bot,
-  Calendar as CalendarIcon, LayoutList, UserCheck, CheckCircle2
+  Calendar as CalendarIcon, LayoutList, UserCheck, CheckCircle2,
+  Camera, BookmarkPlus
 } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { base44 } from "@/api/base44Client";
 import EventCalendarView from "@/components/EventCalendarView";
+import ReplaceImageModal from "@/components/ReplaceImageModal";
+import { 
+  getCustomCardImage, 
+  applyCustomImagesToList, 
+  checkIsAdmin 
+} from "@/components/lib/cardImageManager";
 
 // Festival details enriched with Scam Warnings, Crowd Density, Best Visiting Hours, and Media Links
-const enrichedEvents = [
+export const enrichedEvents = [
   {
     id: "kumbh",
     name: "Maha Kumbh Mela",
@@ -19,7 +26,7 @@ const enrichedEvents = [
     city: "Prayagraj",
     month: "January–February",
     category: "Sacred & Temple",
-    image: "https://www.google.com/imgres?q=maha%20kumbh%20mela%20image&imgurl=https%3A%2F%2Fc9admin.cottage9.com%2Fuploads%2F5612%2Fmahakumbh-2025.jpg&imgrefurl=https%3A%2F%2Fwww.cottage9.com%2Fblog%2Fmahakumbh-mela-2025-a-spiritual-journey-of-a-lifetime%2F&docid=s-e4N558utcueM&tbnid=vNKRgKsX2Lpf_M&vet=12ahUKEwi7up_5k-SWAxW-SGwGHXU8NwsQnPAOegQIRRAA..i&w=980&h=692&hcb=2&ved=2ahUKEwi7up_5k-SWAxW-SGwGHXU8NwsQnPAOegQIRRAA",
+    image: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&auto=format&fit=crop&q=80",
     timing: "Sacred Shahi Snan dips begin at 4:00 AM; Aarti at 6:30 PM",
     dress: "Simple modest cotton dhotis or kurtas; warm layers for cold mornings",
     rules: "Follow designated one-way pontoon bridges; do not carry valuable jewelry to the ghats",
@@ -207,7 +214,7 @@ export default function Events() {
   const [events, setEvents] = useState(enrichedEvents);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("calendar"); // "calendar" | "list"
+  const [viewMode, setViewMode] = useState("list"); // Default to "list" (festival cards) per user specification
   
   // RSVP state saved in localStorage
   const [rsvps, setRsvps] = useState(() => {
@@ -234,7 +241,19 @@ export default function Events() {
   const [customAnswer, setCustomAnswer] = useState("");
   const [isAskingAi, setIsAskingAi] = useState(false);
 
+  // Booking Confirmation State
+  const [bookedSuccessEvent, setBookedSuccessEvent] = useState(null);
+
+  // Admin Image replacement state
+  const [currentUser, setCurrentUser] = useState(null);
+  const [replaceImageEvent, setReplaceImageEvent] = useState(null);
+
   const navigate = useNavigate();
+  const isAdmin = checkIsAdmin(currentUser);
+
+  useEffect(() => {
+    base44.auth.me().then((u) => setCurrentUser(u)).catch(() => {});
+  }, []);
 
   const getAttendeeCount = (ev) => {
     if (!ev) return 0;
@@ -275,58 +294,125 @@ export default function Events() {
     try {
       localStorage.setItem("by-event-rsvps", JSON.stringify(newRsvps));
       localStorage.setItem("by-event-rsvp-counts", JSON.stringify(newCounts));
+      window.dispatchEvent(new CustomEvent("by-event-rsvp-counts-updated", { detail: newCounts }));
     } catch {}
   };
 
-  useEffect(() => {
-    const loadEvents = () => {
-      const coreList = [...enrichedEvents];
-      try {
-        const saved = localStorage.getItem("by-admin-entity-events");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            parsed.forEach((e) => {
-              const idx = coreList.findIndex(x => x.id === e.id || x.name.toLowerCase() === e.name.toLowerCase());
-              const formatted = {
-                id: e.id,
-                name: e.name,
-                state: e.state || "India",
-                city: e.city || "",
-                date: e.date || "",
-                month: e.month || "Year-round",
-                category: e.category || "Festivals",
-                image: e.image || "https://images.unsplash.com/photo-1548013146-72479768bada?w=500&auto=format&fit=crop&q=80",
-                timing: e.timing || "Check local schedule",
-                dress: e.dress || "Modest smart casuals",
-                rules: e.rules || "Follow local rules",
-                history: e.history || e.description || "",
-                crowdDensity: e.crowdDensity || "Moderate",
-                crowdRating: e.crowdRating || "4/5",
-                bestVisitingHours: e.bestVisitingHours || "Morning or Evening",
-                scamWarning: e.scamWarning || "Be aware of local guides.",
-                wikiQuery: e.wikiQuery || "",
-                youtubeQuery: e.youtubeQuery || "",
-                aiPlan: e.aiPlan || {
-                  summary: e.description || "Exciting traditional celebration!",
-                  day1: "Arrive and explore local attractions.",
-                  day2: "Enjoy primary festival day activities.",
-                  day3: "Savor local cuisine and purchase regional souvenirs.",
-                  familyTips: "Keep hydrated and follow crowd pathways.",
-                }
-              };
-              if (idx !== -1) {
-                coreList[idx] = { ...coreList[idx], ...formatted };
-              } else {
-                coreList.unshift(formatted);
-              }
-            });
-          }
-        }
-      } catch {}
-      setEvents(coreList);
+  // Save Event Plan directly into user's profile under "My Bookings"
+  const bookEventPlan = (ev, e) => {
+    if (e) e.stopPropagation();
+    if (!ev) return;
+
+    const bookingId = `EVT-${Date.now().toString(36).toUpperCase()}`;
+    const destinationName = ev.city ? `${ev.city}, ${ev.state}` : ev.state;
+    
+    const newBooking = {
+      id: bookingId,
+      destination: destinationName,
+      from_city: "Delhi",
+      days: 3,
+      budget: 15000,
+      group_type: "Festival Cultural Group",
+      food_preference: "Authentic Regional Festive Cuisine",
+      transport: "Special Festival Express Shuttle",
+      hotel: {
+        name: `Official Heritage Lodge (${ev.city || ev.state})`,
+        location: destinationName,
+        price: 2400,
+      },
+      status: "confirmed",
+      payment_method: "Cultural Pass Reserved",
+      booked_at: new Date().toISOString(),
+      total_cost: 7200,
+      trip_summary: `3-Day Cultural Festival Itinerary for ${ev.name} (${ev.month || "Upcoming"}) in ${destinationName}`,
+      isEventPlan: true,
+      event: {
+        id: ev.id,
+        name: ev.name,
+        month: ev.month,
+        city: ev.city || ev.state,
+        state: ev.state,
+        timing: ev.timing,
+        dress: ev.dress,
+        rules: ev.rules,
+        aiPlan: ev.aiPlan || null,
+        image: ev.image
+      },
+      itinerary: [
+        { day: 1, title: "Day 1: Arrival & Festival Atmosphere", description: ev.aiPlan?.day1 || "Arrive early and check into heritage lodge. Stroll through the festive pavilions." },
+        { day: 2, title: "Day 2: Main Rituals & Celebrations", description: ev.aiPlan?.day2 || "Attend the grand ritual processions, temple aarti, and cultural lights." },
+        { day: 3, title: "Day 3: Heritage Circuits & Handloom Bazaar", description: ev.aiPlan?.day3 || "Explore local heritage monuments and artisan GI craft clusters." }
+      ]
     };
 
+    try {
+      const existing = JSON.parse(localStorage.getItem("by-user-bookings") || "[]");
+      const updated = [newBooking, ...existing.filter(b => b.id !== bookingId)];
+      localStorage.setItem("by-user-bookings", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent("by-user-bookings-updated", { detail: updated }));
+      window.dispatchEvent(new CustomEvent("by-bookings-updated", { detail: updated }));
+
+      // Automatically ensure RSVP is marked
+      if (!rsvps[ev.id]) {
+        toggleRsvp(ev);
+      }
+
+      setBookedSuccessEvent({ booking: newBooking, event: ev });
+    } catch (err) {
+      console.error("Failed to save booking:", err);
+    }
+  };
+
+  const loadEvents = () => {
+    const coreList = applyCustomImagesToList([...enrichedEvents]);
+    try {
+      const saved = localStorage.getItem("by-admin-entity-events");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          parsed.forEach((e) => {
+            const idx = coreList.findIndex(x => x.id === e.id || (x.name && e.name && x.name.toLowerCase() === e.name.toLowerCase()));
+            const resolvedImg = getCustomCardImage(e, e.image || "https://images.unsplash.com/photo-1548013146-72479768bada?w=500&auto=format&fit=crop&q=80");
+            const formatted = {
+              id: e.id,
+              name: e.name,
+              state: e.state || "India",
+              city: e.city || "",
+              date: e.date || "",
+              month: e.month || "Year-round",
+              category: e.category || "Festivals",
+              image: resolvedImg,
+              timing: e.timing || "Check local schedule",
+              dress: e.dress || "Modest smart casuals",
+              rules: e.rules || "Follow local rules",
+              history: e.history || e.description || "",
+              crowdDensity: e.crowdDensity || "Moderate",
+              crowdRating: e.crowdRating || "4/5",
+              bestVisitingHours: e.bestVisitingHours || "Morning or Evening",
+              scamWarning: e.scamWarning || "Be aware of local guides.",
+              wikiQuery: e.wikiQuery || "",
+              youtubeQuery: e.youtubeQuery || "",
+              aiPlan: e.aiPlan || {
+                summary: e.description || "Exciting traditional celebration!",
+                day1: "Arrive and explore local attractions.",
+                day2: "Enjoy primary festival day activities.",
+                day3: "Savor local cuisine and purchase regional souvenirs.",
+                familyTips: "Keep hydrated and follow crowd pathways.",
+              }
+            };
+            if (idx !== -1) {
+              coreList[idx] = { ...coreList[idx], ...formatted, image: resolvedImg };
+            } else {
+              coreList.unshift(formatted);
+            }
+          });
+        }
+      }
+    } catch {}
+    setEvents(applyCustomImagesToList(coreList));
+  };
+
+  useEffect(() => {
     loadEvents();
 
     base44.entities.Event.list("-created_date", 100).then((list) => {
@@ -334,13 +420,35 @@ export default function Events() {
         setEvents((prev) => {
           const ids = new Set(list.map((l) => l.id));
           const leftovers = prev.filter((p) => !ids.has(p.id));
-          return [...list, ...leftovers];
+          const merged = [...list, ...leftovers];
+          return applyCustomImagesToList(merged);
         });
       }
     }).catch(() => {});
 
-    window.addEventListener("by-events-updated", loadEvents);
-    return () => window.removeEventListener("by-events-updated", loadEvents);
+    const handleUpdate = () => {
+      setTimeout(loadEvents, 0);
+    };
+
+    const handleRsvpCountsUpdate = (e) => {
+      if (e?.detail) {
+        setRsvpCounts(e.detail);
+      } else {
+        try {
+          const saved = localStorage.getItem("by-event-rsvp-counts");
+          if (saved) setRsvpCounts(JSON.parse(saved));
+        } catch {}
+      }
+    };
+
+    window.addEventListener("by-events-updated", handleUpdate);
+    window.addEventListener("by-card-image-changed", handleUpdate);
+    window.addEventListener("by-event-rsvp-counts-updated", handleRsvpCountsUpdate);
+    return () => {
+      window.removeEventListener("by-events-updated", handleUpdate);
+      window.removeEventListener("by-card-image-changed", handleUpdate);
+      window.removeEventListener("by-event-rsvp-counts-updated", handleRsvpCountsUpdate);
+    };
   }, []);
 
   const categories = [
@@ -568,7 +676,7 @@ export default function Events() {
                 {/* Image Section */}
                 <div className="lg:col-span-4 h-64 lg:h-auto overflow-hidden relative group">
                   <Image 
-                    src={e.image} 
+                    src={getCustomCardImage(e, e.image)} 
                     alt={e.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                     fittingType="fill" 
@@ -580,6 +688,22 @@ export default function Events() {
                     <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-md">
                       {e.category}
                     </div>
+                  )}
+
+                  {/* Admin Quick Photo Replace Button */}
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={(evt) => {
+                        evt.stopPropagation();
+                        setReplaceImageEvent(e);
+                      }}
+                      className="absolute top-3 right-3 p-2 rounded-full bg-black/75 hover:bg-primary text-white text-xs font-bold backdrop-blur-sm transition-all shadow-md flex items-center gap-1.5 z-10 cursor-pointer"
+                      title="Replace Festival Photo"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span className="text-[10px] hidden group-hover:inline">Change Photo</span>
+                    </button>
                   )}
                 </div>
 
@@ -669,7 +793,7 @@ export default function Events() {
                       </a>
                     </div>
 
-                    {/* RSVP, AI Planner and Trip Planner Buttons */}
+                    {/* RSVP, Book Event Plan, AI Planner and Trip Planner Buttons */}
                     <div className="flex items-center gap-2 flex-wrap">
                       {/* RSVP Toggle Button */}
                       <button
@@ -692,6 +816,17 @@ export default function Events() {
                             <span>RSVP</span>
                           </>
                         )}
+                      </button>
+
+                      {/* Book Event Plan directly to Profile */}
+                      <button
+                        type="button"
+                        onClick={(evt) => bookEventPlan(e, evt)}
+                        className="px-4 py-2 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/25 transition-colors flex items-center gap-1.5 cursor-pointer"
+                        title="Book and save this festival itinerary directly to My Bookings in your profile"
+                      >
+                        <BookmarkPlus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>Book Event Plan</span>
                       </button>
 
                       <button
@@ -831,29 +966,115 @@ export default function Events() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-border bg-muted/30 flex items-center justify-end gap-2">
+            <div className="p-4 border-t border-border bg-muted/30 flex flex-wrap items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => setAiModalEvent(null)}
-                className="px-4 py-2 rounded-full bg-muted text-foreground text-xs font-bold hover:bg-muted/80"
+                className="px-4 py-2 rounded-full bg-muted text-foreground text-xs font-bold hover:bg-muted/80 cursor-pointer"
               >
                 Close
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ev = aiModalEvent;
+                    bookEventPlan(ev);
+                  }}
+                  className="px-4 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <BookmarkPlus className="w-3.5 h-3.5" />
+                  <span>Book Event Plan to Profile</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ev = aiModalEvent;
+                    setAiModalEvent(null);
+                    navigate(`/planner?destination=${encodeURIComponent(ev.city || ev.state)}&to=${encodeURIComponent(ev.city || ev.state)}&from=Delhi&event=${encodeURIComponent(ev.name)}`);
+                  }}
+                  className="px-5 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 flex items-center gap-1.5 shadow-md cursor-pointer"
+                >
+                  Plan Trip with this Itinerary →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BOOKING SUCCESS POPUP / CONFIRMATION MODAL */}
+      {bookedSuccessEvent && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 text-center relative animate-in zoom-in-95 duration-150">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 mx-auto grid place-items-center">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                Confirmed & Saved to Profile
+              </span>
+              <h3 className="text-xl font-bold text-foreground font-heading">
+                Event Plan Booked!
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Your 3-day itinerary and official cultural pass for <strong>{bookedSuccessEvent.event?.name}</strong> has been saved under <strong>My Bookings</strong> in your traveler profile.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-muted/40 border border-border text-xs text-left space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Booking ID:</span>
+                <span className="font-mono font-bold text-foreground">{bookedSuccessEvent.booking?.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Destination:</span>
+                <span className="font-bold text-foreground">{bookedSuccessEvent.booking?.destination}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">RSVP Status:</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">Attending Confirmed ✓</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setBookedSuccessEvent(null)}
+                className="flex-1 py-2.5 rounded-full bg-muted text-foreground text-xs font-bold hover:bg-muted/80 transition-colors cursor-pointer"
+              >
+                Keep Exploring
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  const ev = aiModalEvent;
-                  setAiModalEvent(null);
-                  navigate(`/planner?destination=${encodeURIComponent(ev.city || ev.state)}&to=${encodeURIComponent(ev.city || ev.state)}&from=Delhi&event=${encodeURIComponent(ev.name)}`);
+                  setBookedSuccessEvent(null);
+                  navigate("/profile?tab=trips");
                 }}
-                className="px-5 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 flex items-center gap-1.5 shadow-md"
+                className="flex-1 py-2.5 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-md hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                Plan Trip with this Itinerary →
+                <span>View My Bookings</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Admin Quick Image Replacement Modal */}
+      <ReplaceImageModal
+        isOpen={Boolean(replaceImageEvent)}
+        onClose={() => setReplaceImageEvent(null)}
+        item={replaceImageEvent}
+        type="event"
+        onSuccess={() => {
+          setReplaceImageEvent(null);
+          loadEvents();
+        }}
+      />
     </div>
   );
 }

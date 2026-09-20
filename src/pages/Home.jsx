@@ -78,6 +78,7 @@ export default function Home() {
     "https://media.base44.com/videos/public/6a9bae9fd15b41c75cea5237/4135fd9b0_vidssavecomIncredibleIndia4K-BeyondtheStereotypes_TheRealIndiaRevealed720P.mp4"
   );
   const [currentHeroImage, setCurrentHeroImage] = useState(heroImage);
+  const [heroLocation, setHeroLocation] = useState("Taj Mahal, Agra");
   const [activeGroup, setActiveGroup] = useState(null);
   const [foods, setFoods] = useState(staticFoods);
   const [products, setProducts] = useState(staticProducts);
@@ -127,15 +128,29 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    try {
-      const c = localStorage.getItem("by-site-config");
-      if (c) {
-        const cfg = JSON.parse(c);
+    function loadConfig(cfg) {
+      if (!cfg) {
+        try {
+          const c = localStorage.getItem("by-site-config");
+          if (c) cfg = JSON.parse(c);
+        } catch {}
+      }
+      if (cfg) {
         if (cfg.heroVideo) setHeroVideo(cfg.heroVideo);
         if (cfg.heroVideoUrl) setHeroVideoUrl(cfg.heroVideoUrl);
         if (cfg.heroImage) setCurrentHeroImage(cfg.heroImage);
+        if (cfg.heroLocation) setHeroLocation(cfg.heroLocation);
       }
-    } catch {}
+    }
+
+    loadConfig();
+
+    const handleConfigEvent = (e) => {
+      if (e.detail) loadConfig(e.detail);
+      else loadConfig();
+    };
+
+    window.addEventListener("by-site-config-updated", handleConfigEvent);
 
     loadPlaces();
     loadFoods();
@@ -179,11 +194,15 @@ export default function Home() {
     window.addEventListener("by-products-updated", loadProducts);
 
     return () => {
+      window.removeEventListener("by-site-config-updated", handleConfigEvent);
       window.removeEventListener("by-places-updated", loadPlaces);
       window.removeEventListener("by-foods-updated", loadFoods);
       window.removeEventListener("by-products-updated", loadProducts);
     };
   }, [loadPlaces, loadFoods, loadProducts]);
+
+  const activeLocationTag = heroLocation || (currentHeroImage.includes("taj") || currentHeroImage.includes("fc65e0714") ? "Taj Mahal, Agra" : "Red Fort, Delhi");
+
   return (
     <div>
       {/* Hero */}
@@ -192,7 +211,7 @@ export default function Home() {
         {media === "photo" ? (
           <Image
             src={currentHeroImage}
-            alt="Red Fort, Delhi"
+            alt={activeLocationTag}
             className="absolute inset-0 w-full h-full object-cover object-center"
             fittingType="fill"
           />
@@ -201,10 +220,10 @@ export default function Home() {
             {heroVideoUrl ? (
               <HeroVideo src={heroVideoUrl} />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
                 <iframe
-                  className="w-[300vw] h-[168.75vw] min-w-full min-h-full sm:w-[177.78vh] sm:h-[100vh] pointer-events-none object-cover aspect-video"
-                  src={`https://www.youtube.com/embed/${heroVideo}?autoplay=1&mute=1&controls=0&modestbranding=1&playsinline=1&rel=0&loop=1&playlist=${heroVideo}`}
+                  className="w-[300vw] h-[168.75vw] min-w-full min-h-full sm:w-[177.78vh] sm:h-[100vh] object-cover aspect-video"
+                  src={`https://www.youtube.com/embed/${heroVideo}?autoplay=1&mute=1&controls=1&modestbranding=1&playsinline=1&rel=0&loop=1&playlist=${heroVideo}`}
                   title="Heritage India"
                   allow="autoplay; encrypted-media; fullscreen"
                   frameBorder="0"
@@ -245,7 +264,7 @@ export default function Home() {
         {media === "photo" && (
           <div className="relative z-10 max-w-3xl px-4 sm:px-6 my-auto pt-6 pb-16 sm:py-10">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/80 text-stone-200 text-xs font-medium mb-3 sm:mb-5 border border-white/10 backdrop-blur-md shadow-md">
-              <MapPin className="w-3.5 h-3.5 text-amber-400" /> Red Fort, Delhi
+              <MapPin className="w-3.5 h-3.5 text-amber-400" /> {activeLocationTag}
             </span>
             <h1 className="text-2xl sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight font-heading drop-shadow-md">
               {t("hero_title_1")}{" "}

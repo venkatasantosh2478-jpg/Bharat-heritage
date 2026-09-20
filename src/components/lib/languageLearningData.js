@@ -11,6 +11,18 @@ export const languageOptions = [
   { code: "ml", name: "Malayalam", nativeName: "മലയാളം", script: "മലയാള ലിപി", speechLang: "ml-IN", region: "Kerala" },
   { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ", script: "ਗੁਰਮੁਖੀ", speechLang: "pa-IN", region: "Punjab" },
   { code: "or", name: "Odia", nativeName: "ଓଡ଼ିଆ", script: "ଓଡ଼ିଆ ଲିପି", speechLang: "or-IN", region: "Odisha" },
+  { code: "sa", name: "Sanskrit", nativeName: "संस्कृतम्", script: "देवनागरी", speechLang: "sa-IN", region: "Classical Pan-India" },
+  { code: "ur", name: "Urdu", nativeName: "اردو", script: "نستعلیق", speechLang: "ur-IN", region: "Telangana, UP, Delhi & Kashmir" },
+  { code: "as", name: "Assamese", nativeName: "অসমীয়া", script: "পূৰ্বী নাগৰী", speechLang: "as-IN", region: "Assam & Brahmaputra" },
+  { code: "mai", name: "Maithili", nativeName: "मैथिली", script: "देवनागरी", speechLang: "mai-IN", region: "Bihar & Mithila" },
+  { code: "kok", name: "Konkani", nativeName: "कोंकणी", script: "देवनागरी / Romi", speechLang: "kok-IN", region: "Goa & Coastal Karnataka" },
+  { code: "ks", name: "Kashmiri", nativeName: "کٲشُر / कॉशुर", script: "Perso-Arabic", speechLang: "ks-IN", region: "Jammu & Kashmir" },
+  { code: "sd", name: "Sindhi", nativeName: "سنڌي / सिन्धी", script: "Perso-Arabic", speechLang: "sd-IN", region: "Gujarat & Maharashtra" },
+  { code: "ne", name: "Nepali", nativeName: "नेपाली", script: "देवनागरी", speechLang: "ne-IN", region: "Sikkim & Darjeeling" },
+  { code: "mni", name: "Manipuri (Meitei)", nativeName: "মৈতৈলোন্", script: "Meitei Mayek", speechLang: "mni-IN", region: "Manipur" },
+  { code: "sat", name: "Santali", nativeName: "ᱥᱟᱱᱛᱟᱲᱤ", script: "Ol Chiki", speechLang: "sat-IN", region: "Jharkhand, Odisha & WB" },
+  { code: "doi", name: "Dogri", nativeName: "डोगरी", script: "देवनागरी", speechLang: "doi-IN", region: "Jammu" },
+  { code: "brx", name: "Bodo", nativeName: "बड़ो", script: "देवनागरी", speechLang: "brx-IN", region: "Bodoland, Assam" },
   { code: "en", name: "English", nativeName: "English", script: "Latin Script", speechLang: "en-IN", region: "Pan-India Business & Tourist" },
 ];
 

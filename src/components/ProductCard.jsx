@@ -1,16 +1,42 @@
-import { useState } from "react";
-import { Star, MapPin, ShoppingBag, Check, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Star, MapPin, ShoppingBag, Check, Eye, Camera } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { addToCart } from "@/lib/cart";
 import { useI18n } from "@/lib/i18n";
 import { getLocalizedProduct } from "@/lib/itemTranslations";
 import ThreeDTiltCard from "@/components/ui/ThreeDTiltCard";
+import ReplaceImageModal from "@/components/ReplaceImageModal";
+import { getCustomCardImage, checkIsAdmin } from "@/components/lib/cardImageManager";
+import { useAuth } from "@/components/lib/AuthContext";
 
 export default function ProductCard({ product: rawProduct, onSelect }) {
   const { lang, t } = useI18n();
+  const { user } = useAuth();
+  const isAdmin = checkIsAdmin(user);
   const product = getLocalizedProduct(rawProduct, lang);
 
+  const [cardImage, setCardImage] = useState(() => getCustomCardImage(rawProduct, product.image));
+  const [showReplaceModal, setShowReplaceModal] = useState(false);
   const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    setCardImage(getCustomCardImage(rawProduct, product.image));
+  }, [rawProduct, product.image]);
+
+  useEffect(() => {
+    const handleImageChange = (e) => {
+      const detail = e.detail;
+      if (
+        (detail?.id && detail.id === rawProduct?.id) ||
+        (detail?.name && rawProduct?.name && detail.name.toLowerCase() === rawProduct.name.toLowerCase())
+      ) {
+        setCardImage(detail.newImageUrl);
+      }
+    };
+    window.addEventListener("by-card-image-changed", handleImageChange);
+    return () => window.removeEventListener("by-card-image-changed", handleImageChange);
+  }, [rawProduct]);
+
   const name = product.name || product.title || "Handcrafted Heritage Artifact";
   const origin = product.origin || product.craft_origin || "Handicraft Cooperative";
   const rawPrice = Number(product.price) || 0;
@@ -26,42 +52,58 @@ export default function ProductCard({ product: rawProduct, onSelect }) {
   }
 
   return (
-    <ThreeDTiltCard
-      maxTilt={10}
-      scale={1.03}
-      glare={true}
-      depth="15px"
-      onClick={() => onSelect && onSelect(product)}
-      className="group flex flex-col rounded-3xl overflow-hidden bg-card shadow-xs ring-1 ring-border hover:ring-amber-500/40 hover:shadow-2xl transition-all duration-300 h-full"
-    >
-      <div className="relative h-52 overflow-hidden bg-muted rounded-t-3xl">
-        <Image 
-          src={product.image || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80"} 
-          alt={name} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-          fittingType="fill" 
-        />
-        {discount > 0 && (
-          <span
-            className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-md"
-            style={{ transform: "translateZ(25px)" }}
-          >
-            {discount}% OFF
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect && onSelect(product);
-          }}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 hover:bg-background text-foreground grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs shadow-xs"
-          style={{ transform: "translateZ(25px)" }}
-          title="Inspect craft story and ratings"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-      </div>
+    <>
+      <ThreeDTiltCard
+        maxTilt={10}
+        scale={1.03}
+        glare={true}
+        depth="15px"
+        onClick={() => onSelect && onSelect(product)}
+        className="group flex flex-col rounded-3xl overflow-hidden bg-card shadow-xs ring-1 ring-border hover:ring-amber-500/40 hover:shadow-2xl transition-all duration-300 h-full"
+      >
+        <div className="relative h-52 overflow-hidden bg-muted rounded-t-3xl">
+          <Image 
+            src={cardImage || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80"} 
+            alt={name} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            fittingType="fill" 
+          />
+          {discount > 0 && (
+            <span
+              className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-md"
+              style={{ transform: "translateZ(25px)" }}
+            >
+              {discount}% OFF
+            </span>
+          )}
+          <div className="absolute top-3 right-3 flex items-center gap-1.5" style={{ transform: "translateZ(25px)" }}>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowReplaceModal(true);
+                }}
+                className="w-8 h-8 rounded-full bg-background/85 hover:bg-primary hover:text-primary-foreground text-foreground grid place-items-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-xs shadow-md"
+                title="Admin Control: Replace Product Photo"
+                aria-label="Replace Product Photo"
+              >
+                <Camera className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect && onSelect(product);
+              }}
+              className="w-8 h-8 rounded-full bg-background/85 hover:bg-background text-foreground grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs shadow-md"
+              title="Inspect craft story and ratings"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
       <div className="p-5 flex flex-col flex-1 justify-between">
         <div>
@@ -138,6 +180,15 @@ export default function ProductCard({ product: rawProduct, onSelect }) {
         </div>
       </div>
     </ThreeDTiltCard>
+
+    <ReplaceImageModal
+      isOpen={showReplaceModal}
+      onClose={() => setShowReplaceModal(false)}
+      item={rawProduct}
+      type="product"
+      onSuccess={(newUrl) => setCardImage(newUrl)}
+    />
+  </>
   );
 }
 

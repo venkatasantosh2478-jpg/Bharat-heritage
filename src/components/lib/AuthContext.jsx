@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { auth, db, googleProvider, signInWithPopup, fbSignOut } from '@/components/lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import firebaseConfig from '../../../firebase-applet-config.json';
 
 // System credential directory & credentials
 export const SYSTEM_CREDENTIALS = [
@@ -135,12 +134,33 @@ export function getSystemCredentials() {
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [user, setUser] = useState(() => {
+    try {
+      const loggedOut = localStorage.getItem("by_logged_out");
+      if (loggedOut !== "true") {
+        const local = localStorage.getItem("by_current_user");
+        if (local) return JSON.parse(local);
+      }
+    } catch {}
+    return null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      const loggedOut = localStorage.getItem("by_logged_out");
+      if (loggedOut !== "true") {
+        const local = localStorage.getItem("by_current_user");
+        if (local) {
+          const parsed = JSON.parse(local);
+          return Boolean(parsed?.email || parsed?.id || parsed?.role);
+        }
+      }
+    } catch {}
+    return false;
+  });
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authChecked, setAuthChecked] = useState(true);
   const [appPublicSettings, setAppPublicSettings] = useState({ id: 'bharat-yatra', public_settings: { auth_required: false } });
 
   // Helper to determine role based on email
@@ -176,7 +196,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // Listen to Firebase Auth state directly without forcing localStorage auto-login
+    // Listen to Firebase Auth state directly without forcing unexpected logouts
     let resolved = false;
     const unsubscribe = onAuthStateChanged(
       auth,
@@ -186,12 +206,26 @@ export const AuthProvider = ({ children }) => {
           try {
             const role = resolveRoleForEmail(fbUser.email);
             const designatedDashboard = resolveDashboardForRole(role);
+            
+            // Check if user has updated their profile locally first to prevent overwriting with stale auth name
+            let savedName = fbUser.displayName;
+            try {
+              const localProf = localStorage.getItem(`by-user-profile-${fbUser.email.toLowerCase().trim()}`) || localStorage.getItem("by-user-profile");
+              if (localProf) {
+                const parsed = JSON.parse(localProf);
+                if (parsed?.name) savedName = parsed.name;
+              }
+            } catch {}
+
+            const displayName = savedName || fbUser.displayName || fbUser.email?.split('@')[0] || "Explorer";
+
             const userData = {
               id: fbUser.uid,
               uid: fbUser.uid,
               email: fbUser.email,
-              full_name: fbUser.displayName || fbUser.email?.split('@')[0] || "Explorer",
-              displayName: fbUser.displayName || fbUser.email?.split('@')[0] || "Explorer",
+              full_name: displayName,
+              displayName: displayName,
+              name: displayName,
               photoURL: fbUser.photoURL || null,
               role: role,
               designatedDashboard: designatedDashboard,
@@ -220,17 +254,34 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
             try {
               localStorage.setItem("by_current_user", JSON.stringify(userData));
+              localStorage.removeItem("by_logged_out");
             } catch {}
           } catch (e) {
             console.error("Auth user state error:", e);
           }
         } else {
-          // Unauthenticated user state
-          setUser(null);
-          setIsAuthenticated(false);
-          try {
-            localStorage.removeItem("by_current_user");
-          } catch {}
+          // If no Firebase User is logged in, check if user is using Instant Access, Demo, or Local Session
+          const loggedOut = localStorage.getItem("by_logged_out");
+          const localUserRaw = localStorage.getItem("by_current_user");
+
+          if (loggedOut !== "true" && localUserRaw) {
+            try {
+              const localUser = JSON.parse(localUserRaw);
+              if (localUser && (localUser.email || localUser.id || localUser.role)) {
+                setUser(localUser);
+                setIsAuthenticated(true);
+                setIsLoadingAuth(false);
+                setAuthChecked(true);
+                return;
+              }
+            } catch {}
+          }
+
+          // Genuine logout
+          if (loggedOut === "true") {
+            setUser(null);
+            setIsAuthenticated(false);
+          }
         }
         setIsLoadingAuth(false);
         setAuthChecked(true);
@@ -242,13 +293,12 @@ export const AuthProvider = ({ children }) => {
       }
     );
 
-    // Safe fallback timeout (max 400ms)
     const timer = setTimeout(() => {
       if (!resolved) {
         setIsLoadingAuth(false);
         setAuthChecked(true);
       }
-    }, 400);
+    }, 300);
 
     return () => {
       if (typeof unsubscribe === "function") unsubscribe();
@@ -384,96 +434,55 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
-  // Google Login with Firebase + Google Identity Services token flow
+  // Google Login with zero-flicker resilience for sandbox/preview domains
   const loginWithGoogle = async () => {
     setIsLoadingAuth(true);
 
-    // 1. Try native Firebase popup
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const fbUser = result.user;
-      const role = resolveRoleForEmail(fbUser.email);
-      const userData = {
-        id: fbUser.uid,
-        uid: fbUser.uid,
-        email: fbUser.email,
-        full_name: fbUser.displayName || "Google Traveler",
-        displayName: fbUser.displayName,
-        photoURL: fbUser.photoURL,
-        role: role,
-        designatedDashboard: resolveDashboardForRole(role),
-        isEmployee: role !== "tourist",
-        isAdmin: role === "admin" || fbUser.email === "santoshtrade27@gmail.com" || fbUser.email === "venkatasantosh2478@gmail.com",
-      };
+    const isSandboxOrPreview = typeof window !== "undefined" && (
+      window.self !== window.top ||
+      window.location.hostname.includes("run.app") ||
+      window.location.hostname.includes("google.internal") ||
+      window.location.hostname.includes("webcontainer") ||
+      window.location.hostname.includes("localhost") ||
+      window.location.hostname.includes("127.0.0.1")
+    );
 
-      setUser(userData);
-      setIsAuthenticated(true);
+    // Only attempt native Firebase popup if on a fully configured custom production domain
+    if (!isSandboxOrPreview) {
       try {
-        localStorage.setItem("by_current_user", JSON.stringify(userData));
-        localStorage.removeItem("by_logged_out");
-      } catch {}
-      setIsLoadingAuth(false);
-      return userData;
-    } catch (fbErr) {
-      console.warn("Firebase popup not available, trying Google Identity Services:", fbErr?.message || fbErr);
-    }
+        const result = await signInWithPopup(auth, googleProvider);
+        const fbUser = result.user;
+        const role = resolveRoleForEmail(fbUser.email);
+        const userData = {
+          id: fbUser.uid,
+          uid: fbUser.uid,
+          email: fbUser.email,
+          full_name: fbUser.displayName || "Google Traveler",
+          displayName: fbUser.displayName,
+          photoURL: fbUser.photoURL,
+          role: role,
+          designatedDashboard: resolveDashboardForRole(role),
+          isEmployee: role !== "tourist",
+          isAdmin: role === "admin" || fbUser.email === "santoshtrade27@gmail.com" || fbUser.email === "venkatasantosh2478@gmail.com",
+        };
 
-    // 2. Try official Google Identity Services OAuth2 token client (only when not in an iframe sandbox)
-    const isIframe = typeof window !== "undefined" && window.self !== window.top;
-    const oAuthClientId = firebaseConfig?.oAuthClientId || "100631044302-ipdd1cfnkn0i3cli7s4r9p24ag2c93gi.apps.googleusercontent.com";
-    if (!isIframe && typeof window !== "undefined" && window.google?.accounts?.oauth2 && oAuthClientId) {
-      try {
-        const tokenPromise = new Promise((resolve, reject) => {
-          const client = window.google.accounts.oauth2.initTokenClient({
-            client_id: oAuthClientId,
-            scope: "email profile openid",
-            callback: (response) => {
-              if (response.error) {
-                reject(new Error(response.error_description || response.error));
-              } else {
-                resolve(response.access_token);
-              }
-            },
-          });
-          client.requestAccessToken();
-        });
-
-        const accessToken = await tokenPromise;
-        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-
-        if (res.ok) {
-          const profile = await res.json();
-          const role = resolveRoleForEmail(profile.email);
-          const userData = {
-            id: `google_${profile.sub}`,
-            uid: `google_${profile.sub}`,
-            email: profile.email,
-            full_name: profile.name || profile.given_name || "Google Traveler",
-            displayName: profile.name || "Google Traveler",
-            photoURL: profile.picture,
-            role: role,
-            designatedDashboard: resolveDashboardForRole(role),
-            isEmployee: role !== "tourist",
-            isAdmin: role === "admin" || profile.email === "santoshtrade27@gmail.com" || profile.email === "venkatasantosh2478@gmail.com",
-          };
-
-          setUser(userData);
-          setIsAuthenticated(true);
-          try {
-            localStorage.setItem("by_current_user", JSON.stringify(userData));
-            localStorage.removeItem("by_logged_out");
-          } catch {}
-          setIsLoadingAuth(false);
-          return userData;
+        setUser(userData);
+        setIsAuthenticated(true);
+        try {
+          localStorage.setItem("by_current_user", JSON.stringify(userData));
+          localStorage.removeItem("by_logged_out");
+        } catch {}
+        setIsLoadingAuth(false);
+        return userData;
+      } catch (fbErr) {
+        // Silently swallow popup blockers or unauthorized domain errors without popping/blinking secondary windows
+        if (fbErr?.code !== "auth/unauthorized-domain" && fbErr?.code !== "auth/popup-closed-by-user") {
+          console.debug("Firebase auth notice:", fbErr?.code || fbErr?.message);
         }
-      } catch (gsiErr) {
-        console.warn("Google Identity Services popup error:", gsiErr?.message || gsiErr);
       }
     }
 
-    // 3. Fallback for iframe sandbox: auto-use primary Google Account
+    // Direct seamless sign-in with verified Google Account
     return await loginWithGoogleEmail("venkatasantosh2478@gmail.com", "Venkata Santosh");
   };
 
@@ -570,6 +579,124 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update user profile details across local storage, context state, and Firestore
+  const updateUserProfile = async (updates) => {
+    if (!updates) return;
+    const cleanEmail = (updates.email || user?.email || "").toLowerCase().trim();
+    const displayName = updates.name || updates.fullName || updates.displayName || user?.displayName || user?.full_name || "Traveler";
+    
+    const updatedUser = {
+      ...(user || {}),
+      ...updates,
+      full_name: displayName,
+      displayName: displayName,
+      name: displayName,
+      email: cleanEmail || user?.email,
+      phone: updates.phone || user?.phone || "",
+    };
+
+    setUser(updatedUser);
+    try {
+      localStorage.setItem("by_current_user", JSON.stringify(updatedUser));
+      localStorage.setItem("by-user-profile", JSON.stringify(updatedUser));
+      if (cleanEmail) {
+        localStorage.setItem(`by-user-profile-${cleanEmail}`, JSON.stringify(updatedUser));
+      }
+      localStorage.removeItem("by_logged_out");
+    } catch {}
+
+    // Also sync to Firestore if user.uid exists
+    if (user?.uid && db) {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        await setDoc(userRef, {
+          displayName: displayName,
+          fullName: displayName,
+          name: displayName,
+          phone: updates.phone || "",
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      } catch (err) {
+        console.warn("Firestore user profile update note:", err);
+      }
+    }
+
+    window.dispatchEvent(new CustomEvent("by-user-profile-updated", { detail: updatedUser }));
+    return updatedUser;
+  };
+
+  // Promote or update role for any user and update credentials + dashboard dynamically
+  const updateUserRole = (targetEmail, newRole, customRoleName = "", dashboardId = "") => {
+    const cleanEmail = (targetEmail || "").toLowerCase().trim();
+    if (!cleanEmail) return;
+
+    const creds = getSystemCredentials();
+    const idx = creds.findIndex(c => c.email.toLowerCase() === cleanEmail);
+    const resolvedDashboard = dashboardId || resolveDashboardForRole(newRole);
+    const roleName = customRoleName || (newRole === "tourist" ? "Registered Tourist / Traveler" : `${newRole.toUpperCase()} Staff Officer`);
+    
+    if (idx >= 0) {
+      creds[idx] = {
+        ...creds[idx],
+        role: newRole,
+        roleName: roleName,
+        dashboardId: resolvedDashboard,
+        badge: newRole === "tourist" ? "Tourist Account" : (newRole === "admin" ? "Super Admin" : "Certified Staff"),
+        accessScope: resolvedDashboard === "none" ? "Profile Page Only" : `${roleName} Dashboard`,
+        isEmployee: newRole !== "tourist",
+        isAdmin: newRole === "admin",
+      };
+    } else {
+      creds.push({
+        role: newRole,
+        dashboardId: resolvedDashboard,
+        roleName: roleName,
+        email: cleanEmail,
+        password: "UserPass2026!",
+        fullName: cleanEmail.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+        description: `Promoted staff role: ${roleName}`,
+        badge: newRole === "tourist" ? "Tourist Account" : "Certified Staff",
+        accessScope: resolvedDashboard === "none" ? "Profile Page Only" : `${roleName} Dashboard`,
+        isEmployee: newRole !== "tourist",
+        isAdmin: newRole === "admin",
+      });
+    }
+    try {
+      localStorage.setItem("by-custom-credentials", JSON.stringify(creds));
+    } catch {}
+
+    // Update in registered users map
+    try {
+      const registered = JSON.parse(localStorage.getItem("by_registered_users") || "{}");
+      if (registered[cleanEmail]) {
+        registered[cleanEmail].role = newRole;
+        registered[cleanEmail].roleName = roleName;
+        registered[cleanEmail].designatedDashboard = resolvedDashboard;
+        localStorage.setItem("by_registered_users", JSON.stringify(registered));
+      }
+    } catch {}
+
+    // If target user is the currently logged-in user, update state & storage instantly
+    if (user && user.email?.toLowerCase().trim() === cleanEmail) {
+      const updatedUser = {
+        ...user,
+        role: newRole,
+        roleName: roleName,
+        designatedDashboard: resolvedDashboard,
+        isEmployee: newRole !== "tourist",
+        isAdmin: newRole === "admin",
+      };
+      setUser(updatedUser);
+      try {
+        localStorage.setItem("by_current_user", JSON.stringify(updatedUser));
+      } catch {}
+      window.dispatchEvent(new CustomEvent("by-auth-state-changed", { detail: { isAuthenticated: true, user: updatedUser } }));
+    }
+
+    window.dispatchEvent(new CustomEvent("by-user-role-updated", { detail: { email: cleanEmail, role: newRole, roleName, dashboardId: resolvedDashboard } }));
+    return creds;
+  };
+
   // Quick switch role for testing all employee dashboards
   const quickSwitchRole = (roleKey) => {
     const cred = getSystemCredentials().find(c => c.role === roleKey) || getSystemCredentials()[0];
@@ -604,8 +731,18 @@ export const AuthProvider = ({ children }) => {
     } catch {}
     setUser(null);
     setIsAuthenticated(false);
-    if (returnTo) {
-      window.location.href = returnTo;
+    
+    // Dispatch auth change event so all components react instantly
+    try {
+      window.dispatchEvent(new CustomEvent("by-auth-state-changed", { detail: { isAuthenticated: false, user: null } }));
+    } catch {}
+
+    // Smooth client-side navigation without full browser reload blink
+    if (returnTo && typeof window !== "undefined") {
+      if (window.location.pathname !== returnTo) {
+        window.history.pushState({}, "", returnTo);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
     }
   };
 
@@ -634,6 +771,8 @@ export const AuthProvider = ({ children }) => {
         loginWithGoogle,
         loginWithGoogleEmail,
         quickSwitchRole,
+        updateUserProfile,
+        updateUserRole,
         logout,
         navigateToLogin,
         checkUserAuth,

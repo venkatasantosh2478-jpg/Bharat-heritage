@@ -250,12 +250,54 @@ export const base44 = {
   integrations: {
     Core: {
       UploadFile: async ({ file }) => {
+        if (!file) return { file_url: "" };
         if (realClient?.integrations?.Core?.UploadFile && appBaseUrl) {
           try {
             return await realClient.integrations.Core.UploadFile({ file });
           } catch {}
         }
-        return { file_url: URL.createObjectURL(file) };
+        // Client-side persistent Data URL with intelligent compression
+        return new Promise((resolve) => {
+          if (file.type && file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = new window.Image();
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const maxDim = 1280;
+                let { width, height } = img;
+                if (width > maxDim || height > maxDim) {
+                  if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                  } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                  }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                  ctx.drawImage(img, 0, 0, width, height);
+                  const compressed = canvas.toDataURL("image/webp", 0.85);
+                  resolve({ file_url: compressed });
+                  return;
+                }
+                resolve({ file_url: e.target.result });
+              };
+              img.onerror = () => resolve({ file_url: e.target.result });
+              img.src = e.target.result;
+            };
+            reader.onerror = () => resolve({ file_url: "" });
+            reader.readAsDataURL(file);
+          } else {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve({ file_url: e.target.result });
+            reader.onerror = () => resolve({ file_url: "" });
+            reader.readAsDataURL(file);
+          }
+        });
       },
       InvokeLLM: async (params) => {
         // First priority: Use server-side Google Gemini endpoint

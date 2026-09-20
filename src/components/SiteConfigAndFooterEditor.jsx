@@ -41,36 +41,44 @@ export default function SiteConfigAndFooterEditor() {
 
   const handleAddExploreLink = () => {
     if (!newExploreLabel.trim() || !newExploreUrl.trim()) return;
-    const updated = [
+    const updatedLinks = [
       ...(config.exploreLinks || []),
       { label: newExploreLabel.trim(), url: newExploreUrl.trim() },
     ];
-    setConfig({ ...config, exploreLinks: updated });
+    const newCfg = { ...config, exploreLinks: updatedLinks };
+    setConfig(newCfg);
+    saveSiteConfig(newCfg);
     setNewExploreLabel("");
     setNewExploreUrl("");
   };
 
   const handleRemoveExploreLink = (index) => {
-    const updated = [...(config.exploreLinks || [])];
-    updated.splice(index, 1);
-    setConfig({ ...config, exploreLinks: updated });
+    const updatedLinks = [...(config.exploreLinks || [])];
+    updatedLinks.splice(index, 1);
+    const newCfg = { ...config, exploreLinks: updatedLinks };
+    setConfig(newCfg);
+    saveSiteConfig(newCfg);
   };
 
   const handleAddServiceLink = () => {
     if (!newServiceLabel.trim() || !newServiceUrl.trim()) return;
-    const updated = [
+    const updatedLinks = [
       ...(config.servicesLinks || []),
       { label: newServiceLabel.trim(), url: newServiceUrl.trim() },
     ];
-    setConfig({ ...config, servicesLinks: updated });
+    const newCfg = { ...config, servicesLinks: updatedLinks };
+    setConfig(newCfg);
+    saveSiteConfig(newCfg);
     setNewServiceLabel("");
     setNewServiceUrl("");
   };
 
   const handleRemoveServiceLink = (index) => {
-    const updated = [...(config.servicesLinks || [])];
-    updated.splice(index, 1);
-    setConfig({ ...config, servicesLinks: updated });
+    const updatedLinks = [...(config.servicesLinks || [])];
+    updatedLinks.splice(index, 1);
+    const newCfg = { ...config, servicesLinks: updatedLinks };
+    setConfig(newCfg);
+    saveSiteConfig(newCfg);
   };
 
   const handleFormatWhatsAppNumber = (numStr) => {
@@ -749,7 +757,7 @@ export default function SiteConfigAndFooterEditor() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <label className="font-bold text-foreground block">YouTube Video ID (Backup Player)</label>
                 <input
@@ -767,6 +775,17 @@ export default function SiteConfigAndFooterEditor() {
                   value={config.heroImage || ""}
                   onChange={(e) => setConfig({ ...config, heroImage: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground font-mono outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-bold text-foreground block">Hero Location Badge Text</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Taj Mahal, Agra or Red Fort, Delhi"
+                  value={config.heroLocation || ""}
+                  onChange={(e) => setConfig({ ...config, heroLocation: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground font-semibold outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>

@@ -7,6 +7,9 @@ import {
 } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import ThreeDTiltCard from "@/components/ui/ThreeDTiltCard";
+import ReplaceImageModal from "@/components/ReplaceImageModal";
+import { getCustomCardImage, applyCustomImagesToList, checkIsAdmin } from "@/components/lib/cardImageManager";
+import { useAuth } from "@/components/lib/AuthContext";
 
 export const STATE_GALLERY_DATA = [
   {
@@ -158,6 +161,8 @@ export const STATE_GALLERY_DATA = [
 const REGIONS = ["All Regions", "North India", "South India", "West & Central", "East & Northeast"];
 
 export default function StateGallery({ limit }) {
+  const { user } = useAuth();
+  const isAdmin = checkIsAdmin(user);
   const [activeRegion, setActiveRegion] = useState("All Regions");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
@@ -178,26 +183,41 @@ export default function StateGallery({ limit }) {
       document.body.style.overflow = "auto";
     };
   }, [selectedImage]);
+
+  const [replacingStateItem, setReplacingStateItem] = useState(null);
+
   const [items, setItems] = useState(() => {
     const cached = localStorage.getItem("by-states-directory") || localStorage.getItem("by-admin-entity-states");
+    let initialList = STATE_GALLERY_DATA;
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (parsed && parsed.length > 0) return parsed;
+        if (parsed && parsed.length > 0) initialList = parsed;
       } catch (e) {}
     }
-    return STATE_GALLERY_DATA;
+    return applyCustomImagesToList(initialList);
   });
 
   useEffect(() => {
     function handleUpdate(e) {
       if (e.detail && e.detail.length > 0) {
-        setItems(e.detail);
+        setItems(applyCustomImagesToList(e.detail));
       }
     }
+    function handleCardImageChanged(e) {
+      setItems((prev) =>
+        prev.map((item) => ({
+          ...item,
+          image: getCustomCardImage(item, item.image),
+        }))
+      );
+    }
+
     window.addEventListener("by-states-updated", handleUpdate);
+    window.addEventListener("by-card-image-changed", handleCardImageChanged);
     return () => {
       window.removeEventListener("by-states-updated", handleUpdate);
+      window.removeEventListener("by-card-image-changed", handleCardImageChanged);
     };
   }, []);
 
@@ -329,7 +349,7 @@ export default function StateGallery({ limit }) {
                   {/* Image & Badges */}
                   <div className="relative h-52 overflow-hidden rounded-t-3xl bg-slate-900">
                     <Image
-                      src={item.image}
+                      src={getCustomCardImage(item, item.image)}
                       alt={item.state}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       fittingType="fill"
@@ -348,9 +368,24 @@ export default function StateGallery({ limit }) {
                       )}
                     </div>
 
-                    {/* Eye Zoom overlay icon */}
-                    <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-stone-200 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity border border-white/20">
-                      <Eye className="w-4 h-4" />
+                    {/* Actions overlay icons */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10" style={{ transform: "translateZ(30px)" }}>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReplacingStateItem(item);
+                          }}
+                          className="w-8 h-8 rounded-full bg-black/70 hover:bg-amber-500 hover:text-stone-950 backdrop-blur-md text-stone-200 grid place-items-center shadow-md transition-all border border-white/20"
+                          title="Admin Control: Replace / Change State Image"
+                        >
+                          <Camera className="w-4 h-4" />
+                        </button>
+                      )}
+                      <div className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-stone-200 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity border border-white/20">
+                        <Eye className="w-4 h-4" />
+                      </div>
                     </div>
 
                     {/* Landmark overlay tag */}
@@ -402,7 +437,7 @@ export default function StateGallery({ limit }) {
                   {/* Image & Badges */}
                   <div className="relative h-56 overflow-hidden rounded-t-3xl bg-slate-900">
                     <Image
-                      src={item.image}
+                      src={getCustomCardImage(item, item.image)}
                       alt={item.state}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       fittingType="fill"
@@ -421,9 +456,24 @@ export default function StateGallery({ limit }) {
                       )}
                     </div>
 
-                    {/* Eye Zoom overlay icon */}
-                    <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-stone-200 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity border border-white/20">
-                      <Eye className="w-4 h-4" />
+                    {/* Actions overlay icon */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10" style={{ transform: "translateZ(30px)" }}>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReplacingStateItem(item);
+                          }}
+                          className="w-8 h-8 rounded-full bg-black/70 hover:bg-amber-500 hover:text-stone-950 backdrop-blur-md text-stone-200 grid place-items-center shadow-md transition-all border border-white/20"
+                          title="Admin Control: Replace / Change State Image"
+                        >
+                          <Camera className="w-4 h-4" />
+                        </button>
+                      )}
+                      <div className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-stone-200 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity border border-white/20">
+                        <Eye className="w-4 h-4" />
+                      </div>
                     </div>
 
                     {/* Landmark overlay tag */}
@@ -474,7 +524,7 @@ export default function StateGallery({ limit }) {
             {/* Image View */}
             <div className="relative min-h-[280px] max-h-[420px] md:max-h-full bg-stone-950 flex items-center justify-center overflow-hidden">
               <Image
-                src={selectedImage.image}
+                src={getCustomCardImage(selectedImage, selectedImage.image)}
                 alt={selectedImage.state}
                 className="w-full h-full object-contain max-h-[400px] p-2 bg-stone-950"
                 fittingType="fit"
@@ -482,6 +532,15 @@ export default function StateGallery({ limit }) {
               <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/80 border border-amber-500/40 text-amber-400 text-xs font-bold backdrop-blur-md">
                 {selectedImage.state}
               </span>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setReplacingStateItem(selectedImage)}
+                  className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/80 hover:bg-amber-500 hover:text-stone-950 border border-amber-500/40 text-white text-xs font-bold backdrop-blur-md flex items-center gap-1.5 shadow-lg transition-all"
+                >
+                  <Camera className="w-3.5 h-3.5" /> Replace Photo
+                </button>
+              )}
             </div>
 
             {/* Content Details & Caption */}
@@ -555,6 +614,25 @@ export default function StateGallery({ limit }) {
             </div>
           </div>
         </div>
+      )}
+
+      {replacingStateItem && (
+        <ReplaceImageModal
+          isOpen={Boolean(replacingStateItem)}
+          onClose={() => setReplacingStateItem(null)}
+          item={replacingStateItem}
+          type="state"
+          onSuccess={(newUrl) => {
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === replacingStateItem.id ? { ...item, image: newUrl } : item
+              )
+            );
+            if (selectedImage && selectedImage.id === replacingStateItem.id) {
+              setSelectedImage((prev) => ({ ...prev, image: newUrl }));
+            }
+          }}
+        />
       )}
     </div>
   );

@@ -5,11 +5,13 @@ import {
   PhoneCall, X, Shield, CheckSquare, Heart,
   FileText, UserCheck, MessageSquare, Send, Check,
   Briefcase, Eye, UserPlus, ExternalLink, Navigation, Copy,
-  MessageSquareHeart, MessageCircle
+  MessageSquareHeart, MessageCircle, RefreshCw, ChevronUp, ChevronDown,
+  Sliders, Star
 } from "lucide-react";
 import ElderCareWatchModule from "@/components/ElderCareWatchModule";
 import FeedbackManagementModule from "@/components/FeedbackManagementModule";
 import SiteConfigAndFooterEditor from "@/components/SiteConfigAndFooterEditor";
+import UsersManagementModule from "@/components/UsersManagementModule";
 import { getSavedHotels, saveHotels, governmentRecognizedHotels } from "@/lib/hotelDirectoryData";
 import { products as initialDefaultProducts } from "@/lib/heritageData";
 import { 
@@ -18,8 +20,13 @@ import {
   getTodos, saveTodos,
   getVolunteers,
   getVolunteerChatMessages, sendVolunteerChatMessage,
-  getSosSettings, saveSosSettings
+  getSosSettings, saveSosSettings,
+  getLeaderboardData,
+  promoteVolunteerToLeaderboard, removeLeaderboardMember,
+  refreshLeaderboardData, getEventRsvpCounts,
+  setEventRsvpCount
 } from "@/lib/adminData";
+import { enrichedEvents } from "@/pages/Events";
 import { getOrders, updateOrderStatus } from "@/lib/cart";
 
 export default function AdminDashboards({ activeRole, onRoleChange, singleRoleMode = false }) {
@@ -92,6 +99,7 @@ function CoreMasterOperationsDashboard({ onSwitchRole }) {
   const [activeModule, setActiveModule] = useState("registrations");
 
   const modules = [
+    { id: "users", label: "Users & Roles", icon: Users, desc: "User directory, personal details, bookings & role promotion" },
     { id: "registrations", label: "Registrations", icon: UserCheck, desc: "Tourist trip, elder care & guide applicant registrations" },
     { id: "emergency", label: "Emergency", icon: ShieldAlert, desc: "Active SOS distress beacons & emergency centers manager" },
     { id: "employees", label: "Employees", icon: Briefcase, desc: "Sub-employees management & hotel/task assignments" },
@@ -125,6 +133,7 @@ function CoreMasterOperationsDashboard({ onSwitchRole }) {
       </div>
 
       {/* Module Content */}
+      {activeModule === "users" && <UsersManagementModule />}
       {activeModule === "registrations" && <RegistrationsModule />}
       {activeModule === "emergency" && <EmergencyModule />}
       {activeModule === "employees" && <EmployeesModule />}
@@ -1881,131 +1890,379 @@ function EmployeesModule() {
 // --- D. FORMS CENTRAL MODULE ---
 function FormsCentralModule() {
   const [selectedForm, setSelectedForm] = useState(null);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchFilter, setSearchFilter] = useState("");
 
-  // Collect all forms across domains
-  const [formsList, setFormsList] = useState(() => {
+  function loadAllForms() {
     const list = [];
     try {
+      // 1. Guide Applications
       const guideApps = JSON.parse(localStorage.getItem("by-guide-applications") || "[]");
-      guideApps.forEach(g => list.push({ formType: "Guide Registration Form", title: `Guide App: ${g.name}`, date: g.date || "Recent", data: g }));
-      
-      const surprises = JSON.parse(localStorage.getItem("by-event-requests") || "[]");
-      surprises.forEach(s => list.push({ formType: "Surprise Event Form", title: `Surprise: ${s.client || s.name}`, date: s.date || "Recent", data: s }));
+      guideApps.forEach(g => list.push({
+        id: g.id || `GD-${Math.random()}`,
+        formType: "Guide Application",
+        category: "guide",
+        title: `Guide Application: ${g.name}`,
+        subtitle: `${g.city}, ${g.state} · ${g.phone}`,
+        date: g.date || "Recent",
+        status: g.status || "Pending Review",
+        data: g
+      }));
 
+      // 2. Surprise / Custom Event Requests
+      const surprises = JSON.parse(localStorage.getItem("by-event-requests") || "[]");
+      surprises.forEach(s => list.push({
+        id: s.id || `EVT-${Math.random()}`,
+        formType: "Surprise / Event Request",
+        category: "event",
+        title: `Surprise Event: ${s.client || s.name}`,
+        subtitle: `Destination: ${s.destination || "Custom"} · Budget: ${s.budget || "₹15,000"}`,
+        date: s.date || "Recent",
+        status: s.status || "New Form Submitted",
+        data: s
+      }));
+
+      // 3. Safety Trip Registrations
       const safety = JSON.parse(localStorage.getItem("by-safety-registrations") || "[]");
-      safety.forEach(sf => list.push({ formType: "Safety Journey Form", title: `Trip: ${sf.name}`, date: sf.dates || "Active", data: sf }));
+      safety.forEach(sf => list.push({
+        id: sf.id || `SOS-REG-${Math.random()}`,
+        formType: "Safety Trip Registration",
+        category: "safety",
+        title: `Safety Registration: ${sf.name}`,
+        subtitle: `Circuit: ${sf.destination || sf.circuit} · Travelers: ${sf.travelersCount || 1}`,
+        date: sf.dates || sf.startDate || "Active",
+        status: sf.status || "Active Safe",
+        data: sf
+      }));
+
+      // 4. Elder Care Watch Registrations
+      const elder = JSON.parse(localStorage.getItem("by-elder-registrations") || "[]");
+      elder.forEach(el => list.push({
+        id: el.id || `ELD-${Math.random()}`,
+        formType: "Elder Care Watch Registration",
+        category: "elder",
+        title: `Elder Care: ${el.name}`,
+        subtitle: `Guardian: ${el.guardianName || "Family"} (${el.guardianPhone || el.phone}) · Interval: ${el.frequencyHours || 4} hrs`,
+        date: el.dates || "Active",
+        status: el.status || "Active Watch",
+        data: el
+      }));
+
+      // 5. Custom Itinerary Bookings
+      const bookings = JSON.parse(localStorage.getItem("by-user-bookings") || "[]");
+      bookings.forEach(bk => list.push({
+        id: bk.id || `BK-${Math.random()}`,
+        formType: "Itinerary Tour Booking",
+        category: "booking",
+        title: `Tour Booking: ${bk.destination}`,
+        subtitle: `${bk.days} Days · ${bk.group_type || "Custom Group"} · ₹${(bk.total_cost || bk.budget || 0).toLocaleString("en-IN")}`,
+        date: bk.booked_at ? new Date(bk.booked_at).toLocaleDateString("en-IN") : "Recent",
+        status: bk.status || "Confirmed",
+        data: bk
+      }));
+
+      // 6. Tourist Feedbacks
+      const feedbacks = JSON.parse(localStorage.getItem("by-tourist-feedbacks") || "[]");
+      feedbacks.forEach(fb => list.push({
+        id: fb.id || `FB-${Math.random()}`,
+        formType: "Tourist Feedback / Review",
+        category: "feedback",
+        title: `Feedback: ${fb.name || "Traveler"} (${fb.category || "General"})`,
+        subtitle: `Rating: ★ ${fb.rating}/5 · ${fb.subject || "Review"}`,
+        date: fb.date || "Recent",
+        status: fb.status || "New",
+        data: fb
+      }));
+
+      // 7. Handloom & Artisan Orders
+      const orders = JSON.parse(localStorage.getItem("by-orders") || "[]");
+      orders.forEach(ord => list.push({
+        id: ord.id || ord.orderId || `ORD-${Math.random()}`,
+        formType: "Artisan Handloom Order",
+        category: "order",
+        title: `Artisan Order: #${ord.id || ord.orderId}`,
+        subtitle: `Customer: ${ord.name} (${ord.phone}) · Total: ₹${(ord.total || 0).toLocaleString("en-IN")}`,
+        date: ord.date ? new Date(ord.date).toLocaleDateString("en-IN") : "Recent",
+        status: ord.status || "Confirmed",
+        data: ord
+      }));
     } catch (e) {}
 
-    // Default fallbacks if empty
-    if (list.length === 0) {
-      list.push(
-        {
-          formType: "Guide Registration Form",
-          title: "Guide Application: B. Ramesh Babu",
-          date: "Yesterday",
-          data: {
-            name: "B. Ramesh Babu",
-            phone: "+91 98482 11992",
-            city: "Visakhapatnam",
-            state: "Andhra Pradesh",
-            address: "Dolphin Hill Colony, Vizag",
-            hiddenSpot: "Ross Hill Chapel sunset vantage overlooking harbor mouth",
-            bio: "Certified local storyteller with 10+ years experience",
-            status: "Pending Review",
-          }
-        },
-        {
-          formType: "Surprise Event Form",
-          title: "Surprise Event: Vikram & Ananya",
-          date: "2 days ago",
-          data: {
-            client: "Vikram Sharma",
-            phone: "+91 98480 99881",
-            surprisePerson: "Ananya",
-            destination: "Visakhapatnam Beach & Dolphin Nose",
-            details: "Private cliffside seafood dinner with carnatic veena artist",
-            budget: "₹18,000",
-            status: "Contacted (Agreed: ₹16,500)",
-          }
-        }
-      );
-    }
     return list;
+  }
+
+  const [formsList, setFormsList] = useState(loadAllForms);
+
+  useEffect(() => {
+    function refreshForms() {
+      setFormsList(loadAllForms());
+    }
+    const events = [
+      "by-guide-applications-updated",
+      "by-event-requests-updated",
+      "by-safety-registrations-updated",
+      "by-sos-registrations-updated",
+      "by-elder-registrations-updated",
+      "by-user-bookings-updated",
+      "by-feedback-updated",
+      "by-orders-updated",
+      "storage"
+    ];
+    events.forEach(ev => window.addEventListener(ev, refreshForms));
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, refreshForms));
+    };
+  }, []);
+
+  const categories = [
+    { id: "all", label: "All Intake Forms", count: formsList.length },
+    { id: "booking", label: "Tour Bookings", count: formsList.filter(f => f.category === "booking").length },
+    { id: "guide", label: "Guide Apps", count: formsList.filter(f => f.category === "guide").length },
+    { id: "event", label: "Surprises / Events", count: formsList.filter(f => f.category === "event").length },
+    { id: "safety", label: "Safety Trips", count: formsList.filter(f => f.category === "safety").length },
+    { id: "elder", label: "Elder Care", count: formsList.filter(f => f.category === "elder").length },
+    { id: "feedback", label: "Feedback", count: formsList.filter(f => f.category === "feedback").length },
+    { id: "order", label: "Artisan Orders", count: formsList.filter(f => f.category === "order").length },
+  ];
+
+  const filteredForms = formsList.filter(f => {
+    if (activeCategory !== "all" && f.category !== activeCategory) return false;
+    if (searchFilter.trim()) {
+      const q = searchFilter.toLowerCase();
+      const matchTitle = f.title?.toLowerCase().includes(q);
+      const matchSub = f.subtitle?.toLowerCase().includes(q);
+      const matchType = f.formType?.toLowerCase().includes(q);
+      const matchStatus = f.status?.toLowerCase().includes(q);
+      const matchData = JSON.stringify(f.data).toLowerCase().includes(q);
+      if (!matchTitle && !matchSub && !matchType && !matchStatus && !matchData) return false;
+    }
+    return true;
   });
+
+  function updateIndividualFormStatus(formItem, newStatus) {
+    if (!formItem) return;
+    const cat = formItem.category;
+    const id = formItem.id;
+
+    try {
+      if (cat === "guide") {
+        const stored = JSON.parse(localStorage.getItem("by-guide-applications") || "[]");
+        const updated = stored.map(g => (g.id === id || g.name === formItem.data?.name) ? { ...g, status: newStatus } : g);
+        localStorage.setItem("by-guide-applications", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("by-guide-applications-updated"));
+      } else if (cat === "event") {
+        const stored = JSON.parse(localStorage.getItem("by-event-requests") || "[]");
+        const updated = stored.map(s => (s.id === id || s.client === formItem.data?.client) ? { ...s, status: newStatus } : s);
+        localStorage.setItem("by-event-requests", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("by-event-requests-updated"));
+      } else if (cat === "safety") {
+        const stored = JSON.parse(localStorage.getItem("by-safety-registrations") || "[]");
+        const updated = stored.map(sf => (sf.id === id || sf.name === formItem.data?.name) ? { ...sf, status: newStatus } : sf);
+        localStorage.setItem("by-safety-registrations", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("by-safety-registrations-updated"));
+      } else if (cat === "elder") {
+        const stored = JSON.parse(localStorage.getItem("by-elder-registrations") || "[]");
+        const updated = stored.map(el => (el.id === id || el.name === formItem.data?.name) ? { ...el, status: newStatus } : el);
+        localStorage.setItem("by-elder-registrations", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("by-elder-registrations-updated"));
+      } else if (cat === "booking") {
+        const stored = JSON.parse(localStorage.getItem("by-user-bookings") || "[]");
+        const updated = stored.map(bk => (bk.id === id) ? { ...bk, status: newStatus } : bk);
+        localStorage.setItem("by-user-bookings", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("by-user-bookings-updated"));
+      } else if (cat === "feedback") {
+        const stored = JSON.parse(localStorage.getItem("by-tourist-feedbacks") || "[]");
+        const updated = stored.map(fb => (fb.id === id) ? { ...fb, status: newStatus } : fb);
+        localStorage.setItem("by-tourist-feedbacks", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("by-feedback-updated"));
+      } else if (cat === "order") {
+        const stored = JSON.parse(localStorage.getItem("by-orders") || "[]");
+        const updated = stored.map(ord => (ord.id === id || ord.orderId === id) ? { ...ord, status: newStatus } : ord);
+        localStorage.setItem("by-orders", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("by-orders-updated"));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    setFormsList(loadAllForms());
+    if (selectedForm && selectedForm.id === id) {
+      setSelectedForm(prev => prev ? { ...prev, status: newStatus } : null);
+    }
+  }
 
   return (
     <div className="p-6 rounded-3xl bg-card border border-border space-y-6 shadow-xs">
-      <div className="flex items-center justify-between pb-4 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
           <h3 className="text-lg font-bold text-foreground flex items-center gap-2 font-heading">
             <FileText className="w-5 h-5 text-primary" /> Centralized User Forms & Intake Repository
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Review completed traveler safety forms, guide licensing questionnaires, and custom event requests
+            Real-time aggregate of all user submissions across Bookings, Guide Registrations, Surprises, Safety Trips, Elder Care, Feedback & Artisan Orders
           </p>
         </div>
-        <span className="px-3 py-1 rounded-xl bg-primary/10 text-primary font-bold text-xs">
-          {formsList.length} Total Forms Submitted
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 rounded-xl bg-primary/10 text-primary font-bold text-xs">
+            {formsList.length} Total Forms Submitted
+          </span>
+          <button
+            type="button"
+            onClick={() => setFormsList(loadAllForms())}
+            className="p-1.5 rounded-xl bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            title="Refresh Forms"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
+      {/* Category Tabs & Search Bar */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                activeCategory === cat.id
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "bg-muted/60 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>{cat.label}</span>
+              <span className="px-1.5 py-0.2 rounded-md bg-card/60 text-[10px] font-mono">
+                {cat.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            placeholder="Search forms by applicant name, circuit, phone number, form type..."
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-muted/40 border border-border text-xs text-foreground outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+      </div>
+
+      {/* Forms Cards Grid */}
       <div className="grid sm:grid-cols-2 gap-4">
-        {formsList.map((f, idx) => (
-          <div key={idx} className="p-4 rounded-2xl bg-muted/40 border border-border flex flex-col justify-between space-y-3 text-xs">
+        {filteredForms.map((f, idx) => (
+          <div key={f.id || idx} className="p-4 rounded-2xl bg-muted/40 border border-border flex flex-col justify-between space-y-3 text-xs hover:border-primary/40 transition-all">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase text-[10px]">
+                <span className={`px-2.5 py-0.5 rounded-full font-bold uppercase text-[10px] ${
+                  f.category === "guide" ? "bg-purple-500/15 text-purple-700 dark:text-purple-300" :
+                  f.category === "event" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" :
+                  f.category === "safety" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" :
+                  f.category === "elder" ? "bg-rose-500/15 text-rose-700 dark:text-rose-300" :
+                  f.category === "booking" ? "bg-teal-500/15 text-teal-700 dark:text-teal-300" :
+                  f.category === "order" ? "bg-blue-500/15 text-blue-700 dark:text-blue-300" :
+                  "bg-primary/10 text-primary"
+                }`}>
                   {f.formType}
                 </span>
-                <span className="text-muted-foreground text-[11px]">{f.date}</span>
+                <span className="text-muted-foreground text-[11px] font-mono">{f.date}</span>
               </div>
               <h4 className="font-bold text-sm text-foreground">{f.title}</h4>
-              <p className="text-muted-foreground text-[11px] line-clamp-2">
-                {JSON.stringify(f.data).replace(/[{}"_]/g, " ").slice(0, 140)}...
-              </p>
+              <p className="text-muted-foreground text-xs">{f.subtitle}</p>
+              
+              {/* Interactive Status Update Selector */}
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                <span className="text-[11px] font-semibold text-muted-foreground">Form Status:</span>
+                <select
+                  value={f.status || "Pending"}
+                  onChange={(e) => updateIndividualFormStatus(f, e.target.value)}
+                  className="px-2.5 py-1 rounded-xl bg-card border border-border text-xs font-bold text-foreground outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Contacted">Contacted</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
             </div>
 
             <button
               type="button"
               onClick={() => setSelectedForm(f)}
-              className="w-full py-2 rounded-xl bg-card border border-border hover:bg-muted font-bold text-foreground flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full py-2 rounded-xl bg-card border border-border hover:bg-muted font-bold text-foreground flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-primary" /> View Full Form Details
             </button>
           </div>
         ))}
+
+        {filteredForms.length === 0 && (
+          <div className="col-span-full p-8 text-center text-muted-foreground text-xs bg-muted/20 rounded-2xl border border-dashed border-border">
+            No form submissions found matching your active filter.
+          </div>
+        )}
       </div>
 
       {/* Form Details Modal */}
       {selectedForm && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-card rounded-3xl border border-border p-6 shadow-xl space-y-4 text-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-border">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" onClick={() => setSelectedForm(null)}>
+          <div className="w-full max-w-lg bg-card rounded-3xl border border-border p-6 shadow-2xl space-y-4 text-xs max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
               <div>
-                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase text-[10px]">
+                <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase text-[10px]">
                   {selectedForm.formType}
                 </span>
                 <h4 className="font-bold text-base text-foreground mt-1">{selectedForm.title}</h4>
+                <p className="text-xs text-muted-foreground">{selectedForm.subtitle}</p>
               </div>
-              <button type="button" onClick={() => setSelectedForm(null)}>
-                <X className="w-4 h-4 text-muted-foreground" />
+              <button 
+                type="button" 
+                onClick={() => setSelectedForm(null)}
+                className="p-1.5 rounded-xl bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-muted/50 border border-border space-y-2 max-h-96 overflow-y-auto">
-              {Object.entries(selectedForm.data || {}).map(([key, val]) => (
-                <div key={key} className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 py-1 border-b border-border/50">
-                  <span className="font-bold capitalize text-foreground">{key.replace(/([A-Z])/g, ' $1')}:</span>
-                  <span className="text-muted-foreground text-right">{String(val)}</span>
-                </div>
-              ))}
+            {/* Modal Status Selector */}
+            <div className="p-3 rounded-2xl bg-primary/5 border border-primary/20 flex items-center justify-between gap-2">
+              <span className="font-bold text-foreground text-xs">Update Form Status:</span>
+              <select
+                value={selectedForm.status || "Pending"}
+                onChange={(e) => updateIndividualFormStatus(selectedForm, e.target.value)}
+                className="px-3 py-1.5 rounded-xl bg-background border border-border text-xs font-bold text-foreground outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              >
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Approved">Approved</option>
+                <option value="Completed">Completed</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-2.5 overflow-y-auto flex-1">
+              {Object.entries(selectedForm.data || {}).map(([key, val]) => {
+                if (val === null || val === undefined) return null;
+                const displayVal = typeof val === "object" ? JSON.stringify(val, null, 2) : String(val);
+                return (
+                  <div key={key} className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 py-1 border-b border-border/40">
+                    <span className="font-bold capitalize text-foreground text-[11px] shrink-0">{key.replace(/([A-Z])/g, ' $1')}:</span>
+                    <span className="text-muted-foreground text-right break-words font-mono text-[11px] max-w-xs">{displayVal}</span>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
               <button
                 type="button"
                 onClick={() => setSelectedForm(null)}
-                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold"
+                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold cursor-pointer"
               >
                 Close Form
               </button>
@@ -2669,9 +2926,25 @@ function SurprisePlannerDashboard() {
 
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-foreground">User Budget: {r.budget}</span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">
-                      {r.status}
-                    </span>
+                    <select
+                      value={r.status || "Pending"}
+                      onChange={(e) => {
+                        const newSt = e.target.value;
+                        const updated = requests.map(item => item.id === r.id ? { ...item, status: newSt } : item);
+                        setRequests(updated);
+                        localStorage.setItem("by-event-requests", JSON.stringify(updated));
+                        window.dispatchEvent(new CustomEvent("by-event-requests-updated"));
+                      }}
+                      className="px-2.5 py-1 rounded-xl bg-card border border-border text-xs font-bold text-foreground outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                    >
+                      <option value="New Form Submitted">New Form Submitted</option>
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Contacted">Contacted</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
                   </div>
                 </div>
 
@@ -3704,53 +3977,299 @@ function HotelManagementDashboard() {
 }
 
 // =========================================================================
-// 7. SITE MANAGER DASHBOARD
+// 7. SITE MANAGER & ASI MONUMENT CONTROLLER DASHBOARD
 // =========================================================================
 function SiteManagerDashboard() {
+  const [activeTab, setActiveTab] = useState("events_rsvp"); // "events_rsvp" | "monuments"
+  const [rsvpCounts, setRsvpCountsState] = useState(() => getEventRsvpCounts());
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [customValue, setCustomValue] = useState("");
+  const [searchEvent, setSearchEvent] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+
+  useEffect(() => {
+    const handleRsvpUpdate = (e) => {
+      if (e?.detail) {
+        setRsvpCountsState(e.detail);
+      } else {
+        setRsvpCountsState(getEventRsvpCounts());
+      }
+    };
+    window.addEventListener("by-event-rsvp-counts-updated", handleRsvpUpdate);
+    return () => window.removeEventListener("by-event-rsvp-counts-updated", handleRsvpUpdate);
+  }, []);
+
+  const getEventCount = (ev) => {
+    if (rsvpCounts[ev.id] !== undefined) return rsvpCounts[ev.id];
+    let base = 250;
+    if (ev.id === "kumbh") base = 8500;
+    else if (ev.id === "pushkar") base = 3400;
+    else if (ev.id === "mysore-dasara") base = 4200;
+    else if (ev.id === "puri-ratha-yatra") base = 6100;
+    else if (ev.id === "durga-puja") base = 5800;
+    else if (ev.id === "onam") base = 2900;
+    else if (ev.id === "vizag-utsav") base = 1850;
+    else {
+      const nameStr = String(ev.name || "event");
+      base = (nameStr.charCodeAt(0) * 17 + nameStr.length * 45) % 2500 + 400;
+    }
+    return base;
+  };
+
+  const handleAdjust = (ev, delta) => {
+    const current = getEventCount(ev);
+    const newCount = Math.max(0, current + delta);
+    setEventRsvpCount(ev.id, newCount);
+    setStatusMessage(`Updated RSVP for "${ev.name}" to ${newCount.toLocaleString()}`);
+    setTimeout(() => setStatusMessage(""), 3000);
+  };
+
+  const handleDirectSave = (ev) => {
+    const val = parseInt(customValue, 10);
+    if (!isNaN(val) && val >= 0) {
+      setEventRsvpCount(ev.id, val);
+      setStatusMessage(`Saved exact RSVP for "${ev.name}" to ${val.toLocaleString()}`);
+      setTimeout(() => setStatusMessage(""), 3000);
+    }
+    setEditingEventId(null);
+    setCustomValue("");
+  };
+
   const sites = [
     { name: "Taj Mahal (East Gate)", city: "Agra", capacity: 85, status: "High Density", dailyFootfall: "24,800" },
     { name: "Borra Caves", city: "Visakhapatnam", capacity: 54, status: "Moderate", dailyFootfall: "4,200" },
     { name: "Charminar & Laad Bazaar", city: "Hyderabad", capacity: 68, status: "Moderate", dailyFootfall: "12,600" },
+    { name: "Sun Temple, Konark", city: "Puri / Konark", capacity: 62, status: "Moderate", dailyFootfall: "8,900" },
+    { name: "Hampi Virupaksha Circuit", city: "Vijayanagara", capacity: 45, status: "Normal", dailyFootfall: "3,100" },
   ];
+
+  const filteredEvents = enrichedEvents.filter(e => 
+    e.name.toLowerCase().includes(searchEvent.toLowerCase()) ||
+    (e.city && e.city.toLowerCase().includes(searchEvent.toLowerCase())) ||
+    (e.state && e.state.toLowerCase().includes(searchEvent.toLowerCase())) ||
+    (e.category && e.category.toLowerCase().includes(searchEvent.toLowerCase()))
+  );
 
   return (
     <div className="p-6 rounded-3xl bg-card border border-border space-y-6 shadow-xs">
-      <div className="pb-4 border-b border-border">
-        <h3 className="text-lg font-bold text-foreground flex items-center gap-2 font-heading">
-          <Landmark className="w-5 h-5 text-primary" /> Monument Site Manager & Crowd Density
-        </h3>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Real-time turnstile counts & ASI archaeological preservation alerts
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+        <div>
+          <h3 className="text-lg font-bold text-foreground flex items-center gap-2 font-heading">
+            <Landmark className="w-5 h-5 text-primary" /> ASI Monument & Festival Event Controller
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage live RSVP counts, festival crowd capacities, and turnstile monitoring
+          </p>
+        </div>
+
+        {/* View mode toggle */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-muted border border-border text-xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab("events_rsvp")}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+              activeTab === "events_rsvp"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Festival & Events RSVP
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("monuments")}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+              activeTab === "monuments"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Monument Turnstiles
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-        {sites.map((s) => (
-          <div key={s.name} className="p-5 rounded-2xl bg-muted/40 border border-border space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-bold text-sm text-foreground">{s.name}</h4>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                s.capacity > 75 ? "bg-destructive/15 text-destructive" : "bg-emerald-500/15 text-emerald-600"
-              }`}>
-                {s.status} ({s.capacity}%)
-              </span>
-            </div>
+      {statusMessage && (
+        <div className="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+          <span>{statusMessage}</span>
+        </div>
+      )}
 
-            <div className="space-y-1">
-              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                <div 
-                  className={`h-full rounded-full ${s.capacity > 75 ? "bg-destructive" : "bg-primary"}`} 
-                  style={{ width: `${s.capacity}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-[11px] text-muted-foreground">
-                <span>Footfall: {s.dailyFootfall}</span>
-                <span>Gate: Normal</span>
-              </div>
+      {/* TAB 1: EVENTS RSVP CONTROLLER */}
+      {activeTab === "events_rsvp" && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search cultural festival or city..."
+                value={searchEvent}
+                onChange={(e) => setSearchEvent(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-background border border-border text-xs font-medium focus:ring-2 focus:ring-primary outline-none"
+              />
             </div>
+            <span className="text-xs text-muted-foreground font-semibold">
+              Live Festivals: {filteredEvents.length}
+            </span>
           </div>
-        ))}
-      </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredEvents.map((ev) => {
+              const count = getEventCount(ev);
+              const isEditing = editingEventId === ev.id;
+
+              return (
+                <div
+                  key={ev.id}
+                  className="p-5 rounded-2xl bg-muted/40 border border-border hover:border-primary/40 transition-all space-y-4 flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
+                          {ev.category || "Sacred Festival"}
+                        </span>
+                        <h4 className="font-bold text-sm text-foreground mt-1">{ev.name}</h4>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-muted-foreground" /> {ev.city ? `${ev.city}, ${ev.state}` : ev.state} · {ev.month}
+                        </p>
+                      </div>
+
+                      {/* RSVP Attendee Counter Badge */}
+                      <div className="text-right">
+                        <span className="text-[10px] text-muted-foreground block uppercase font-bold tracking-wider">RSVP Confirmed</span>
+                        <span className="text-lg font-extrabold text-primary font-mono">
+                          {count.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                      {ev.history}
+                    </p>
+                  </div>
+
+                  {/* Controller Adjuster Panel */}
+                  <div className="pt-3 border-t border-border space-y-2.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-foreground text-[11px] flex items-center gap-1">
+                        <Sliders className="w-3 h-3 text-primary" /> Edit RSVP Capacity:
+                      </span>
+                      {isEditing ? (
+                        <button
+                          type="button"
+                          onClick={() => setEditingEventId(null)}
+                          className="text-[10px] font-bold text-muted-foreground hover:text-foreground cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingEventId(ev.id);
+                            setCustomValue(String(count));
+                          }}
+                          className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                        >
+                          Set Exact Number
+                        </button>
+                      )}
+                    </div>
+
+                    {isEditing ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={customValue}
+                          onChange={(e) => setCustomValue(e.target.value)}
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-background border border-border text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="e.g. 5000"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleDirectSave(ev)}
+                          className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:opacity-90 cursor-pointer"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-1.5 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => handleAdjust(ev, -50)}
+                          className="px-2 py-1.5 rounded-xl bg-card border border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 font-bold text-[11px] transition-colors flex items-center justify-center gap-0.5 cursor-pointer"
+                          title="Decrease RSVP by 50"
+                        >
+                          <ChevronDown className="w-3 h-3" /> -50
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAdjust(ev, -10)}
+                          className="px-2 py-1.5 rounded-xl bg-card border border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 font-bold text-[11px] transition-colors flex items-center justify-center gap-0.5 cursor-pointer"
+                          title="Decrease RSVP by 10"
+                        >
+                          <ChevronDown className="w-3 h-3" /> -10
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAdjust(ev, 10)}
+                          className="px-2 py-1.5 rounded-xl bg-card border border-border hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 font-bold text-[11px] transition-colors flex items-center justify-center gap-0.5 cursor-pointer"
+                          title="Increase RSVP by 10"
+                        >
+                          <ChevronUp className="w-3 h-3" /> +10
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAdjust(ev, 50)}
+                          className="px-2 py-1.5 rounded-xl bg-primary/10 border border-primary/25 hover:bg-primary/20 text-primary font-bold text-[11px] transition-colors flex items-center justify-center gap-0.5 cursor-pointer"
+                          title="Increase RSVP by 50"
+                        >
+                          <ChevronUp className="w-3 h-3" /> +50
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: MONUMENTS TURNSTILES */}
+      {activeTab === "monuments" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          {sites.map((s) => (
+            <div key={s.name} className="p-5 rounded-2xl bg-muted/40 border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-foreground">{s.name}</h4>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  s.capacity > 75 ? "bg-destructive/15 text-destructive" : "bg-emerald-500/15 text-emerald-600"
+                }`}>
+                  {s.status} ({s.capacity}%)
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full ${s.capacity > 75 ? "bg-destructive" : "bg-primary"}`} 
+                    style={{ width: `${s.capacity}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[11px] text-muted-foreground">
+                  <span>Footfall: {s.dailyFootfall}</span>
+                  <span>Gate: Normal</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -3766,39 +4285,324 @@ function SafetyCommandDashboard() {
 // 9. LEADERBOARD DASHBOARD
 // =========================================================================
 function LeaderboardDashboard() {
-  const topGuides = [
-    { rank: 1, name: "Mirza Farooq", badge: "ASI-TS-219", city: "Hyderabad", rating: 4.98, tours: 320 },
-    { rank: 2, name: "Suresh Babu", badge: "ASI-AP-849", city: "Visakhapatnam", rating: 4.92, tours: 142 },
-    { rank: 3, name: "Rajendra Sharma", badge: "ASI-UP-102", city: "Agra", rating: 4.90, tours: 410 },
-  ];
+  const [leaderboard, setLeaderboard] = useState(() => getLeaderboardData());
+  const [volunteersList, setVolunteersList] = useState(() => getVolunteers());
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [selectedVolunteerId, setSelectedVolunteerId] = useState("");
+  const [promoteForm, setPromoteForm] = useState({
+    rating: 4.96,
+    tours: 185,
+    specialization: "State Heritage Tourism & Senior Assistance",
+    badgeNumber: "",
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [filterType, setFilterType] = useState("all");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    const handleLeaderboardUpdate = (e) => {
+      if (e?.detail) {
+        setLeaderboard(e.detail);
+      } else {
+        setLeaderboard(getLeaderboardData());
+      }
+    };
+    window.addEventListener("by-leaderboard-updated", handleLeaderboardUpdate);
+    return () => window.removeEventListener("by-leaderboard-updated", handleLeaderboardUpdate);
+  }, []);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    const updated = refreshLeaderboardData();
+    setLeaderboard(updated);
+    setNotice("Leaderboard scores and tour points refreshed with live telemetry!");
+    setTimeout(() => {
+      setIsRefreshing(false);
+      setNotice("");
+    }, 2000);
+  };
+
+  const handlePromoteSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedVolunteerId) return;
+
+    const vol = volunteersList.find(v => v.id === selectedVolunteerId);
+    if (!vol) return;
+
+    const updated = promoteVolunteerToLeaderboard(vol, {
+      rating: parseFloat(promoteForm.rating) || 4.95,
+      tours: parseInt(promoteForm.tours, 10) || 120,
+      specialization: promoteForm.specialization || vol.specialization,
+      badge: promoteForm.badgeNumber || vol.id,
+    });
+
+    setLeaderboard(updated);
+    setShowPromoteModal(false);
+    setSelectedVolunteerId("");
+    setNotice(`Successfully promoted volunteer ${vol.name} to the Excellence Leaderboard!`);
+    setTimeout(() => setNotice(""), 3500);
+  };
+
+  const handleRemove = (id) => {
+    const updated = removeLeaderboardMember(id);
+    setLeaderboard(updated);
+    setNotice("Leaderboard member removed.");
+    setTimeout(() => setNotice(""), 3000);
+  };
+
+  const filteredLeaderboard = leaderboard.filter(item => {
+    if (filterType === "all") return true;
+    if (filterType === "volunteers") return Boolean(item.isVolunteer);
+    if (filterType === "guides") return !item.isVolunteer && !item.type?.includes("Artisan");
+    if (filterType === "artisans") return item.type?.includes("Artisan") || item.type?.includes("Craft");
+    return true;
+  });
 
   return (
     <div className="p-6 rounded-3xl bg-card border border-border space-y-6 shadow-xs">
-      <div className="pb-4 border-b border-border">
-        <h3 className="text-lg font-bold text-foreground flex items-center gap-2 font-heading">
-          <Award className="w-5 h-5 text-amber-500" /> Bharat Yatra Excellence Leaderboard
-        </h3>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Recognizing top-performing ASI licensed guides & master craft clusters
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+        <div>
+          <h3 className="text-lg font-bold text-foreground flex items-center gap-2 font-heading">
+            <Award className="w-5 h-5 text-amber-500" /> Bharat Yatra Excellence Leaderboard
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Recognizing top-performing ASI licensed guides, state emergency volunteers, & artisan clusters
+          </p>
+        </div>
+
+        {/* Action Controls */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="px-3.5 py-2 rounded-2xl bg-muted hover:bg-muted/80 text-foreground text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            title="Refresh ratings, tours, and rankings"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-primary ${isRefreshing ? "animate-spin" : ""}`} />
+            <span>{isRefreshing ? "Refreshing..." : "Refresh Scores"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setVolunteersList(getVolunteers());
+              setShowPromoteModal(true);
+            }}
+            className="px-4 py-2 rounded-2xl bg-primary text-primary-foreground text-xs font-bold shadow-md hover:opacity-90 flex items-center gap-1.5 transition-all cursor-pointer"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Promote Volunteer</span>
+          </button>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        {topGuides.map((g) => (
-          <div key={g.name} className="p-3.5 rounded-2xl bg-muted/40 border border-border flex items-center justify-between text-xs">
+      {notice && (
+        <div className="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+          <span>{notice}</span>
+        </div>
+      )}
+
+      {/* Category Filter Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        {[
+          { id: "all", label: `All Honorees (${leaderboard.length})` },
+          { id: "guides", label: "ASI Tour Guides" },
+          { id: "volunteers", label: "Promoted State Volunteers" },
+          { id: "artisans", label: "Artisan Clusters" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setFilterType(tab.id)}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+              filterType === tab.id
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Leaderboard Table / Cards */}
+      <div className="space-y-2.5">
+        {filteredLeaderboard.map((g) => (
+          <div
+            key={g.id || g.badge || g.name}
+            className="p-4 rounded-2xl bg-muted/40 border border-border hover:border-primary/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+          >
             <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-amber-500 text-white font-bold grid place-items-center text-xs">
+              <span className={`w-8 h-8 rounded-full font-bold grid place-items-center text-xs shrink-0 ${
+                g.rank === 1
+                  ? "bg-amber-500 text-white shadow-sm"
+                  : g.rank === 2
+                  ? "bg-slate-400 text-white"
+                  : g.rank === 3
+                  ? "bg-amber-700 text-white"
+                  : "bg-muted text-foreground border border-border"
+              }`}>
                 {g.rank}
               </span>
+
               <div>
-                <p className="font-bold text-foreground">{g.name}</p>
-                <p className="text-[11px] text-muted-foreground">{g.city} · {g.badge}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-sm text-foreground">{g.name}</p>
+                  {g.isVolunteer ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase">
+                      Volunteer Honoree
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase">
+                      {g.type || "ASI Licensed"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {g.city}, {g.state} · <span className="font-mono">{g.badge}</span>
+                  {g.specialization && ` · ${g.specialization}`}
+                </p>
               </div>
             </div>
-            <span className="text-amber-500 font-bold">★ {g.rating} ({g.tours} tours)</span>
+
+            <div className="flex items-center gap-4 shrink-0 justify-between sm:justify-end">
+              <div className="text-right">
+                <span className="text-amber-500 font-bold flex items-center justify-end gap-1">
+                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> {g.rating}
+                </span>
+                <span className="text-[11px] text-muted-foreground block">
+                  {g.tours} {g.isVolunteer ? "missions" : "tours"}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleRemove(g.id || g.badge)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                title="Remove from Leaderboard"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         ))}
       </div>
+
+      {/* PROMOTE VOLUNTEER MODAL */}
+      {showPromoteModal && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-amber-500" />
+                <h4 className="font-bold text-base text-foreground font-heading">
+                  Promote Volunteer to Leaderboard
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPromoteModal(false)}
+                className="p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePromoteSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-foreground uppercase tracking-wider mb-1.5 text-[11px]">
+                  Select State Volunteer
+                </label>
+                <select
+                  value={selectedVolunteerId}
+                  onChange={(e) => {
+                    setSelectedVolunteerId(e.target.value);
+                    const v = volunteersList.find(vol => vol.id === e.target.value);
+                    if (v) {
+                      setPromoteForm(prev => ({
+                        ...prev,
+                        specialization: v.specialization || v.emergencyRole || prev.specialization,
+                        badgeNumber: v.id,
+                      }));
+                    }
+                  }}
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border font-medium text-foreground outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">-- Choose Registered Volunteer --</option>
+                  {volunteersList.map((vol) => (
+                    <option key={vol.id} value={vol.id}>
+                      {vol.name} ({vol.city}, {vol.state}) - {vol.specialization || vol.emergencyRole}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-foreground uppercase tracking-wider mb-1.5 text-[11px]">
+                    Excellence Rating (1.0 - 5.0)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="4.0"
+                    max="5.0"
+                    value={promoteForm.rating}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, rating: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 rounded-xl bg-background border border-border font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground uppercase tracking-wider mb-1.5 text-[11px]">
+                    Tour / Rescue Missions
+                  </label>
+                  <input
+                    type="number"
+                    value={promoteForm.tours}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, tours: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 rounded-xl bg-background border border-border font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-foreground uppercase tracking-wider mb-1.5 text-[11px]">
+                  Special Citation / Specialization
+                </label>
+                <input
+                  type="text"
+                  value={promoteForm.specialization}
+                  onChange={(e) => setPromoteForm({ ...promoteForm, specialization: e.target.value })}
+                  placeholder="e.g. Senior Citizen Pilgrimage Escort & First Responder"
+                  className="w-full px-3.5 py-2 rounded-xl bg-background border border-border text-foreground outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowPromoteModal(false)}
+                  className="px-4 py-2 rounded-xl bg-muted text-foreground font-bold hover:bg-muted/80 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 shadow-md cursor-pointer"
+                >
+                  Promote to Leaderboard
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -792,3 +792,187 @@ export function getWhatsAppGroupLink(destination = "", state = "") {
   };
 }
 
+// =========================================================================
+// LEADERBOARD DATA (ASI Licensed Guides & Promoted Volunteers)
+// =========================================================================
+
+export const initialLeaderboard = [
+  { 
+    id: "lb-1", 
+    rank: 1, 
+    name: "Mirza Farooq", 
+    type: "ASI Licensed Guide", 
+    badge: "ASI-TS-219", 
+    city: "Hyderabad", 
+    state: "Telangana", 
+    rating: 4.98, 
+    tours: 320, 
+    specialization: "Golconda & Charminar Acoustic Architecture",
+    isVolunteer: false,
+    promotedAt: "2026-01-10"
+  },
+  { 
+    id: "lb-2", 
+    rank: 2, 
+    name: "Rajesh Kumar", 
+    type: "State Volunteer (Promoted)", 
+    badge: "VOL-AP-01", 
+    city: "Visakhapatnam", 
+    state: "Andhra Pradesh", 
+    rating: 4.95, 
+    tours: 188, 
+    specialization: "Coastal Water Rescue & Beach Safety Patrol",
+    isVolunteer: true,
+    promotedAt: "2026-02-15"
+  },
+  { 
+    id: "lb-3", 
+    rank: 3, 
+    name: "Suresh Babu", 
+    type: "ASI Licensed Guide", 
+    badge: "ASI-AP-849", 
+    city: "Visakhapatnam", 
+    state: "Andhra Pradesh", 
+    rating: 4.92, 
+    tours: 142, 
+    specialization: "Thotlakonda & Borra Caves Geotourism",
+    isVolunteer: false,
+    promotedAt: "2026-01-20"
+  },
+  { 
+    id: "lb-4", 
+    rank: 4, 
+    name: "Rajendra Sharma", 
+    type: "ASI Licensed Guide", 
+    badge: "ASI-UP-102", 
+    city: "Agra", 
+    state: "Uttar Pradesh", 
+    rating: 4.90, 
+    tours: 410, 
+    specialization: "Taj Mahal & Fatehpur Sikri Mughal Geometry",
+    isVolunteer: false,
+    promotedAt: "2026-02-01"
+  },
+  { 
+    id: "lb-5", 
+    rank: 5, 
+    name: "Neha Sharma", 
+    type: "State Volunteer (Promoted)", 
+    badge: "VOL-UP-02", 
+    city: "Agra", 
+    state: "Uttar Pradesh", 
+    rating: 4.88, 
+    tours: 115, 
+    specialization: "Foreigner Scam Prevention & Safe Escort",
+    isVolunteer: true,
+    promotedAt: "2026-03-01"
+  }
+];
+
+export function getLeaderboardData() {
+  try {
+    const saved = localStorage.getItem("by-leaderboard-data");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return initialLeaderboard;
+}
+
+export function saveLeaderboardData(list) {
+  localStorage.setItem("by-leaderboard-data", JSON.stringify(list));
+  window.dispatchEvent(new CustomEvent("by-leaderboard-updated", { detail: list }));
+}
+
+export function promoteVolunteerToLeaderboard(volunteer, customData = {}) {
+  const current = getLeaderboardData();
+  const existingIdx = current.findIndex(x => x.badge === volunteer.id || x.name === volunteer.name);
+  
+  const entry = {
+    id: `lb-vol-${Date.now()}`,
+    rank: current.length + 1,
+    name: volunteer.name,
+    type: "State Volunteer (Promoted)",
+    badge: volunteer.id || `VOL-${Date.now().toString().slice(-4)}`,
+    city: volunteer.city || "India",
+    state: volunteer.state || "All India",
+    rating: customData.rating || 4.92,
+    tours: customData.tours || Math.floor(Math.random() * 50) + 75,
+    specialization: volunteer.specialization || volunteer.emergencyRole || "Tourist Assistance & Emergency Patrol",
+    isVolunteer: true,
+    promotedAt: new Date().toISOString().split("T")[0],
+    ...customData,
+  };
+
+  let updated;
+  if (existingIdx !== -1) {
+    updated = [...current];
+    updated[existingIdx] = { ...updated[existingIdx], ...entry };
+  } else {
+    updated = [...current, entry];
+  }
+
+  // Recalculate ranks based on rating & tours
+  updated.sort((a, b) => (b.rating * 1000 + b.tours) - (a.rating * 1000 + a.tours));
+  updated = updated.map((item, idx) => ({ ...item, rank: idx + 1 }));
+
+  saveLeaderboardData(updated);
+  return updated;
+}
+
+export function removeLeaderboardMember(id) {
+  const current = getLeaderboardData();
+  let updated = current.filter(x => x.id !== id && x.badge !== id);
+  updated = updated.map((item, idx) => ({ ...item, rank: idx + 1 }));
+  saveLeaderboardData(updated);
+  return updated;
+}
+
+export function refreshLeaderboardData() {
+  const current = getLeaderboardData();
+  // Jitter slightly for real-time demonstration
+  const updated = current.map(item => ({
+    ...item,
+    tours: item.tours + (Math.random() > 0.5 ? 1 : 0),
+  }));
+  updated.sort((a, b) => (b.rating * 1000 + b.tours) - (a.rating * 1000 + a.tours));
+  const reRanked = updated.map((item, idx) => ({ ...item, rank: idx + 1 }));
+  saveLeaderboardData(reRanked);
+  return reRanked;
+}
+
+// =========================================================================
+// ASI MONUMENT CONTROLLER & EVENT RSVP COUNTS STORE
+// =========================================================================
+
+export function getEventRsvpCounts() {
+  try {
+    const saved = localStorage.getItem("by-event-rsvp-counts");
+    if (saved) return JSON.parse(saved);
+  } catch (e) {}
+  return {};
+}
+
+export function saveEventRsvpCounts(counts) {
+  localStorage.setItem("by-event-rsvp-counts", JSON.stringify(counts));
+  window.dispatchEvent(new CustomEvent("by-event-rsvp-counts-updated", { detail: counts }));
+}
+
+export function adjustEventRsvpCount(eventId, delta) {
+  const counts = getEventRsvpCounts();
+  const current = counts[eventId] !== undefined ? counts[eventId] : 450;
+  const newCount = Math.max(0, current + delta);
+  counts[eventId] = newCount;
+  saveEventRsvpCounts(counts);
+  return newCount;
+}
+
+export function setEventRsvpCount(eventId, count) {
+  const counts = getEventRsvpCounts();
+  counts[eventId] = Math.max(0, Number(count) || 0);
+  saveEventRsvpCounts(counts);
+  return counts[eventId];
+}
+
+

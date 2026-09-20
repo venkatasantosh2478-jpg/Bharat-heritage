@@ -46,7 +46,12 @@ export default function Layout() {
   const { pathname } = useLocation();
   const { theme, toggle } = useTheme();
   const { lang, setLang, t } = useI18n();
-  const { isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const isStaffOrAdmin = Boolean(
+    isAuthenticated && 
+    user && 
+    (user.isAdmin || user.isEmployee || (user.role && user.role !== "tourist"))
+  );
 
   useEffect(() => {
     const handleConfigUpdate = (e) => {
@@ -151,13 +156,16 @@ export default function Layout() {
             >
               <Phone className="w-3.5 h-3.5" /> SOS
             </Link>
-            <Link
-              to="/admin"
-              className="hidden sm:grid place-items-center w-9 h-9 rounded-full hover:bg-muted transition-colors"
-              aria-label="Admin"
-            >
-              <Shield className="w-4 h-4" />
-            </Link>
+            {isStaffOrAdmin && (
+              <Link
+                to="/admin"
+                className="hidden sm:grid place-items-center w-9 h-9 rounded-full hover:bg-muted transition-colors"
+                aria-label="Admin Console"
+                title="Admin & Staff Console"
+              >
+                <Shield className="w-4 h-4" />
+              </Link>
+            )}
             {isAuthenticated ? (
               <button
                 onClick={() => logout()}
@@ -212,13 +220,15 @@ export default function Layout() {
                   onSelectLang={setLang}
                 />
               </div>
-              <Link
-                to="/admin"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-muted"
-              >
-                <Shield className="w-4 h-4" /> Admin
-              </Link>
+              {isStaffOrAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-muted"
+                >
+                  <Shield className="w-4 h-4" /> Admin Console
+                </Link>
+              )}
               <Link
                 to="/safety"
                 onClick={() => setOpen(false)}
@@ -393,7 +403,9 @@ export default function Layout() {
               <Link to="/safety" className="hover:text-white">Safety SOS</Link>
               <button onClick={() => setGuideModalOpen(true)} className="hover:text-white cursor-pointer">Become a Guide</button>
               <Link to="/guides" className="hover:text-white">Guides</Link>
-              <Link to="/admin" className="hover:text-white">Admin Access</Link>
+              {isStaffOrAdmin && (
+                <Link to="/admin" className="hover:text-white">Admin Access</Link>
+              )}
             </div>
           </div>
         </div>

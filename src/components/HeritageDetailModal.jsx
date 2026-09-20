@@ -3,21 +3,42 @@ import { useNavigate } from "react-router-dom";
 import { 
   X, MapPin, Clock, Users, Sparkles, Star, 
   ExternalLink, Youtube, BookOpen, Compass, AlertTriangle, CheckCircle2,
-  Volume2, RefreshCw
+  Volume2, RefreshCw, Camera
 } from "lucide-react";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useI18n } from "@/lib/i18n";
 import { translateHeritageSite, INDIAN_REGIONAL_LANGUAGES } from "@/components/lib/aiTranslationService";
+import ReplaceImageModal from "@/components/ReplaceImageModal";
+import { getCustomCardImage, checkIsAdmin } from "@/components/lib/cardImageManager";
+import { useAuth } from "@/components/lib/AuthContext";
 
 export default function HeritageDetailModal({ site: rawSite, onClose }) {
   const navigate = useNavigate();
   const { lang: globalLang } = useI18n();
+  const { user } = useAuth();
+  const isAdmin = checkIsAdmin(user);
 
   const [activeLang, setActiveLang] = useState(globalLang || "en");
   const [siteData, setSiteData] = useState(rawSite);
+  const [siteImage, setSiteImage] = useState(() => getCustomCardImage(rawSite, rawSite?.image));
+  const [showReplaceModal, setShowReplaceModal] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [translationEngine, setTranslationEngine] = useState("");
+
+  // Sync image when rawSite changes or when card image is updated
+  useEffect(() => {
+    if (rawSite) {
+      setSiteImage(getCustomCardImage(rawSite, rawSite.image));
+    }
+    const handleImageChanged = () => {
+      if (rawSite) {
+        setSiteImage(getCustomCardImage(rawSite, rawSite.image));
+      }
+    };
+    window.addEventListener("by-card-image-changed", handleImageChanged);
+    return () => window.removeEventListener("by-card-image-changed", handleImageChanged);
+  }, [rawSite]);
 
   // Sync when rawSite or activeLang changes
   useEffect(() => {
@@ -119,8 +140,9 @@ export default function HeritageDetailModal({ site: rawSite, onClose }) {
         {/* Header Image with gradient overlay */}
         <div className="relative min-h-[260px] max-h-[380px] w-full bg-stone-950 overflow-hidden flex items-center justify-center group">
           <img 
-            src={rawSite.image} 
+            src={siteImage} 
             alt={rawSite.name} 
+            referrerPolicy="no-referrer"
             className={`w-full transition-all duration-300 ${
               imageFit === "contain" 
                 ? "max-h-[380px] object-contain py-2 bg-stone-950" 
@@ -131,13 +153,27 @@ export default function HeritageDetailModal({ site: rawSite, onClose }) {
           
           {/* Top Control Bar: Easy-to-click Close & Image Aspect Toggle */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20 pointer-events-auto">
-            <button
-              onClick={() => setImageFit(prev => prev === "cover" ? "contain" : "cover")}
-              className="px-3 py-1.5 rounded-full bg-black/70 hover:bg-black/90 text-white text-xs font-semibold backdrop-blur-md border border-white/20 transition-all flex items-center gap-1.5"
-              title="Toggle Full Image Fit"
-            >
-              <span>{imageFit === "cover" ? "Fit Full Photo" : "Fill Header"}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setShowReplaceModal(true)}
+                  className="px-3 py-1.5 rounded-full bg-black/70 hover:bg-black/90 text-white text-xs font-semibold backdrop-blur-md border border-white/20 transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-md"
+                  title="Admin Control: Change or Replace Photo"
+                >
+                  <Camera className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Replace Photo</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setImageFit(prev => prev === "cover" ? "contain" : "cover")}
+                className="px-3 py-1.5 rounded-full bg-black/70 hover:bg-black/90 text-white text-xs font-semibold backdrop-blur-md border border-white/20 transition-all flex items-center gap-1.5"
+                title="Toggle Full Image Fit"
+              >
+                <span>{imageFit === "cover" ? "Fit Full Photo" : "Fill Header"}</span>
+              </button>
+            </div>
 
             <button 
               onClick={handleClose}
@@ -376,6 +412,14 @@ export default function HeritageDetailModal({ site: rawSite, onClose }) {
           </button>
         </div>
       </div>
+
+      <ReplaceImageModal
+        isOpen={showReplaceModal}
+        onClose={() => setShowReplaceModal(false)}
+        item={rawSite}
+        type="place"
+        onSuccess={(newUrl) => setSiteImage(newUrl)}
+      />
     </div>
   );
 }

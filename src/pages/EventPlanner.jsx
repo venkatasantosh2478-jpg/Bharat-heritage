@@ -2,9 +2,12 @@ import { useState, useEffect } from "react";
 import { 
   Calendar, Users, Gift, Sparkles, CheckCircle2, Phone, 
   MapPin, Star, MessageSquare, Send, Search, 
-  ShieldCheck, Image, Heart, Award, Lock, Eye
+  ShieldCheck, Image, Heart, Award, Lock, Eye, Camera
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import ReplaceImageModal from "@/components/ReplaceImageModal";
+import { getCustomCardImage, checkIsAdmin } from "@/components/lib/cardImageManager";
+import { useAuth } from "@/components/lib/AuthContext";
 
 // Sample verified community reviews and real celebration gallery
 const defaultSampleEvents = [
@@ -187,6 +190,8 @@ const eventMemoriesGallery = [
 
 export default function EventPlanner() {
   const { lang } = useI18n();
+  const { user } = useAuth();
+  const isAdmin = checkIsAdmin(user);
   const [activeTab, setActiveTab] = useState("reviews"); // 'reviews' | 'form' | 'track'
 
   // Form State with user-entered custom category
@@ -220,6 +225,7 @@ export default function EventPlanner() {
     comment: "",
   });
   const [reviewSubmittedNotice, setReviewSubmittedNotice] = useState("");
+  const [replacingEventItem, setReplacingEventItem] = useState(null);
 
   // Load from localStorage or defaults
   useEffect(() => {
@@ -234,6 +240,42 @@ export default function EventPlanner() {
     } catch {
       setEventsList(defaultSampleEvents);
     }
+  }, []);
+
+  // Listen for image replacements from any card or modal in the app
+  useEffect(() => {
+    const handleCardImageChanged = (e) => {
+      const detail = e.detail;
+      if (!detail) return;
+      setEventsList((prev) => {
+        let changed = false;
+        const updated = prev.map((ev) => {
+          const matchId = detail.id && (ev.id === detail.id || String(ev.id) === String(detail.id));
+          const matchName = detail.name && (
+            ev.name?.toLowerCase() === detail.name.toLowerCase() ||
+            ev.category?.toLowerCase() === detail.name.toLowerCase()
+          );
+          if (matchId || matchName) {
+            changed = true;
+            return {
+              ...ev,
+              feedback: ev.feedback ? { ...ev.feedback, image: detail.newImageUrl } : { image: detail.newImageUrl },
+            };
+          }
+          return ev;
+        });
+
+        if (changed) {
+          try {
+            localStorage.setItem("by-event-requests", JSON.stringify(updated));
+          } catch {}
+        }
+        return changed ? updated : prev;
+      });
+    };
+
+    window.addEventListener("by-card-image-changed", handleCardImageChanged);
+    return () => window.removeEventListener("by-card-image-changed", handleCardImageChanged);
   }, []);
 
   const saveEvents = (updated) => {
@@ -474,116 +516,188 @@ export default function EventPlanner() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {eventMemoriesGallery.map((galleryItem, idx) => (
-                  <div
-                    key={idx}
-                    className="group rounded-3xl bg-card border border-border overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col shadow-xs"
-                  >
-                    <div className="relative aspect-video overflow-hidden bg-muted">
-                      <img
-                        src={galleryItem.image}
-                        alt={galleryItem.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-amber-400" /> {galleryItem.tag}
-                      </div>
-                      <div className="absolute top-3 right-3 bg-amber-500 text-slate-950 px-2.5 py-1 rounded-full text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
-                        ★ {galleryItem.rating}
-                      </div>
-                    </div>
-
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                      <div>
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-1">
-                          <MapPin className="w-3.5 h-3.5 text-primary" />
-                          <span>{galleryItem.location}</span>
+                {eventMemoriesGallery.map((galleryItem, idx) => {
+                  const currentImg = getCustomCardImage(galleryItem, galleryItem.image);
+                  return (
+                    <div
+                      key={idx}
+                      className="group rounded-3xl bg-card border border-border overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col shadow-xs"
+                    >
+                      <div className="relative aspect-video overflow-hidden bg-muted">
+                        <img
+                          src={currentImg}
+                          alt={galleryItem.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-400" /> {galleryItem.tag}
                         </div>
-                        <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
-                          {galleryItem.title}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                          {galleryItem.desc}
-                        </p>
+                        <div className="absolute top-3 right-3 bg-amber-500 text-slate-950 px-2.5 py-1 rounded-full text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+                          ★ {galleryItem.rating}
+                        </div>
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => setReplacingEventItem({
+                              id: `MEM-${galleryItem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                              name: galleryItem.title,
+                              title: galleryItem.title,
+                              image: galleryItem.image
+                            })}
+                            className="absolute bottom-3 right-3 px-2.5 py-1.5 rounded-full bg-black/75 hover:bg-amber-500 hover:text-stone-950 text-white text-[11px] font-bold backdrop-blur-md flex items-center gap-1.5 shadow-lg transition-all border border-white/20"
+                            title="Replace Occasion Image"
+                          >
+                            <Camera className="w-3.5 h-3.5" /> Replace Photo
+                          </button>
+                        )}
                       </div>
 
-                      <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
-                        <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          ✓ Dedicated Concierge
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFormData((prev) => ({
-                              ...prev,
-                              category: galleryItem.title,
-                            }));
-                            setActiveTab("form");
-                          }}
-                          className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-                        >
-                          Plan Similar →
-                        </button>
+                      <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-1">
+                            <MapPin className="w-3.5 h-3.5 text-primary" />
+                            <span>{galleryItem.location}</span>
+                          </div>
+                          <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                            {galleryItem.title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                            {galleryItem.desc}
+                          </p>
+                        </div>
+
+                        <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+                          <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            ✓ Dedicated Concierge
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                category: galleryItem.title,
+                              }));
+                              setActiveTab("form");
+                            }}
+                            className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                          >
+                            Plan Similar →
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            {/* Verified Traveler Reviews List */}
+            {/* Verified Traveler Reviews List (Family Cards) */}
             <div className="space-y-4 pt-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-foreground font-heading flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-rose-500" /> Verified Traveler Testimonials ({verifiedReviews.length})
+                    <Heart className="w-5 h-5 text-rose-500" /> Verified Family Testimonials & Cards ({verifiedReviews.length})
                   </h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Authentic feedback from families who celebrated life milestones
+                    Authentic feedback and celebration photos from families who celebrated life milestones
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {verifiedReviews.map((ev) => (
-                  <div
-                    key={ev.id}
-                    className="p-6 rounded-3xl bg-card border border-border shadow-xs space-y-4 hover:border-amber-500/40 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
-                          {ev.name}
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase">
-                            Verified Guest
-                          </span>
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-primary" /> {ev.destination}
+                {verifiedReviews.map((ev) => {
+                  const familyImg = getCustomCardImage(ev, ev.feedback?.image);
+                  return (
+                    <div
+                      key={ev.id}
+                      className="p-6 rounded-3xl bg-card border border-border shadow-xs space-y-4 hover:border-amber-500/40 transition-all flex flex-col justify-between"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+                              {ev.name}
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase">
+                                Verified Family
+                              </span>
+                            </h4>
+                            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-primary" /> {ev.destination}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 bg-amber-500/10 px-2.5 py-1 rounded-full">
+                            {Array.from({ length: ev.feedback?.rating || 5 }).map((_, i) => (
+                              <Star key={i} className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Family Celebration Photo Display */}
+                        {familyImg ? (
+                          <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted group/familyImg">
+                            <img
+                              src={familyImg}
+                              alt={ev.name}
+                              className="w-full h-full object-cover group-hover/familyImg:scale-105 transition-transform duration-500"
+                              referrerPolicy="no-referrer"
+                            />
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => setReplacingEventItem({
+                                  id: ev.id,
+                                  name: ev.name,
+                                  title: ev.name,
+                                  image: familyImg,
+                                  category: ev.category
+                                })}
+                                className="absolute bottom-2.5 right-2.5 px-3 py-1.5 rounded-full bg-black/80 hover:bg-amber-500 hover:text-stone-950 text-white text-[11px] font-bold backdrop-blur-md flex items-center gap-1.5 shadow-md transition-all border border-white/20"
+                                title="Replace Family Photo"
+                              >
+                                <Camera className="w-3.5 h-3.5" /> Replace Photo
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="p-3 rounded-2xl bg-muted/30 border border-dashed border-border flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                              <Image className="w-4 h-4 text-muted-foreground" /> No family image attached
+                            </span>
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => setReplacingEventItem({
+                                  id: ev.id,
+                                  name: ev.name,
+                                  title: ev.name,
+                                  image: "",
+                                  category: ev.category
+                                })}
+                                className="px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-xs font-bold transition-all flex items-center gap-1"
+                              >
+                                <Camera className="w-3.5 h-3.5" /> Add Family Photo
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="text-xs font-medium text-primary bg-primary/5 px-3 py-1 rounded-xl w-fit">
+                          Occasion: {ev.category}
+                        </div>
+
+                        <p className="text-xs text-foreground/90 leading-relaxed italic bg-muted/40 p-4 rounded-2xl border border-border">
+                          "{ev.feedback?.comment}"
                         </p>
                       </div>
-                      <div className="flex items-center gap-1 bg-amber-500/10 px-2.5 py-1 rounded-full">
-                        {Array.from({ length: ev.feedback.rating || 5 }).map((_, i) => (
-                          <Star key={i} className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                        ))}
+
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t border-border/50">
+                        <span>Coordinator: {ev.coordinator || "Bharat Yatra Desk"}</span>
+                        <span>{ev.feedback?.date || ev.date}</span>
                       </div>
                     </div>
-
-                    <div className="text-xs font-medium text-primary bg-primary/5 px-3 py-1 rounded-xl w-fit">
-                      Event: {ev.category}
-                    </div>
-
-                    <p className="text-xs text-foreground/90 leading-relaxed italic bg-muted/40 p-4 rounded-2xl border border-border">
-                      "{ev.feedback.comment}"
-                    </p>
-
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/50">
-                      <span>Coordinator: {ev.coordinator || "Bharat Yatra Desk"}</span>
-                      <span>{ev.feedback.date}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -1116,6 +1230,29 @@ export default function EventPlanner() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Direct Card Image Replacement Modal */}
+      {replacingEventItem && (
+        <ReplaceImageModal
+          isOpen={Boolean(replacingEventItem)}
+          onClose={() => setReplacingEventItem(null)}
+          item={replacingEventItem}
+          type="event"
+          onSuccess={(newUrl) => {
+            setEventsList((prev) =>
+              prev.map((ev) => {
+                if (ev.id === replacingEventItem.id || ev.name === replacingEventItem.name) {
+                  return {
+                    ...ev,
+                    feedback: ev.feedback ? { ...ev.feedback, image: newUrl } : { image: newUrl, rating: 5, comment: "Family moment", date: new Date().toISOString().slice(0, 10) }
+                  };
+                }
+                return ev;
+              })
+            );
+          }}
+        />
       )}
     </div>
   );

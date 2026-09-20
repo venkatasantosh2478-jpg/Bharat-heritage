@@ -60,7 +60,7 @@ const MainAppRoutes = () => {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute unauthenticatedElement={<Navigate to="/login?returnTo=/admin" replace />}>
+            <ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />}>
               <Admin />
             </ProtectedRoute>
           }

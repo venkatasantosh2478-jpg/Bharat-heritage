@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { useSearchParams, Link, useNavigate, Navigate } from "react-router-dom";
 import { 
   Shield, Users, Loader2, CalendarCheck, MapPin, Clock, 
   Wallet, Hotel, ShieldAlert, Landmark, Gift, ShoppingCart, 
   Award, Eye, RotateCcw, KeyRound, UserCheck, ArrowRight, CheckCircle2,
-  Lock
+  Lock, HardDrive, Database, Sparkles, Trash2, RefreshCw
 } from "lucide-react";
 import EntityEditor from "@/components/EntityEditor";
 import AdminDashboards from "@/components/AdminDashboards";
 import FeedbackManagementModule from "@/components/FeedbackManagementModule";
 import SiteConfigAndFooterEditor from "@/components/SiteConfigAndFooterEditor";
 import AdminEventManager from "@/components/AdminEventManager";
+import UsersManagementModule from "@/components/UsersManagementModule";
 import { useAuth, getSystemCredentials } from "@/components/lib/AuthContext";
 import { heritageSites, foods as staticFoods, products as staticProducts } from "@/lib/heritageData";
 import { enrichedHeritageSites } from "@/lib/richHeritageData";
 import { governmentRecognizedHotels } from "@/lib/hotelDirectoryData";
 import { STATE_GALLERY_DATA } from "@/components/StateGallery";
+import { 
+  getStorageQuotaMetrics, 
+  clearExcessStorage, 
+  getAllCustomCardImages 
+} from "@/components/lib/cardImageManager";
 
 // Merge enriched heritage sites with legacy heritage sites
 const combinedPlaces = [...enrichedHeritageSites];
@@ -44,7 +50,9 @@ const rolesList = [
 ];
 
 const tabs = [
+  { id: "users", label: "👥 Users & Role Promotion" },
   { id: "dashboards", label: "Specialized Dashboards" },
+  { id: "storage", label: "💾 Storage & Cache Quota" },
   { id: "feedback", label: "Tourist Feedback & QA" },
   { id: "config", label: "Footer & WhatsApp Bot Config" },
   { id: "places", label: "Heritage Places" },
@@ -182,48 +190,9 @@ export default function Admin() {
 
   const currentRoleObj = rolesList.find((r) => r.id === activeRole) || rolesList[0];
 
-  // If user is a standard tourist, restrict admin dashboard and guide them to Profile
+  // If user is a standard tourist, seamlessly redirect away to Profile
   if (isTourist) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center p-4">
-        <div className="max-w-lg w-full p-8 rounded-3xl bg-card border border-border shadow-md space-y-6 text-center">
-          <div className="w-16 h-16 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 mx-auto grid place-items-center">
-            <Lock className="w-8 h-8" />
-          </div>
-
-          <div className="space-y-2">
-            <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-bold uppercase tracking-wider">
-              Traveler Account Notice
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground font-heading">
-              Administrative Console is Restricted
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              You are currently logged in as a <strong>Registered Tourist</strong> (<code className="text-primary font-mono">{user?.email}</code>). Administrative and departmental dashboards are reserved exclusively for certified field employees and administrators.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-muted/50 border border-border text-xs text-left space-y-2">
-            <p className="font-bold text-foreground flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> What's available for Travelers:
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              Your personal profile contains your saved travel itineraries, tour bookings, emergency SOS emergency contacts, and personalized surprise planning requests.
-            </p>
-          </div>
-
-          <div className="space-y-3 pt-2">
-            <Link
-              to="/profile"
-              className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm shadow-sm hover:opacity-90 flex items-center justify-center gap-2 transition-all"
-            >
-              <span>Go to My Traveler Profile</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <Navigate to="/profile" replace />;
   }
 
   return (
@@ -373,6 +342,9 @@ export default function Admin() {
                 </button>
               ))}
             </div>
+
+            {/* Users & Role Promotion Tab */}
+            {tab === "users" && <UsersManagementModule />}
 
             {/* Dashboards Tab */}
             {tab === "dashboards" && (
@@ -562,6 +534,13 @@ export default function Admin() {
               </div>
             )}
 
+            {/* Storage Quota & Media Cache Tab */}
+            {tab === "storage" && (
+              <div className="space-y-4">
+                <StorageQuotaViewer />
+              </div>
+            )}
+
             {/* Footer & Site Config Tab */}
             {tab === "config" && (
               <div className="space-y-4">
@@ -571,6 +550,163 @@ export default function Admin() {
           </>
         )}
       </section>
+    </div>
+  );
+}
+
+// Subcomponent: Storage Quota & Media Cache Manager
+function StorageQuotaViewer() {
+  const [metrics, setMetrics] = useState(() => getStorageQuotaMetrics());
+  const [cleaning, setCleaning] = useState(false);
+  const [cleanReport, setCleanReport] = useState(null);
+
+  const refreshMetrics = () => {
+    setMetrics(getStorageQuotaMetrics());
+  };
+
+  const handleCleanStorage = () => {
+    setCleaning(true);
+    setTimeout(() => {
+      const res = clearExcessStorage();
+      if (res) {
+        setMetrics(res);
+        setCleanReport("Storage cache pruned successfully! Heavy raw payloads and redundant blobs were optimized.");
+      }
+      setCleaning(false);
+    }, 400);
+  };
+
+  const customImages = getAllCustomCardImages();
+  const customImageCount = Object.keys(customImages).length;
+
+  return (
+    <div className="space-y-6">
+      {/* Metric Cards Banner */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
+            <span>Storage Used</span>
+            <Database className="w-4 h-4 text-primary" />
+          </div>
+          <div className="text-2xl font-bold text-foreground">
+            {metrics?.usedMB} <span className="text-xs font-normal text-muted-foreground">MB ({metrics?.usedKB} KB)</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Across all local app states & custom image cards</p>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
+            <span>Remaining Limit</span>
+            <HardDrive className="w-4 h-4 text-emerald-500" />
+          </div>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+            {metrics?.remainingMB} <span className="text-xs font-normal text-muted-foreground">MB available</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Out of standard ~5.00 MB browser quota</p>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
+            <span>Quota Utilization</span>
+            <Sparkles className="w-4 h-4 text-amber-500" />
+          </div>
+          <div className="text-2xl font-bold text-foreground">
+            {metrics?.percentUsed}%
+          </div>
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+            <div 
+              className={`h-full transition-all duration-500 ${
+                metrics?.percentUsed > 85 ? "bg-red-500" : metrics?.percentUsed > 60 ? "bg-amber-500" : "bg-emerald-500"
+              }`} 
+              style={{ width: `${Math.max(2, metrics?.percentUsed)}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold">
+            <span>Custom Card Images</span>
+            <CheckCircle2 className="w-4 h-4 text-primary" />
+          </div>
+          <div className="text-2xl font-bold text-foreground">
+            {customImageCount} <span className="text-xs font-normal text-muted-foreground">photos</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Persistent overrides for places & events</p>
+        </div>
+      </div>
+
+      {cleanReport && (
+        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center justify-between">
+          <span>{cleanReport}</span>
+          <button 
+            type="button" 
+            onClick={() => setCleanReport(null)}
+            className="text-xs font-bold hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Storage Breakdown & Controls */}
+      <div className="p-6 rounded-3xl bg-card border border-border space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="font-bold text-lg text-foreground">Storage Breakdown & Diagnostic Log</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Breakdown of top storage keys currently persisted in your browser sandbox.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={refreshMetrics}
+              className="px-3 py-2 rounded-xl bg-muted text-foreground text-xs font-bold hover:bg-muted/80 flex items-center gap-1.5 transition-all"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            </button>
+            <button
+              type="button"
+              onClick={handleCleanStorage}
+              disabled={cleaning}
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 flex items-center gap-1.5 shadow-sm transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> {cleaning ? "Cleaning..." : "Prune Storage Cache"}
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-border text-muted-foreground font-semibold">
+                <th className="pb-3 pr-4">Storage Key</th>
+                <th className="pb-3 pr-4">Size (KB)</th>
+                <th className="pb-3">Purpose / Category</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {metrics?.breakdown?.map((item) => (
+                <tr key={item.key} className="hover:bg-muted/40 transition-colors">
+                  <td className="py-3 pr-4 font-mono font-medium text-foreground">{item.key}</td>
+                  <td className="py-3 pr-4 font-bold text-primary">{item.sizeKB} KB</td>
+                  <td className="py-3 text-muted-foreground">
+                    {item.key === "by_custom_card_images_v1"
+                      ? "Custom Card Photos & Photo Replacements"
+                      : item.key.includes("events")
+                      ? "Festivals & Calendar Event Data"
+                      : item.key.includes("places")
+                      ? "Heritage Places & Site Records"
+                      : item.key.includes("auth") || item.key.includes("user")
+                      ? "User Authentication & Session Profile"
+                      : "Application State / Preferences"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
@@ -627,10 +763,23 @@ function BookingsManager() {
     },
   ];
 
+  function getCombinedBookings() {
+    try {
+      const stored = JSON.parse(localStorage.getItem("by-user-bookings") || "[]");
+      if (Array.isArray(stored) && stored.length > 0) {
+        // Merge stored user bookings with sample bookings, keeping user bookings on top and deduplicating
+        const userIds = new Set(stored.map(b => b.id));
+        const filteredSamples = defaultSampleBookings.filter(b => !userIds.has(b.id));
+        return [...stored, ...filteredSamples];
+      }
+    } catch {}
+    return defaultSampleBookings;
+  }
+
   async function load() {
     setLoading(true);
     try {
-      setBookings(defaultSampleBookings);
+      setBookings(getCombinedBookings());
       setGuides([
         { id: "g1", full_name: "Abdul Qadir (ASI Guide Allocator)" },
         { id: "g2", full_name: "K. Venkatesh (ASI Vizag Badge #401)" },
@@ -643,14 +792,52 @@ function BookingsManager() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load();
+    const handleSync = () => {
+      setBookings(getCombinedBookings());
+    };
+    window.addEventListener("by-user-bookings-updated", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("by-user-bookings-updated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
 
   async function updateStatus(id, status) {
-    setBookings((list) => list.map((b) => (b.id === id ? { ...b, status } : b)));
+    setBookings((list) => {
+      const updated = list.map((b) => (b.id === id ? { ...b, status } : b));
+      try {
+        const stored = JSON.parse(localStorage.getItem("by-user-bookings") || "[]");
+        const updatedStored = stored.map((b) => (b.id === id ? { ...b, status } : b));
+        // If booking wasn't in stored yet, add it
+        if (!stored.some(b => b.id === id)) {
+          const item = updated.find(b => b.id === id);
+          if (item) updatedStored.unshift(item);
+        }
+        localStorage.setItem("by-user-bookings", JSON.stringify(updatedStored));
+        window.dispatchEvent(new CustomEvent("by-user-bookings-updated", { detail: updatedStored }));
+      } catch {}
+      return updated;
+    });
   }
 
   async function assignGuide(id, guideId) {
-    setBookings((list) => list.map((b) => (b.id === id ? { ...b, assigned_guide_id: guideId } : b)));
+    setBookings((list) => {
+      const updated = list.map((b) => (b.id === id ? { ...b, assigned_guide_id: guideId } : b));
+      try {
+        const stored = JSON.parse(localStorage.getItem("by-user-bookings") || "[]");
+        const updatedStored = stored.map((b) => (b.id === id ? { ...b, assigned_guide_id: guideId } : b));
+        if (!stored.some(b => b.id === id)) {
+          const item = updated.find(b => b.id === id);
+          if (item) updatedStored.unshift(item);
+        }
+        localStorage.setItem("by-user-bookings", JSON.stringify(updatedStored));
+        window.dispatchEvent(new CustomEvent("by-user-bookings-updated", { detail: updatedStored }));
+      } catch {}
+      return updated;
+    });
   }
 
   const statusColors = {

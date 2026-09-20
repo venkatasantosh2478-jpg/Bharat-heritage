@@ -4,8 +4,8 @@
 
 export const INDIAN_REGIONAL_LANGUAGES = [
   { code: "en", name: "English", nativeName: "English", script: "Latin", flag: "🇮🇳" },
-  { code: "hi", name: "Hindi", nativeName: "हिन्दी", script: "देवनागरी", flag: "🕉️" },
   { code: "te", name: "Telugu", nativeName: "తెలుగు", script: "తెలుగు", flag: "🛕" },
+  { code: "hi", name: "Hindi", nativeName: "हिन्दी", script: "देवनागरी", flag: "🕉️" },
   { code: "ta", name: "Tamil", nativeName: "தமிழ்", script: "தமிழ்", flag: "🏛️" },
   { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ", script: "ಕನ್ನಡ", flag: "🏰" },
   { code: "bn", name: "Bengali", nativeName: "বাংলা", script: "বাংলা", flag: "🎨" },
@@ -14,6 +14,18 @@ export const INDIAN_REGIONAL_LANGUAGES = [
   { code: "ml", name: "Malayalam", nativeName: "മലയാളം", script: "മലയാളം", flag: "🌴" },
   { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ", script: "ਗੁਰਮੁਖੀ", flag: "🌾" },
   { code: "or", name: "Odia", nativeName: "ଓଡ଼ିଆ", script: "ଓଡ଼ିଆ", flag: "☀️" },
+  { code: "sa", name: "Sanskrit", nativeName: "संस्कृतम्", script: "देवनागरी", flag: "📜" },
+  { code: "ur", name: "Urdu", nativeName: "اردو", script: "نستعلیق", flag: "🌙" },
+  { code: "as", name: "Assamese", nativeName: "অসমীয়া", script: "পূৰ্বী নাগৰী", flag: "🦏" },
+  { code: "mai", name: "Maithili", nativeName: "मैथिली", script: "देवनागरी / तिरहुता", flag: "🪷" },
+  { code: "kok", name: "Konkani", nativeName: "कोंकणी", script: "देवनागरी / Romi", flag: "🏖️" },
+  { code: "ks", name: "Kashmiri", nativeName: "کٲشُر / कॉशुर", script: "Perso-Arabic / Devanagari", flag: "🏔️" },
+  { code: "sd", name: "Sindhi", nativeName: "سنڌي / सिन्धी", script: "Perso-Arabic / Devanagari", flag: "🌊" },
+  { code: "ne", name: "Nepali", nativeName: "नेपाली", script: "देवनागरी", flag: "⛰️" },
+  { code: "mni", name: "Manipuri (Meitei)", nativeName: "মৈতৈলোন্ / ꯃꯤꯇꯩꯂꯣꯟ", script: "Bengali-Assamese / Meitei Mayek", flag: "🎭" },
+  { code: "sat", name: "Santali", nativeName: "ᱥᱟᱱᱛᱟᱲᱤ", script: "Ol Chiki", flag: "🏹" },
+  { code: "doi", name: "Dogri", nativeName: "डोगरी", script: "देवनागरी", flag: "🏞️" },
+  { code: "brx", name: "Bodo", nativeName: "बड़ो", script: "देवनागरी", flag: "🌿" },
 ];
 
 const CACHE_STORAGE_KEY = "by_translation_cache_v1";
@@ -187,6 +199,50 @@ export async function translateJournalEntry(entry, targetLang) {
     caption: captionRes.translatedText || caption,
     title: titleRes.translatedText || title,
   };
+}
+
+/**
+ * Translates an arbitrary card object (title, name, description, tags, highlights)
+ * @param {object} item - Card item
+ * @param {string} targetLang - Language code
+ */
+export async function translateCardContent(item, targetLang) {
+  if (!item || targetLang === "en") return { ...item };
+
+  const name = item.name || item.title || "";
+  const desc = item.description || item.caption || item.desc || "";
+  const tag = item.tag || item.category || "";
+
+  const [nameRes, descRes, tagRes] = await Promise.all([
+    name ? translateText(name, targetLang) : Promise.resolve({ translatedText: "" }),
+    desc ? translateText(desc, targetLang) : Promise.resolve({ translatedText: "" }),
+    tag ? translateText(tag, targetLang) : Promise.resolve({ translatedText: "" }),
+  ]);
+
+  return {
+    ...item,
+    _translated: true,
+    _targetLang: targetLang,
+    name: nameRes.translatedText || item.name,
+    title: nameRes.translatedText || item.title,
+    description: descRes.translatedText || item.description,
+    caption: descRes.translatedText || item.caption,
+    desc: descRes.translatedText || item.desc,
+    tag: tagRes.translatedText || item.tag,
+    category: tagRes.translatedText || item.category,
+  };
+}
+
+/**
+ * Translates a batch list of items in parallel with batching
+ * @param {Array<object>} items - List of card items
+ * @param {string} targetLang - Language code
+ */
+export async function translateBatch(items, targetLang) {
+  if (!Array.isArray(items) || items.length === 0 || targetLang === "en") {
+    return items;
+  }
+  return Promise.all(items.map((item) => translateCardContent(item, targetLang)));
 }
 
 /**

@@ -10,6 +10,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import { siteCoords, facilities } from "@/lib/heritageData";
 import { enrichedHeritageSites } from "@/lib/richHeritageData";
+import { useAuth } from "@/components/lib/AuthContext";
 
 const allIndianRegions = {
   all: { name: "All India Overview", state: "All India", coords: [22.5937, 78.9629], zoom: 5 },
@@ -56,6 +57,12 @@ function ChangeMapView({ coords, zoom }) {
 }
 
 export default function MapPage() {
+  const { user, isAuthenticated } = useAuth();
+  const isStaffOrAdmin = Boolean(
+    isAuthenticated && 
+    user && 
+    (user.isAdmin || user.isEmployee || (user.role && user.role !== "tourist"))
+  );
   const [selectedState, setSelectedState] = useState("all");
   const [activeFacility, setActiveFacility] = useState("all");
   const [showRoute, setShowRoute] = useState(true);
@@ -814,12 +821,14 @@ export default function MapPage() {
                           >
                             <PhoneCall className="w-3 h-3" /> Call
                           </a>
-                          <Link
-                            to="/admin"
-                            className="px-2.5 py-1 rounded-lg bg-muted text-foreground font-bold text-[11px]"
-                          >
-                            Command
-                          </Link>
+                          {isStaffOrAdmin && (
+                            <Link
+                              to="/admin"
+                              className="px-2.5 py-1 rounded-lg bg-muted text-foreground font-bold text-[11px]"
+                            >
+                              Command
+                            </Link>
+                          )}
                         </div>
                       </div>
                     </Popup>

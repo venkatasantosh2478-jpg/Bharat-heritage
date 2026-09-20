@@ -10,9 +10,10 @@ import {
   nextImageLoadMode,
   parseWixMediaUrl,
 } from "./image-helpers"
+import { normalizeImageUrl } from "../lib/cardImageManager"
 
 const FALLBACK_IMAGE_URL =
-  "https://static.wixstatic.com/media/12d367_4f26ccd17f8f4e3a8958306ea08c2332~mv2.png"
+  "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&auto=format&fit=crop&q=80"
 
 const ImageWrapper = React.forwardRef(({ aspectRatio, className, style, children }, ref) => (
   <span
@@ -40,10 +41,6 @@ const ResponsiveImage = React.forwardRef(
     }, [parsed.baseUrl])
 
     const crop = fittingType !== "fit"
-    // `size` is null exactly once: the pre-measurement first render, which we
-    // never let reach the network (see below — useSize measures before paint).
-    // A *measured* zero (content-sized wrapper with no CSS dimensions) falls
-    // back to a fixed transform width so the image itself can size the box.
     const options = size && {
       width: size.width || DEFAULT_TRANSFORM_WIDTH,
       height: size.height ? size.height : undefined,
@@ -52,18 +49,8 @@ const ResponsiveImage = React.forwardRef(
       quality,
     }
 
-    // Both layers render only once the container is measured, so the first
-    // URL the browser ever fetches is already the right size — never a
-    // DEFAULT_TRANSFORM_WIDTH guess that gets replaced a frame later (a
-    // wasted full-size download per image). useSize measures in
-    // useLayoutEffect, so nothing is lost: measurement lands before the
-    // first paint.
     return (
       <ImageWrapper ref={wrapperRef} aspectRatio={aspectRatio} className={className} style={style}>
-        {/* Tiny blurred placeholder (a few hundred bytes) covering the main
-            image's load time. Same crop shape and focal anchor as the main
-            image — fp_ is relative to the crop box, so a square or centered
-            placeholder would blur-preview a different region. */}
         {options && !loaded && (
           <img
             src={buildTransformUrl(parsed, {
@@ -76,6 +63,7 @@ const ResponsiveImage = React.forwardRef(
             })}
             alt=""
             aria-hidden="true"
+            referrerPolicy="no-referrer"
             className="w-full h-full inset-0 absolute"
             style={{
               objectFit: fittingType === "fit" ? "contain" : "cover",
@@ -90,6 +78,7 @@ const ResponsiveImage = React.forwardRef(
             src={buildTransformUrl(parsed, options)}
             srcSet={buildSrcSet(parsed, options)}
             loading="lazy"
+            referrerPolicy="no-referrer"
             className={cn(
               "w-full h-full inset-0 absolute",
               fittingType === "fit" ? "object-contain" : "object-cover"
@@ -108,17 +97,13 @@ const ResponsiveImage = React.forwardRef(
 ResponsiveImage.displayName = "ResponsiveImage"
 
 /**
- * Image with built-in Wix Media Platform support: canonical public images on
- * media.base44.com and static.wixstatic.com/media are resized to the rendered
- * container per device pixel ratio and re-encoded to WebP; `fittingType="fill"`
- * crops server-side, optionally anchored at a focal point. Other URLs render
- * as a plain <img>. Failed transforms retry the original URL; only a broken
- * original swaps to the generic fallback image.
+ * Image with built-in Wix Media Platform support and normalized universal hotlinking for
+ * Unsplash, Wikimedia, Pexels, and custom direct web links.
  */
 const Image = React.forwardRef(
   (
     {
-      src,
+      src: rawSrc,
       fittingType = "fill",
       originWidth,
       originHeight,
@@ -130,6 +115,7 @@ const Image = React.forwardRef(
     },
     ref
   ) => {
+    const src = normalizeImageUrl(rawSrc);
     const parsedSource = src && src !== FALLBACK_IMAGE_URL ? parseWixMediaUrl(src) : null
     const initialMode = parsedSource ? IMAGE_LOAD_MODE.OPTIMIZED : IMAGE_LOAD_MODE.ORIGINAL
     const [loadState, setLoadState] = React.useState({ src, mode: initialMode })
@@ -147,27 +133,22 @@ const Image = React.forwardRef(
     }
 
     const imageProps = {
+      referrerPolicy: "no-referrer",
       ...props,
       onError: handleError,
     }
 
     if (!src) {
-      // Renders as a real <img> (not a <div>) — the visual editor's
-      // click-to-edit toolbar keys its "Replace Image" action off the DOM
-      // tag being `img`, so a placeholder div would be unrecoverable in the
-      // editor. FALLBACK_IMAGE_URL doubles as the "no image chosen" graphic.
-      return <img ref={ref} src={FALLBACK_IMAGE_URL} {...imageProps} data-empty-image />
+      return <img ref={ref} src={FALLBACK_IMAGE_URL} referrerPolicy="no-referrer" {...imageProps} data-empty-image />
     }
 
-    // A failed transform retries the underlying original as a plain image.
-    // Only a failure of that original advances to the generic fallback.
     const parsed = mode === IMAGE_LOAD_MODE.OPTIMIZED ? parsedSource : null
 
     if (!parsed) {
       const isErrorMode = mode === IMAGE_LOAD_MODE.FALLBACK
-      const imageSrc = isErrorMode ? FALLBACK_IMAGE_URL : getOriginalImageUrl(src, parsedSource)
+      const imageSrc = isErrorMode ? FALLBACK_IMAGE_URL : (getOriginalImageUrl(src, parsedSource) || FALLBACK_IMAGE_URL)
       return (
-        <img ref={ref} src={imageSrc} {...imageProps} data-error-image={isErrorMode || undefined} />
+        <img ref={ref} src={imageSrc} referrerPolicy="no-referrer" {...imageProps} data-error-image={isErrorMode || undefined} />
       )
     }
 
@@ -175,8 +156,6 @@ const Image = React.forwardRef(
       typeof focalPointX === "number" && typeof focalPointY === "number"
         ? { x: focalPointX, y: focalPointY }
         : undefined
-    // Origin dimensions are optional — when known they stabilize layout via
-    // the wrapper's aspect-ratio before the image loads.
     const aspectRatio =
       originWidth && originHeight ? `${originWidth} / ${originHeight}` : undefined
 
@@ -196,3 +175,4 @@ const Image = React.forwardRef(
 Image.displayName = "Image"
 
 export { Image }
+

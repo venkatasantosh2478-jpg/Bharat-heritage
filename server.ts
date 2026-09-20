@@ -361,15 +361,27 @@ CRITICAL GEOGRAPHIC RULES:
 
     const langCodeMap: Record<string, string> = {
       hindi: "hi", hi: "hi",
-      telugu: "te", te: "te",
-      tamil: "ta", ta: "ta",
+      telugu: "te", te: "te", teluglish: "te",
+      tamil: "ta", ta: "ta", tanglish: "ta",
       bengali: "bn", bn: "bn",
       marathi: "mr", mr: "mr",
       gujarati: "gu", gu: "gu",
-      kannada: "kn", kn: "kn",
-      malayalam: "ml", ml: "ml",
+      kannada: "kn", kn: "kn", kanglish: "kn",
+      malayalam: "ml", ml: "ml", manglish: "ml",
       punjabi: "pa", pa: "pa",
       odia: "or", or: "or", od: "or",
+      sanskrit: "sa", sa: "sa",
+      urdu: "ur", ur: "ur",
+      assamese: "as", as: "as",
+      maithili: "mai", mai: "mai",
+      konkani: "kok", kok: "kok",
+      kashmiri: "ks", ks: "ks",
+      sindhi: "sd", sd: "sd",
+      nepali: "ne", ne: "ne",
+      manipuri: "mni", mni: "mni", meitei: "mni",
+      santali: "sat", sat: "sat",
+      dogri: "doi", doi: "doi",
+      bodo: "brx", brx: "brx",
       english: "en", en: "en",
     };
 
@@ -385,22 +397,24 @@ CRITICAL GEOGRAPHIC RULES:
         const response = await generateWithFallback(
           ai,
           {
-            contents: `You are an expert Indian multilingual translator and linguistic assistant.
+            contents: `You are an expert Indian multilingual translator, cultural linguist, and tourism assistant for Bharat Yatra.
 Translate the following input: "${cleanInput}"
 From: ${sourceLang} (${sourceCode})
 To: ${targetLang} (${targetCode})
 
 Special Instructions:
-1. If translating to Telugu, provide natural authentic Telugu script (తెలుగు) in 'translatedText'. In 'pronunciation', provide clear, easy-to-read Telugu written in English alphabet (Teluglish, e.g., 'Ekkada vellali', 'Namaskaram, ela unnaru', 'Idi entha cost?').
-2. If the user input is in Telugu written in English (Teluglish) and target is English or Telugu, accurately understand the meaning and translate it cleanly.
-3. In 'culturalNote', provide a brief polite tourist etiquette tip for this phrase.`,
+1. ACCURACY & NATURAL TONE: Provide authentic, respectful, and culturally accurate translation in the target language's native script in 'translatedText'.
+2. TELUGU & TELUGLISH SUPPORT: If translating to Telugu, provide native Telugu script (తెలుగు) in 'translatedText'. In 'pronunciation', provide clear, natural, everyday Telugu written in English alphabet (Teluglish, e.g., 'Ekkada vellali', 'Namaskaram, miru ela unnaru?', 'Darshanam timings emiti?').
+3. HINDI & REGIONAL PHONETICS: For all Indian languages (Hindi, Tamil, Kannada, Malayalam, Bengali, etc.), provide the native script in 'translatedText' and Romanized/phonetic pronunciation in 'pronunciation'.
+4. SLANG & TRANSLITERATED INPUT: If user input is in Teluglish, Hinglish, Tanglish, or colloquial Indian phrasing, understand the intended semantic meaning perfectly and translate cleanly.
+5. CULTURAL ETIQUETTE NOTE: In 'culturalNote', provide a practical 1-sentence etiquette, cultural significance, or temple/market communication tip.`,
             config: {
               responseMimeType: "application/json",
               responseSchema: {
                 type: Type.OBJECT,
                 properties: {
                   translatedText: { type: Type.STRING, description: "Translation in the target language native script" },
-                  pronunciation: { type: Type.STRING, description: "Phonetic pronunciation guide in Latin script (e.g. Telugu in English)" },
+                  pronunciation: { type: Type.STRING, description: "Phonetic pronunciation guide in Latin script (e.g. Telugu in English / Teluglish)" },
                   culturalNote: { type: Type.STRING, description: "Brief polite etiquette tip on using this in India" },
                 },
                 required: ["translatedText"],
@@ -435,6 +449,18 @@ Special Instructions:
       ml: "Spoken across Kerala. Highly appreciated by locals when greetings are in Malayalam.",
       pa: "Spoken in Punjab. Greet with 'Sat Sri Akal' at gurdwaras and heritage monuments.",
       or: "Spoken in Odisha. Respectful greetings used at Puri Jagannath Temple & Konark.",
+      sa: "Classical sacred language of India, Vedic mantras, and ancient philosophical scriptures.",
+      ur: "Poetic and polite language with rich heritage across Lucknow, Hyderabad, and Delhi.",
+      as: "Spoken in Assam and Brahmaputra valley. Use 'Nomoskar' with warm hospitality.",
+      mai: "Spoken in Mithila region (Bihar/Jharkhand). Known for ancient arts and sweet dialect.",
+      kok: "Official language of Goa and coastal Konkan belt. Warmly spoken with 'Namaskar'.",
+      ks: "Classical language of Kashmir valley with rich Sufi and Shaivite traditions.",
+      sd: "Ancient Sindhi language with vibrant commercial and cultural heritage.",
+      ne: "Spoken in Sikkim, Darjeeling, and Himalayan regions of North & East India.",
+      mni: "Classical Manipuri language with vibrant classical dance and polo traditions.",
+      sat: "Austroasiatic language written in Ol Chiki script, celebrated across tribal heritage.",
+      doi: "Language of the Duggar region and Jammu hills, known for melodious folk songs.",
+      brx: "Sino-Tibetan language spoken in Bodoland, Assam, with rich indigenous folklore.",
       en: "Universal tourist language across airports, hotels, and tourist guides in India.",
     };
 

@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, X, Loader2, Upload, Search, RotateCcw, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Plus, Pencil, Trash2, X, Loader2, Upload, Search, RotateCcw, CheckCircle2, Camera } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { saveCardImageReplacement, getCustomCardImage, applyCustomImagesToList } from "@/components/lib/cardImageManager";
+import ReplaceImageModal from "@/components/ReplaceImageModal";
 
 export default function EntityEditor({ entityName, fields, title, defaultData, initialData }) {
   const actualDefaultData = defaultData || initialData || [];
@@ -12,6 +14,7 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
   const [successMsg, setSuccessMsg] = useState("");
   const [uploadingKey, setUploadingKey] = useState("");
   const [search, setSearch] = useState("");
+  const [replacingImageItem, setReplacingImageItem] = useState(null);
 
   const storageKey = `by-admin-entity-${entityName}`;
 
@@ -50,7 +53,8 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
         localStorage.setItem(storageKey, JSON.stringify(list));
       }
 
-      setRecords(list || []);
+      const finalized = applyCustomImagesToList(list || []);
+      setRecords(finalized);
     } catch (e) {
       setError(e?.message || "Failed to load");
     } finally {
@@ -62,23 +66,76 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
     load();
   }, [entityName]);
 
+  // Live listener for image replacements from cards anywhere in the app
+  useEffect(() => {
+    const handleImageChanged = (e) => {
+      const detail = e.detail;
+      if (!detail) return;
+      
+      setRecords((prevRecords) => {
+        let changed = false;
+        const updated = prevRecords.map((r) => {
+          const matchId = detail.id && (r.id === detail.id || String(r.id) === String(detail.id));
+          const rTitle = r.name || r.title || r.state || r.destination || "";
+          const matchName = detail.name && rTitle && (
+            rTitle.toLowerCase() === detail.name.toLowerCase()
+          );
+
+          if (matchId || matchName) {
+            changed = true;
+            return { ...r, image: detail.newImageUrl };
+          }
+          return r;
+        });
+
+        if (changed) {
+          setTimeout(() => {
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(updated));
+              syncSecondaryKeys(updated);
+            } catch (err) {
+              console.warn("EntityEditor storage sync warning:", err);
+            }
+          }, 0);
+          return updated;
+        }
+        return prevRecords;
+      });
+    };
+
+    window.addEventListener("by-card-image-changed", handleImageChanged);
+    return () => window.removeEventListener("by-card-image-changed", handleImageChanged);
+  }, [entityName, storageKey]);
+
   const syncSecondaryKeys = (updatedList) => {
-    if (entityName === "products") {
-      localStorage.setItem("by-artisan-products", JSON.stringify(updatedList));
-      window.dispatchEvent(new CustomEvent("by-products-updated", { detail: updatedList }));
-    } else if (entityName === "hotels") {
-      localStorage.setItem("by-hotels-directory", JSON.stringify(updatedList));
-      window.dispatchEvent(new CustomEvent("by-hotels-updated", { detail: updatedList }));
-    } else if (entityName === "places") {
-      window.dispatchEvent(new CustomEvent("by-places-updated", { detail: updatedList }));
-    } else if (entityName === "foods") {
-      window.dispatchEvent(new CustomEvent("by-foods-updated", { detail: updatedList }));
-    } else if (entityName === "events") {
-      window.dispatchEvent(new CustomEvent("by-events-updated", { detail: updatedList }));
-    } else if (entityName === "states") {
-      localStorage.setItem("by-states-directory", JSON.stringify(updatedList));
-      window.dispatchEvent(new CustomEvent("by-states-updated", { detail: updatedList }));
-    }
+    setTimeout(() => {
+      try {
+        if (entityName === "products") {
+          localStorage.setItem("by-artisan-products", JSON.stringify(updatedList));
+          localStorage.setItem("by-admin-entity-products", JSON.stringify(updatedList));
+          window.dispatchEvent(new CustomEvent("by-products-updated", { detail: updatedList }));
+        } else if (entityName === "hotels") {
+          localStorage.setItem("by-hotels-directory", JSON.stringify(updatedList));
+          localStorage.setItem("by-admin-entity-hotels", JSON.stringify(updatedList));
+          window.dispatchEvent(new CustomEvent("by-hotels-updated", { detail: updatedList }));
+        } else if (entityName === "places") {
+          localStorage.setItem("by-admin-entity-places", JSON.stringify(updatedList));
+          window.dispatchEvent(new CustomEvent("by-places-updated", { detail: updatedList }));
+        } else if (entityName === "foods") {
+          localStorage.setItem("by-admin-entity-foods", JSON.stringify(updatedList));
+          window.dispatchEvent(new CustomEvent("by-foods-updated", { detail: updatedList }));
+        } else if (entityName === "events") {
+          localStorage.setItem("by-admin-entity-events", JSON.stringify(updatedList));
+          window.dispatchEvent(new CustomEvent("by-events-updated", { detail: updatedList }));
+        } else if (entityName === "states") {
+          localStorage.setItem("by-states-directory", JSON.stringify(updatedList));
+          localStorage.setItem("by-admin-entity-states", JSON.stringify(updatedList));
+          window.dispatchEvent(new CustomEvent("by-states-updated", { detail: updatedList }));
+        }
+      } catch (e) {
+        console.warn("syncSecondaryKeys error:", e);
+      }
+    }, 0);
   };
 
   function resetToDefaultCatalog() {
@@ -87,10 +144,11 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
         id: item.id || `${entityName.toLowerCase()}-${idx + 1}`,
         ...item,
       }));
-      setRecords(formatted);
-      localStorage.setItem(storageKey, JSON.stringify(formatted));
-      syncSecondaryKeys(formatted);
-      setSuccessMsg(`Restored ${formatted.length} catalog records from initial database.`);
+      const withCustomImages = applyCustomImagesToList(formatted);
+      setRecords(withCustomImages);
+      localStorage.setItem(storageKey, JSON.stringify(withCustomImages));
+      syncSecondaryKeys(withCustomImages);
+      setSuccessMsg(`Restored ${withCustomImages.length} catalog records from initial database.`);
       setTimeout(() => setSuccessMsg(""), 4000);
     }
   }
@@ -133,6 +191,15 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
       localStorage.setItem(storageKey, JSON.stringify(updated));
       syncSecondaryKeys(updated);
 
+      if (recordToSave.image) {
+        saveCardImageReplacement({
+          id: recordToSave.id,
+          name: recordToSave.name || recordToSave.title || recordToSave.state,
+          type: entityName,
+          newImageUrl: recordToSave.image,
+        });
+      }
+
       setEditing(null);
       setSuccessMsg("Record saved successfully!");
       setTimeout(() => setSuccessMsg(""), 3000);
@@ -143,28 +210,6 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
     }
   }
 
-  async function uploadImage(fieldKey, file) {
-    if (!file) return;
-    setUploadingKey(fieldKey);
-    try {
-      if (base44?.integrations?.Core?.UploadFile) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        setEditing((prev) => ({ ...prev, [fieldKey]: file_url }));
-      } else {
-        // Fallback: read as base64 data URL
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setEditing((prev) => ({ ...prev, [fieldKey]: e.target.result }));
-        };
-        reader.readAsDataURL(file);
-      }
-    } catch (e) {
-      setError(e?.message || "Upload failed");
-    } finally {
-      setUploadingKey("");
-    }
-  }
-
   async function remove(id) {
     if (!confirm("Are you sure you want to delete this record?")) return;
     try {
@@ -172,65 +217,119 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
         try {
           await base44.entities[entityName].delete(id);
         } catch (err) {
-          console.warn("Base44 delete warning:", err);
+          console.warn("Base44 remote delete warning:", err);
         }
       }
       const updated = records.filter((r) => r.id !== id);
       setRecords(updated);
       localStorage.setItem(storageKey, JSON.stringify(updated));
       syncSecondaryKeys(updated);
-      setSuccessMsg("Record removed.");
-      setTimeout(() => setSuccessMsg(""), 3000);
     } catch (e) {
       setError(e?.message || "Delete failed");
     }
   }
 
-  const filteredRecords = records.filter((r) => {
-    if (!search.trim()) return true;
+  // Image Upload helper with local dataUrl fallback
+  async function uploadImage(key, file) {
+    if (!file) return;
+    setUploadingKey(key);
+    try {
+      if (base44?.integrations?.Core?.UploadFile) {
+        try {
+          const res = await base44.integrations.Core.UploadFile({ file });
+          if (res?.url) {
+            setEditing((prev) => ({ ...prev, [key]: res.url }));
+            setUploadingKey("");
+            return;
+          }
+        } catch (err) {
+          console.warn("Cloud storage upload warning, compressing file locally:", err);
+        }
+      }
+
+      // Fallback: Read as optimized webp data url
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const maxDim = 1000;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/webp", 0.82);
+          setEditing((prev) => ({ ...prev, [key]: dataUrl }));
+          setUploadingKey("");
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    } catch (e) {
+      setError("Image upload failed");
+      setUploadingKey("");
+    }
+  }
+
+  const filteredRecords = useMemo(() => {
+    if (!search.trim()) return records;
     const q = search.toLowerCase();
-    return (
-      (r.name && r.name.toLowerCase().includes(q)) ||
-      (r.state && r.state.toLowerCase().includes(q)) ||
-      (r.city && r.city.toLowerCase().includes(q)) ||
-      (r.origin && r.origin.toLowerCase().includes(q)) ||
-      (r.tag && r.tag.toLowerCase().includes(q)) ||
-      (r.description && r.description.toLowerCase().includes(q))
-    );
-  });
+    return records.filter((r) => {
+      const name = (r.name || r.title || r.state || "").toLowerCase();
+      const desc = (r.description || r.caption || "").toLowerCase();
+      const loc = (r.city || r.region || r.origin || r.location || "").toLowerCase();
+      const tag = (r.category || r.tag || "").toLowerCase();
+      return name.includes(q) || desc.includes(q) || loc.includes(q) || tag.includes(q);
+    });
+  }, [records, search]);
 
   if (loading) {
     return (
-      <div className="py-12 flex flex-col items-center justify-center gap-2">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        <span className="text-xs text-muted-foreground">Loading {title}...</span>
+      <div className="flex items-center justify-center p-12 text-muted-foreground gap-2">
+        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+        <span className="text-sm">Loading verified {title} catalog...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="space-y-6">
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h3 className="font-bold text-lg text-foreground">{title}</h3>
-          <p className="text-xs text-muted-foreground">
-            {records.length} active records in catalog
+          <h3 className="text-lg font-bold text-foreground flex items-center gap-2 font-heading">
+            <span>{title}</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+              {records.length} items
+            </span>
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage, replace photos, add or edit verified database records.
           </p>
         </div>
+
         <div className="flex items-center gap-2 flex-wrap">
-          {actualDefaultData && actualDefaultData.length > 0 && (
+          {actualDefaultData.length > 0 && (
             <button
-              type="button"
               onClick={resetToDefaultCatalog}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card hover:bg-muted text-xs font-semibold text-foreground transition-colors"
-              title="Reset catalog with all authentic before-data"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground text-xs font-medium transition-colors border border-border"
+              title="Reset records to default authentic dataset"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-primary" />
-              <span>Preload Full Catalog ({actualDefaultData.length})</span>
+              <RotateCcw className="w-3.5 h-3.5" /> Reset Catalog
             </button>
           )}
+
           <button
-            type="button"
             onClick={() => setEditing(blank())}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:opacity-90"
           >
@@ -369,72 +468,111 @@ export default function EntityEditor({ entityName, fields, title, defaultData, i
         </div>
       )}
 
-      {/* Grid of Records */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {filteredRecords.map((r) => (
-          <div
-            key={r.id}
-            className="rounded-2xl bg-card border border-border p-3.5 flex flex-col justify-between hover:border-primary/40 transition-colors shadow-xs"
-          >
-            <div>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-foreground truncate">{r.name || r.state || r.title || "Unnamed"}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {r.region || r.state || r.city || r.origin || r.month || r.location || "National"}
+      {/* Grid of Records with instant Photo Replacement */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredRecords.map((r) => {
+          const resolvedImg = getCustomCardImage(r, r.image);
+          return (
+            <div
+              key={r.id}
+              className="rounded-3xl bg-card border border-border p-4 flex flex-col justify-between hover:border-primary/40 transition-colors shadow-xs group"
+            >
+              <div>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-foreground truncate">{r.name || r.state || r.title || "Unnamed"}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {r.region || r.state || r.city || r.origin || r.month || r.location || "National"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setReplacingImageItem(r)}
+                      className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all"
+                      title="Replace / Change Image"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setEditing(r)}
+                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      title="Edit Record"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => remove(r.id)}
+                      className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+                      title="Delete Record"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {resolvedImg && (
+                  <div className="relative mt-2.5 h-32 w-full rounded-2xl overflow-hidden border border-border bg-muted">
+                    <img
+                      src={resolvedImg}
+                      alt={r.name || r.state || r.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setReplacingImageItem(r)}
+                      className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/75 hover:bg-primary text-white text-[11px] font-semibold backdrop-blur-xs flex items-center gap-1 shadow-md transition-all hover:scale-105"
+                    >
+                      <Camera className="w-3 h-3" /> Change Photo
+                    </button>
+                  </div>
+                )}
+
+                {(r.description || r.caption) && (
+                  <p className="mt-2.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {r.description || r.caption}
                   </p>
-                </div>
-                <div className="flex gap-1 shrink-0">
-                  <button
-                    onClick={() => setEditing(r)}
-                    className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    title="Edit Record"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => remove(r.id)}
-                    className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
-                    title="Delete Record"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                )}
               </div>
 
-              {r.image && (
-                <img
-                  src={r.image}
-                  alt={r.name || r.state}
-                  className="mt-2.5 h-28 w-full object-cover rounded-xl border border-border"
-                  referrerPolicy="no-referrer"
-                />
-              )}
-
-              {(r.description || r.caption) && (
-                <p className="mt-2 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                  {r.description || r.caption}
-                </p>
-              )}
+              <div className="mt-3 pt-2.5 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {r.price ? `₹${r.price}` : r.ticket_price || (r.rating ? `★ ${r.rating}` : r.tag || "")}
+                </span>
+                <span className="capitalize">{r.category || r.tag || r.classification || ""}</span>
+              </div>
             </div>
-
-            <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
-              <span className="font-semibold text-foreground">
-                {r.price ? `₹${r.price}` : r.ticket_price || (r.rating ? `★ ${r.rating}` : r.tag || "")}
-              </span>
-              <span className="capitalize">{r.category || r.tag || r.classification || ""}</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredRecords.length === 0 && (
         <div className="p-8 rounded-3xl bg-muted/40 border border-border text-center space-y-2">
           <p className="text-sm font-semibold text-foreground">No matching records found</p>
           <p className="text-xs text-muted-foreground">
-            {search ? "Try adjusting your search terms." : "Click 'Preload Full Catalog' above to load all authentic data."}
+            {search ? "Try adjusting your search terms." : "Click 'Reset Catalog' above to load all authentic data."}
           </p>
         </div>
+      )}
+
+      {/* Direct Replace Photo Modal for Admin */}
+      {replacingImageItem && (
+        <ReplaceImageModal
+          isOpen={Boolean(replacingImageItem)}
+          onClose={() => setReplacingImageItem(null)}
+          item={replacingImageItem}
+          type={entityName}
+          onSuccess={(newUrl) => {
+            setRecords((prev) =>
+              prev.map((item) =>
+                item.id === replacingImageItem.id ? { ...item, image: newUrl } : item
+              )
+            );
+            setSuccessMsg(`Photo updated for "${replacingImageItem.name || replacingImageItem.title || replacingImageItem.state}"!`);
+            setTimeout(() => setSuccessMsg(""), 3000);
+          }}
+        />
       )}
 
       <style>{`

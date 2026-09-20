@@ -6,6 +6,7 @@ import { heritageSites, states, travelGuides, stories } from "@/lib/heritageData
 import { enrichedHeritageSites } from "@/lib/richHeritageData";
 import HeritageCard from "@/components/HeritageCard";
 import HeritageDetailModal from "@/components/HeritageDetailModal";
+import { getCustomCardImage } from "@/components/lib/cardImageManager";
 
 const storyCats = ["All", "Crafts", "Spiritual", "Travel", "Folk", "History"];
 
@@ -104,14 +105,21 @@ export default function Heritage() {
           if (nameKey) uniqueMap.set(nameKey, item);
         }
       });
-      // Filter out duplicate object references from the map values
-      const uniqueSites = Array.from(new Set(uniqueMap.values()));
+      // Filter out duplicate object references from the map values and resolve custom images
+      const uniqueSites = Array.from(new Set(uniqueMap.values())).map(site => ({
+        ...site,
+        image: getCustomCardImage(site, site.image),
+      }));
       setAllSites(uniqueSites);
     };
 
     loadPlaces();
     window.addEventListener("by-places-updated", loadPlaces);
-    return () => window.removeEventListener("by-places-updated", loadPlaces);
+    window.addEventListener("by-card-image-changed", loadPlaces);
+    return () => {
+      window.removeEventListener("by-places-updated", loadPlaces);
+      window.removeEventListener("by-card-image-changed", loadPlaces);
+    };
   }, []);
 
   // Handle URL id param to open modal automatically

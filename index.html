@@ -7,6 +7,26 @@
     <link rel="manifest" href="/manifest.json" />
     <title>Bharat Yatra — Discover India's Living Heritage</title>
     <meta name="description" content="AI-powered trips, local crafts, food & stories — across every Indian state." />
+    <script>
+      // Early suppression of benign WebSocket / HMR closures in container preview
+      window.addEventListener('unhandledrejection', function(e) {
+        var reason = e && (e.reason || '');
+        var msg = String(reason.message || reason || '').toLowerCase();
+        if (msg.indexOf('websocket') !== -1 || msg.indexOf('closed without opened') !== -1 || msg.indexOf('vite') !== -1) {
+          e.preventDefault && e.preventDefault();
+          e.stopImmediatePropagation && e.stopImmediatePropagation();
+          return false;
+        }
+      }, true);
+      window.addEventListener('error', function(e) {
+        var msg = String((e && e.message) || '').toLowerCase();
+        if (msg.indexOf('websocket') !== -1 || msg.indexOf('closed without opened') !== -1 || msg.indexOf('vite') !== -1) {
+          e.preventDefault && e.preventDefault();
+          e.stopImmediatePropagation && e.stopImmediatePropagation();
+          return false;
+        }
+      }, true);
+    </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>

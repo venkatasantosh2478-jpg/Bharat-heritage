@@ -7,6 +7,11 @@ import EventCalendarView from "@/components/EventCalendarView";
 import EntityEditor from "@/components/EntityEditor";
 import { base44 } from "@/api/base44Client";
 import { events as staticEvents } from "@/lib/heritageData";
+import { 
+  saveCardImageReplacement, 
+  compressImageFile, 
+  applyCustomImagesToList 
+} from "./lib/cardImageManager";
 
 const HERITAGE_PHOTO_PRESETS = [
   { label: "Festive Diya & Ghats", url: "https://images.unsplash.com/photo-1548013146-72479768bada?w=800&auto=format&fit=crop&q=80" },
@@ -62,7 +67,7 @@ export default function AdminEventManager({ eventFields }) {
         localStorage.setItem(storageKey, JSON.stringify(list));
       }
 
-      setEvents(list || []);
+      setEvents(applyCustomImagesToList(list || []));
     } catch (err) {
       console.error("Failed to load events:", err);
     } finally {
@@ -74,11 +79,13 @@ export default function AdminEventManager({ eventFields }) {
     loadEvents();
 
     const handleUpdated = (e) => {
-      if (e?.detail && Array.isArray(e.detail)) {
-        setEvents(e.detail);
-      } else {
-        loadEvents();
-      }
+      setTimeout(() => {
+        if (e?.detail && Array.isArray(e.detail)) {
+          setEvents(e.detail);
+        } else {
+          loadEvents();
+        }
+      }, 0);
     };
 
     window.addEventListener("by-events-updated", handleUpdated);
@@ -159,14 +166,13 @@ export default function AdminEventManager({ eventFields }) {
       if (base44?.integrations?.Core?.UploadFile) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         setEditingEvent((prev) => ({ ...prev, image: file_url }));
+        notify("Image uploaded successfully!");
       } else {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setEditingEvent((prev) => ({ ...prev, image: e.target.result }));
-        };
-        reader.readAsDataURL(file);
+        // Compress image to lightweight WebP data URL to save browser quota
+        const compressedBase64 = await compressImageFile(file, 800, 0.8);
+        setEditingEvent((prev) => ({ ...prev, image: compressedBase64 }));
+        notify("Image uploaded & compressed successfully!");
       }
-      notify("Image uploaded successfully!");
     } catch (e) {
       notify("Upload failed: " + (e?.message || "Unknown error"), "error");
     } finally {
@@ -198,6 +204,16 @@ export default function AdminEventManager({ eventFields }) {
             record.month = d.toLocaleString("default", { month: "long" });
           }
         }
+      }
+
+      // Sync image to cardImageManager mapping for consistent cross-app resolution
+      if (record.image) {
+        saveCardImageReplacement({
+          id: record.id,
+          name: record.name,
+          type: "event",
+          newImageUrl: record.image,
+        });
       }
 
       // Try Base44 update / create
